@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -652,7 +652,236 @@ export default function BranchesPage() {
                     </div>
                 );
             })()}
+            {/* ── تحليل المنتجات: حجم المبيعات + متوسط السعر ، ومتوسط السلة + ATV ── */}
+            {(() => {
+                type Prod = { name: string; vol: number; price: number; basket: number; atv: number };
+                type Cat = { name: string; vol: number; price: number; basket: number; atv: number; products: Prod[] };
+                type Br = { branch: string; vol: number; price: number; basket: number; atv: number; cats: Cat[] };
+                const prodAnalysis: Br[] = [
+                    {
+                        branch: 'سوق المنارة', vol: 52400, price: 1.7, basket: 8.2, atv: 12.4, cats: [
+                            {
+                                name: 'منتجات غذائية', vol: 18200, price: 1.8, basket: 12.5, atv: 15.8, products: [
+                                    { name: 'حبوب وأرز', vol: 6200, price: 2.1, basket: 14.2, atv: 18.5 },
+                                    { name: 'زيوت', vol: 4800, price: 1.6, basket: 11.8, atv: 14.2 },
+                                    { name: 'حليب وألبان', vol: 4200, price: 1.9, basket: 12.0, atv: 16.0 },
+                                    { name: 'معلبات', vol: 3000, price: 1.4, basket: 10.5, atv: 12.5 },
+                                ]
+                            },
+                            {
+                                name: 'مستلزمات منزلية', vol: 12100, price: 0.9, basket: 10.2, atv: 6.4, products: [
+                                    { name: 'منظفات', vol: 5200, price: 0.8, basket: 11.5, atv: 7.2 },
+                                    { name: 'أدوات مطبخ', vol: 3800, price: 1.1, basket: 9.0, atv: 5.8 },
+                                    { name: 'معطرات جو', vol: 3100, price: 0.7, basket: 8.5, atv: 5.5 },
+                                ]
+                            },
+                            {
+                                name: 'العناية الشخصية', vol: 8400, price: 1.4, basket: 5.8, atv: 8.5, products: [
+                                    { name: 'شامبو وبلسم', vol: 3200, price: 1.5, basket: 6.2, atv: 9.0 },
+                                    { name: 'معجون أسنان', vol: 2800, price: 1.2, basket: 5.5, atv: 7.8 },
+                                    { name: 'عطور', vol: 2400, price: 1.6, basket: 5.2, atv: 8.8 },
+                                ]
+                            },
+                            {
+                                name: 'أجهزة وإلكترونيات', vol: 6200, price: 1.9, basket: 3.2, atv: 5.8, products: [
+                                    { name: 'بطاريات', vol: 2800, price: 1.8, basket: 3.5, atv: 6.2 },
+                                    { name: 'إضاءة LED', vol: 2100, price: 2.2, basket: 2.8, atv: 5.5 },
+                                ]
+                            },
+                            {
+                                name: 'مسطحات', vol: 7500, price: 1.5, basket: 4.5, atv: 5.2, products: [
+                                    { name: 'مسطحات ساخنة', vol: 4200, price: 1.6, basket: 4.8, atv: 5.8 },
+                                    { name: 'مسطحات باردة', vol: 3300, price: 1.3, basket: 4.0, atv: 4.5 },
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        branch: 'سوق البقعة', vol: 48800, price: 1.6, basket: 7.8, atv: 11.2, cats: [
+                            {
+                                name: 'منتجات غذائية', vol: 16500, price: 1.7, basket: 11.8, atv: 14.5, products: [
+                                    { name: 'حبوب وأرز', vol: 5800, price: 2.0, basket: 13.5, atv: 17.2 },
+                                    { name: 'زيوت', vol: 4200, price: 1.5, basket: 10.8, atv: 13.0 },
+                                    { name: 'معلبات', vol: 3500, price: 1.4, basket: 10.0, atv: 11.8 },
+                                ]
+                            },
+                            {
+                                name: 'مستلزمات منزلية', vol: 11200, price: 0.8, basket: 9.5, atv: 5.8, products: [
+                                    { name: 'منظفات', vol: 4800, price: 0.7, basket: 10.2, atv: 6.5 },
+                                    { name: 'أكياس وأغلفة', vol: 3200, price: 0.9, basket: 8.8, atv: 5.2 },
+                                    { name: 'معطرات جو', vol: 3200, price: 0.8, basket: 8.5, atv: 5.0 },
+                                ]
+                            },
+                            {
+                                name: 'مستلزمات الأطفال', vol: 8200, price: 1.2, basket: 4.2, atv: 4.8, products: [
+                                    { name: 'حفاضات', vol: 3500, price: 1.1, basket: 4.5, atv: 5.2 },
+                                    { name: 'حليب أطفال', vol: 2800, price: 1.4, basket: 4.0, atv: 4.8 },
+                                    { name: 'طعام أطفال', vol: 1900, price: 1.0, basket: 3.8, atv: 4.0 },
+                                ]
+                            },
+                            {
+                                name: 'فرفاشية', vol: 6500, price: 1.5, basket: 2.8, atv: 6.2, products: [
+                                    { name: 'مفارش', vol: 3800, price: 1.6, basket: 3.0, atv: 6.8 },
+                                    { name: 'وسائد', vol: 2700, price: 1.3, basket: 2.5, atv: 5.5 },
+                                ]
+                            },
+                            {
+                                name: 'منتجات ورقية', vol: 6400, price: 2.1, basket: 6.8, atv: 7.2, products: [
+                                    { name: 'مناديل', vol: 2800, price: 2.0, basket: 7.2, atv: 7.8 },
+                                    { name: 'ورق تواليت', vol: 2200, price: 2.2, basket: 6.5, atv: 6.8 },
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        branch: 'سوق الخبر', vol: 42200, price: 1.5, basket: 7.0, atv: 10.5, cats: [
+                            {
+                                name: 'منتجات غذائية', vol: 15200, price: 1.6, basket: 11.0, atv: 13.8, products: [
+                                    { name: 'حبوب وأرز', vol: 5500, price: 1.9, basket: 12.8, atv: 16.0 },
+                                    { name: 'حليب وألبان', vol: 4200, price: 1.5, basket: 10.5, atv: 12.5 },
+                                    { name: 'زيوت', vol: 2500, price: 1.4, basket: 9.8, atv: 12.0 },
+                                ]
+                            },
+                            {
+                                name: 'العناية الشخصية', vol: 9800, price: 1.3, basket: 5.2, atv: 7.8, products: [
+                                    { name: 'مزيل عرق', vol: 3200, price: 1.2, basket: 5.5, atv: 8.0 },
+                                    { name: 'شامبو وبلسم', vol: 3000, price: 1.4, basket: 5.0, atv: 7.5 },
+                                    { name: 'عطور', vol: 2200, price: 1.5, basket: 4.8, atv: 8.2 },
+                                ]
+                            },
+                            {
+                                name: 'غير مصنف', vol: 8200, price: 1.3, basket: 3.5, atv: 5.5, products: [
+                                    { name: 'متفرقات', vol: 4800, price: 1.2, basket: 3.8, atv: 5.8 },
+                                    { name: 'عام', vol: 3400, price: 1.4, basket: 3.2, atv: 5.0 },
+                                ]
+                            },
+                            {
+                                name: 'مسطحات', vol: 9000, price: 1.8, basket: 5.0, atv: 6.0, products: [
+                                    { name: 'مسطحات ساخنة', vol: 5200, price: 1.9, basket: 5.5, atv: 6.5 },
+                                    { name: 'مسطحات باردة', vol: 3800, price: 1.6, basket: 4.2, atv: 5.2 },
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        branch: 'سوق القويسمة', vol: 38500, price: 1.4, basket: 6.5, atv: 9.2, cats: [
+                            {
+                                name: 'منتجات غذائية', vol: 14200, price: 1.5, basket: 10.5, atv: 12.8, products: [
+                                    { name: 'حبوب وأرز', vol: 5200, price: 1.8, basket: 12.0, atv: 15.0 },
+                                    { name: 'زيوت', vol: 4000, price: 1.3, basket: 9.8, atv: 11.5 },
+                                    { name: 'معلبات', vol: 3000, price: 1.2, basket: 9.0, atv: 10.5 },
+                                ]
+                            },
+                            {
+                                name: 'مستلزمات منزلية', vol: 10800, price: 0.8, basket: 9.0, atv: 5.5, products: [
+                                    { name: 'منظفات', vol: 4500, price: 0.7, basket: 9.8, atv: 6.0 },
+                                    { name: 'أدوات مطبخ', vol: 3500, price: 0.9, basket: 8.5, atv: 5.2 },
+                                    { name: 'أكياس وأغلفة', vol: 2800, price: 0.8, basket: 8.0, atv: 4.8 },
+                                ]
+                            },
+                            {
+                                name: 'أجهزة وإلكترونيات', vol: 6800, price: 2.0, basket: 3.5, atv: 6.2, products: [
+                                    { name: 'بطاريات', vol: 3000, price: 1.9, basket: 3.8, atv: 6.5 },
+                                    { name: 'إضاءة LED', vol: 2200, price: 2.3, basket: 3.0, atv: 6.0 },
+                                ]
+                            },
+                            {
+                                name: 'فرفاشية', vol: 6700, price: 1.5, basket: 2.5, atv: 5.8, products: [
+                                    { name: 'مفارش', vol: 3800, price: 1.6, basket: 2.8, atv: 6.2 },
+                                    { name: 'وسائد', vol: 2900, price: 1.3, basket: 2.2, atv: 5.2 },
+                                ]
+                            },
+                        ]
+                    },
+                ];
+                const gMaxVol = Math.max(...prodAnalysis.flatMap(b => b.cats.flatMap(c => c.products.map(p => p.vol))));
+                const gMaxAtv = Math.max(...prodAnalysis.flatMap(b => b.cats.flatMap(c => c.products.map(p => p.atv))));
+                const gMaxBsk = Math.max(...prodAnalysis.flatMap(b => b.cats.flatMap(c => c.products.map(p => p.basket))));
+                const fk = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : `${v}`;
+                type Row = { key: string; label: string; depth: number; vol: number; price: number; basket: number; atv: number; has: boolean; open: boolean; click?: () => void };
+                const t1: Row[] = [];
+                const t2: Row[] = [];
+                for (const b of prodAnalysis) {
+                    const bk1 = `pv_${b.branch}`, bk2 = `bs_${b.branch}`;
+                    const bo1 = !!expandedCats[bk1], bo2 = !!expandedCats[bk2];
+                    const toggle = (k: string) => () => setExpandedCats(p => ({ ...p, [k]: !p[k] }));
+                    t1.push({ key: bk1, label: b.branch, depth: 0, vol: b.vol, price: b.price, basket: b.basket, atv: b.atv, has: true, open: bo1, click: toggle(bk1) });
+                    t2.push({ key: bk2, label: b.branch, depth: 0, vol: b.vol, price: b.price, basket: b.basket, atv: b.atv, has: true, open: bo2, click: toggle(bk2) });
+                    if (bo1) for (const c of b.cats) {
+                        const ck = `pv_${b.branch}_${c.name}`, co = !!expandedCats[ck];
+                        t1.push({ key: ck, label: c.name, depth: 1, vol: c.vol, price: c.price, basket: c.basket, atv: c.atv, has: true, open: co, click: toggle(ck) });
+                        if (co) for (const p of c.products) t1.push({ key: `${ck}_${p.name}`, label: p.name, depth: 2, vol: p.vol, price: p.price, basket: p.basket, atv: p.atv, has: false, open: false });
+                    }
+                    if (bo2) for (const c of b.cats) {
+                        const ck = `bs_${b.branch}_${c.name}`, co = !!expandedCats[ck];
+                        t2.push({ key: ck, label: c.name, depth: 1, vol: c.vol, price: c.price, basket: c.basket, atv: c.atv, has: true, open: co, click: toggle(ck) });
+                        if (co) for (const p of c.products) t2.push({ key: `${ck}_${p.name}`, label: p.name, depth: 2, vol: p.vol, price: p.price, basket: p.basket, atv: p.atv, has: false, open: false });
+                    }
+                }
+                const rowCell = (r: Row) => (
+                    <td style={{ color: r.depth === 0 ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: r.depth === 0 ? 600 : r.depth === 1 ? 500 : 400, fontSize: [12, 11, 10][r.depth], paddingRight: r.depth * 16 + 8 }}>
+                        <div className="flex items-center gap-1">
+                            {r.has ? (<span style={{ display: 'inline-flex', alignItems: 'center', width: 12, height: 12, borderRadius: 2, background: r.open ? 'rgba(37,99,235,0.12)' : 'transparent' }}>{r.open ? <ChevronDown size={9} style={{ color: 'var(--accent-blue)' }} /> : <ChevronLeft size={9} style={{ color: 'var(--text-muted)' }} />}</span>)
+                                : (<span style={{ color: 'var(--text-muted)', fontSize: 8, marginLeft: 2 }}>•</span>)}
+                            {r.label}
+                        </div>
+                    </td>
+                );
+                return (
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        <div className="glass-panel p-0 overflow-hidden">
+                            <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>حجم مبيعات المنتجات ومتوسط السعر</h3>
+                                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>فرع → فئة → منتج</p>
+                            </div>
+                            <div className="overflow-x-auto" style={{ maxHeight: 440, overflowY: 'auto' }}>
+                                <table className="enterprise-table"><thead><tr>
+                                    <th style={{ minWidth: 130 }}>الاسم</th><th style={{ textAlign: 'center' }}>الحجم</th><th style={{ textAlign: 'center' }}>م. السعر</th><th style={{ textAlign: 'center', minWidth: 70 }}>المؤشر</th>
+                                </tr></thead><tbody>
+                                        {t1.map(r => (
+                                            <tr key={r.key} style={{ cursor: r.has ? 'pointer' : 'default', background: r.depth === 2 ? 'var(--bg-elevated)' : undefined }} onClick={r.click}>
+                                                {rowCell(r)}
+                                                <td style={{ textAlign: 'center', fontSize: [12, 11, 10][r.depth] }} dir="ltr"><span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{fk(r.vol)}</span></td>
+                                                <td style={{ textAlign: 'center', fontSize: [12, 11, 10][r.depth] }} dir="ltr"><span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>{r.price.toFixed(1)}</span></td>
+                                                <td style={{ padding: '3px 6px' }}><div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}><div className="h-full rounded-full" style={{ width: `${(r.vol / gMaxVol) * 100}%`, background: 'var(--accent-blue)', opacity: [1, 0.7, 0.5][r.depth] }} /></div></td>
+                                            </tr>
+                                        ))}
+                                    </tbody></table>
+                            </div>
+                        </div>
+                        <div className="glass-panel p-0 overflow-hidden">
+                            <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>متوسط حجم السلة وقيمة المعاملة</h3>
+                                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>فرع → فئة → منتج</p>
+                            </div>
+                            <div className="overflow-x-auto" style={{ maxHeight: 440, overflowY: 'auto' }}>
+                                <table className="enterprise-table"><thead><tr>
+                                    <th style={{ minWidth: 130 }}>الاسم</th><th style={{ textAlign: 'center' }}>السلة</th><th style={{ textAlign: 'center' }}>ATV</th><th style={{ textAlign: 'center', minWidth: 70 }}>المؤشر</th>
+                                </tr></thead><tbody>
+                                        {t2.map(r => {
+                                            const sz = Math.max(6, (r.basket / gMaxBsk) * 18);
+                                            return (
+                                                <tr key={r.key} style={{ cursor: r.has ? 'pointer' : 'default', background: r.depth === 2 ? 'var(--bg-elevated)' : undefined }} onClick={r.click}>
+                                                    {rowCell(r)}
+                                                    <td style={{ textAlign: 'center', fontSize: [12, 11, 10][r.depth] }} dir="ltr"><span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{r.basket.toFixed(1)}</span></td>
+                                                    <td style={{ textAlign: 'center', fontSize: [12, 11, 10][r.depth] }} dir="ltr"><span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>{r.atv.toFixed(1)}</span></td>
+                                                    <td style={{ textAlign: 'center', padding: '3px 6px' }}>
+                                                        <div className="flex items-center justify-center gap-1.5">
+                                                            <span style={{ width: sz, height: sz, borderRadius: '50%', background: 'var(--accent-blue)', opacity: r.depth === 0 ? 0.8 : 0.5, display: 'inline-block', flexShrink: 0 }} />
+                                                            <div className="h-1.5 rounded-full overflow-hidden flex-1" style={{ background: 'var(--bg-elevated)', maxWidth: 45 }}><div className="h-full rounded-full" style={{ width: `${(r.atv / gMaxAtv) * 100}%`, background: 'var(--accent-green)' }} /></div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
+            {/* ── خريطة الفروع + صافي المبيعات ── */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <BranchMap />
                 <ChartCard title="صافي المبيعات عبر الزمن لكل فرع" subtitle="Net Sales Over Time by Branch" option={netSalesByBranchOption} height="460px" delay={2} />
@@ -661,6 +890,6 @@ export default function BranchesPage() {
             <BranchSalesTable />
 
             <EnterpriseTable title="دليل الفروع" columns={branchColumns} data={branches} pageSize={10} />
-        </div>
+        </div >
     );
 }
