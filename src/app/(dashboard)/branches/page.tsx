@@ -471,7 +471,188 @@ export default function BranchesPage() {
                 </div>
             </div>
 
-            {/* ── خريطة الفروع + نسبة المبيعات ── */}
+            {/* ── مقارنة المبيعات: السنة الحالية مقابل السنة السابقة ── */}
+            {(() => {
+                const yoyData = [
+                    {
+                        branch: 'سوق المنارة', py: 73100, ac: 24400, years: [
+                            { year: '2020', py: 45200, ac: null as number | null },
+                            { year: '2022', py: 27900, ac: 24400 },
+                            { year: '2021', py: 45100, ac: 27900 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق البقعة', py: 68200, ac: 52100, years: [
+                            { year: '2020', py: 42000, ac: null as number | null },
+                            { year: '2022', py: 55800, ac: 52100 },
+                            { year: '2021', py: 42000, ac: 55800 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق الخبر', py: 58400, ac: 43200, years: [
+                            { year: '2020', py: 38500, ac: null as number | null },
+                            { year: '2022', py: 42500, ac: 43200 },
+                            { year: '2021', py: 38500, ac: 42500 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق القويسمة', py: 52300, ac: 39200, years: [
+                            { year: '2020', py: 35600, ac: null as number | null },
+                            { year: '2022', py: 38400, ac: 39200 },
+                            { year: '2021', py: 35600, ac: 38400 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق سطح النجم', py: 41200, ac: 21800, years: [
+                            { year: '2020', py: 28900, ac: null as number | null },
+                            { year: '2022', py: 32100, ac: 21800 },
+                            { year: '2021', py: 28900, ac: 32100 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق الدمام', py: 35800, ac: 16200, years: [
+                            { year: '2020', py: 22300, ac: null as number | null },
+                            { year: '2022', py: 22300, ac: 16200 },
+                            { year: '2021', py: 22300, ac: 22300 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق راس العين', py: 28100, ac: 13500, years: [
+                            { year: '2020', py: 18200, ac: null as number | null },
+                            { year: '2022', py: 18200, ac: 13500 },
+                            { year: '2021', py: 18200, ac: 18200 },
+                        ]
+                    },
+                    {
+                        branch: 'سوق جدة', py: 22400, ac: 10800, years: [
+                            { year: '2020', py: 15200, ac: null as number | null },
+                            { year: '2022', py: 15200, ac: 10800 },
+                            { year: '2021', py: 15200, ac: 15200 },
+                        ]
+                    },
+                ];
+                const allDeltas = yoyData.flatMap(d => {
+                    const main = d.ac - d.py;
+                    const subs = d.years.filter(y => y.ac !== null).map(y => (y.ac as number) - y.py);
+                    return [main, ...subs];
+                });
+                const maxAbsDelta = Math.max(...allDeltas.map(Math.abs), 1);
+                const fmt = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : `${v}`;
+                const fmtDelta = (v: number) => `${v >= 0 ? '+' : ''}${fmt(v)}`;
+                const pct = (ac: number, py: number) => py === 0 ? 0 : ((ac - py) / py * 100);
+
+                return (
+                    <div className="glass-panel p-0 overflow-hidden">
+                        <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+                            <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>مقارنة المبيعات: السنة الحالية مقابل السابقة</h3>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Current Year Sales and Previous Year Sales by Year, Branch Name</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="enterprise-table" style={{ minWidth: 700 }}>
+                                <thead>
+                                    <tr>
+                                        <th style={{ minWidth: 140 }}>الفرع</th>
+                                        <th style={{ textAlign: 'center', width: 70 }}>السابق</th>
+                                        <th style={{ textAlign: 'center', width: 70 }}>الفعلي</th>
+                                        <th style={{ textAlign: 'center', minWidth: 240 }}>الفرق</th>
+                                        <th style={{ textAlign: 'center', width: 80 }}>التغير%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {yoyData.map(d => {
+                                        const delta = d.ac - d.py;
+                                        const deltaPct = pct(d.ac, d.py);
+                                        const isOpen = expandedCats[`yoy_${d.branch}`];
+                                        const barW = Math.abs(delta) / maxAbsDelta * 50; // max 50% of cell width per side
+                                        return (
+                                            <React.Fragment key={d.branch}>
+                                                <tr style={{ cursor: 'pointer' }} onClick={() => setExpandedCats(p => ({ ...p, [`yoy_${d.branch}`]: !p[`yoy_${d.branch}`] }))}>
+                                                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span style={{ display: 'inline-flex', alignItems: 'center', width: 14, height: 14, borderRadius: 3, background: isOpen ? 'rgba(37,99,235,0.12)' : 'var(--bg-elevated)' }}>
+                                                                {isOpen ? <ChevronDown size={10} style={{ color: 'var(--accent-blue)' }} /> : <ChevronLeft size={10} style={{ color: 'var(--text-muted)' }} />}
+                                                            </span>
+                                                            {d.branch}
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center', fontWeight: 500, color: 'var(--text-secondary)' }} dir="ltr">{fmt(d.py)}</td>
+                                                    <td style={{ textAlign: 'center', fontWeight: 500, color: 'var(--text-secondary)' }} dir="ltr">{fmt(d.ac)}</td>
+                                                    <td style={{ padding: '4px 8px' }}>
+                                                        <div style={{ position: 'relative', height: 18, display: 'flex', alignItems: 'center' }}>
+                                                            {/* Center axis */}
+                                                            <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'var(--border-subtle)' }} />
+                                                            {/* Bar */}
+                                                            {delta < 0 ? (
+                                                                <div style={{ position: 'absolute', right: '50%', top: 2, bottom: 2, width: `${barW}%`, background: 'var(--accent-red)', borderRadius: '3px 0 0 3px' }} />
+                                                            ) : (
+                                                                <div style={{ position: 'absolute', left: '50%', top: 2, bottom: 2, width: `${barW}%`, background: 'var(--accent-green)', borderRadius: '0 3px 3px 0' }} />
+                                                            )}
+                                                            {/* Label */}
+                                                            <span className="text-[10px] font-bold" dir="ltr" style={{
+                                                                position: 'absolute',
+                                                                color: delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
+                                                                ...(delta < 0 ? { right: `calc(50% + ${barW}% + 6px)` } : { left: `calc(50% + ${barW}% + 6px)` }),
+                                                                whiteSpace: 'nowrap',
+                                                            }}>{fmtDelta(delta)}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style={{ textAlign: 'center' }}>
+                                                        <div className="flex items-center justify-center gap-1" dir="ltr">
+                                                            <span className="text-[11px] font-bold" style={{ color: deltaPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{deltaPct >= 0 ? '+' : ''}{deltaPct.toFixed(1)}</span>
+                                                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: deltaPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', display: 'inline-block' }} />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {isOpen && d.years.map(y => {
+                                                    const yDelta = y.ac !== null ? (y.ac as number) - y.py : null;
+                                                    const yPct = y.ac !== null ? pct(y.ac as number, y.py) : null;
+                                                    const yBarW = yDelta !== null ? Math.abs(yDelta) / maxAbsDelta * 50 : 0;
+                                                    return (
+                                                        <tr key={y.year} style={{ background: 'var(--bg-elevated)' }}>
+                                                            <td style={{ paddingRight: 28, color: 'var(--text-muted)', fontSize: 12 }}>
+                                                                <span style={{ marginLeft: 4 }}>┃</span> {y.year}
+                                                            </td>
+                                                            <td style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }} dir="ltr">{fmt(y.py)}</td>
+                                                            <td style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }} dir="ltr">{y.ac !== null ? fmt(y.ac as number) : ''}</td>
+                                                            <td style={{ padding: '3px 8px' }}>
+                                                                {yDelta !== null && (
+                                                                    <div style={{ position: 'relative', height: 14, display: 'flex', alignItems: 'center' }}>
+                                                                        <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'var(--border-subtle)' }} />
+                                                                        {yDelta < 0 ? (
+                                                                            <div style={{ position: 'absolute', right: '50%', top: 1, bottom: 1, width: `${yBarW}%`, background: 'var(--accent-red)', borderRadius: '2px 0 0 2px', opacity: 0.7 }} />
+                                                                        ) : (
+                                                                            <div style={{ position: 'absolute', left: '50%', top: 1, bottom: 1, width: `${yBarW}%`, background: 'var(--accent-green)', borderRadius: '0 2px 2px 0', opacity: 0.7 }} />
+                                                                        )}
+                                                                        <span className="text-[9px] font-semibold" dir="ltr" style={{
+                                                                            position: 'absolute',
+                                                                            color: yDelta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
+                                                                            ...(yDelta < 0 ? { right: `calc(50% + ${yBarW}% + 4px)` } : { left: `calc(50% + ${yBarW}% + 4px)` }),
+                                                                            whiteSpace: 'nowrap',
+                                                                        }}>{fmtDelta(yDelta)}</span>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td style={{ textAlign: 'center' }}>
+                                                                {yPct !== null && (
+                                                                    <div className="flex items-center justify-center gap-1" dir="ltr">
+                                                                        <span className="text-[10px] font-semibold" style={{ color: yPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{yPct >= 0 ? '+' : ''}{yPct.toFixed(1)}</span>
+                                                                        <span style={{ width: 5, height: 5, borderRadius: '50%', background: yPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', display: 'inline-block' }} />
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            })()}
+
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <BranchMap />
                 <ChartCard title="صافي المبيعات عبر الزمن لكل فرع" subtitle="Net Sales Over Time by Branch" option={netSalesByBranchOption} height="460px" delay={2} />
