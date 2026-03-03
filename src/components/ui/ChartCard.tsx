@@ -89,13 +89,13 @@ export default function ChartCard({
             axisLine: { lineStyle: { color: isDark ? '#1e293b' : '#e2e8f0' } },
             axisTick: { lineStyle: { color: isDark ? '#1e293b' : '#e2e8f0' } },
             axisLabel: { color: isDark ? '#64748b' : '#64748b', fontSize: 11 },
-            splitLine: { lineStyle: { color: isDark ? '#1e293b' : '#f1f5f9', type: 'dashed' as const } },
+            splitLine: { show: false },
         },
         yAxis: {
             axisLine: { lineStyle: { color: isDark ? '#1e293b' : '#e2e8f0' } },
             axisTick: { show: false },
             axisLabel: { color: isDark ? '#64748b' : '#64748b', fontSize: 11 },
-            splitLine: { lineStyle: { color: isDark ? '#1e293b' : '#f1f5f9', type: 'dashed' as const } },
+            splitLine: { show: false },
         },
     }), [isDark]);
 
@@ -119,6 +119,13 @@ export default function ChartCard({
             grid: { ...baseTheme.grid, ...(option.grid || {}) },
             legend: { ...(baseTheme as any).legend, ...(((option as any).legend || {}) as Record<string, unknown>) },
         };
+
+        // ── Force remove all grid splitLines globally ──
+        const killSplit = (ax: any) => (ax ? { ...ax, splitLine: { show: false } } : ax);
+        if (Array.isArray(merged.xAxis)) merged.xAxis = merged.xAxis.map(killSplit);
+        else if (merged.xAxis) merged.xAxis = killSplit(merged.xAxis);
+        if (Array.isArray(merged.yAxis)) merged.yAxis = merged.yAxis.map(killSplit);
+        else if (merged.yAxis) merged.yAxis = killSplit(merged.yAxis);
 
         // Fix radar axis names and graph/pie/treemap labels for light mode
         if (!isDark && merged.series) {
@@ -151,14 +158,28 @@ export default function ChartCard({
                 axisLine: { lineStyle: { color: '#e2e8f0' } },
                 axisTick: { show: false },
                 axisLabel: { color: '#64748b', fontSize: 11 },
-                splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' as const } },
+                splitLine: { show: false },
             };
             if (Array.isArray(merged.xAxis)) {
                 merged.xAxis = merged.xAxis.map((ax: Record<string, unknown>) => ({ ...lightAxisStyle, ...ax, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 11 } }));
             }
             if (Array.isArray(merged.yAxis)) {
-                merged.yAxis = merged.yAxis.map((ax: Record<string, unknown>) => ({ ...lightAxisStyle, ...ax, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 11 }, splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' as const } } }));
+                merged.yAxis = merged.yAxis.map((ax: Record<string, unknown>) => ({ ...lightAxisStyle, ...ax, axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#64748b', fontSize: 11 }, splitLine: { show: false } }));
             }
+        }
+
+        // Fix gauge axisLine track in light mode
+        if (!isDark && merged.series) {
+            merged.series = (merged.series as any[]).map((s: any) => {
+                if (s.type === 'gauge') {
+                    return {
+                        ...s,
+                        axisLine: { ...s.axisLine, lineStyle: { ...(s.axisLine?.lineStyle || {}), color: [[1, '#e2e8f0']] } },
+                        detail: { ...s.detail, color: s.detail?.color },
+                    };
+                }
+                return s;
+            });
         }
 
         // Fix radar axisName color in light mode

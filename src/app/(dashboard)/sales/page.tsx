@@ -8,6 +8,7 @@ import { getMonthlySalesData, getProductData, type ProductData } from '@/lib/moc
 import EnterpriseTable from '@/components/ui/EnterpriseTable';
 import type { TableColumn } from '@/components/ui/EnterpriseTable';
 import TreeDrillDown from '@/components/ui/TreeDrillDown';
+import DrillDownTable from '@/components/ui/DrillDownTable';
 
 export default function SalesPage() {
     const salesData = useMemo(() => getMonthlySalesData(), []);
@@ -48,20 +49,46 @@ export default function SalesPage() {
 
     // ── Drill-down: بيانات حسب المستوى ──
     const getDrillData = () => {
-        if (drillLevel === 'year') return { labels: ['2023', '2024', '2025'], values: [22000000, 24500000, totalRevenue] };
-        if (drillLevel === 'quarter') return { labels: ['الربع 1', 'الربع 2', 'الربع 3', 'الربع 4'], values: [totalRevenue * 0.22, totalRevenue * 0.26, totalRevenue * 0.24, totalRevenue * 0.28] };
-        return { labels: months, values: currentYearData };
+        if (drillLevel === 'year') {
+            const values = [22000000, 24500000, totalRevenue];
+            return { labels: ['2023', '2024', '2025'], values, profits: values.map((v, i) => Math.round(v * [0.22, 0.25, 0.28][i])) };
+        }
+        if (drillLevel === 'quarter') {
+            const values = [totalRevenue * 0.22, totalRevenue * 0.26, totalRevenue * 0.24, totalRevenue * 0.28];
+            return { labels: ['الربع 1', 'الربع 2', 'الربع 3', 'الربع 4'], values, profits: values.map((v, i) => Math.round(v * [0.24, 0.29, 0.26, 0.31][i])) };
+        }
+        return { labels: months, values: currentYearData, profits: currentYearData.map((v) => Math.round(v * (0.22 + Math.random() * 0.12))) };
     };
     const drillData = getDrillData();
 
     const drillDownOption = {
         xAxis: { type: 'category' as const, data: drillData.labels },
-        yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
-        series: [{
-            type: 'bar',
-            data: drillData.values.map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })),
-            barWidth: drillLevel === 'month' ? 18 : 40,
-        }],
+        yAxis: [
+            { type: 'value' as const, name: 'المبيعات', axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
+            { type: 'value' as const, name: 'الأرباح', axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
+        ],
+        series: [
+            {
+                name: 'المبيعات',
+                type: 'bar',
+                data: drillData.values.map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })),
+                barWidth: drillLevel === 'month' ? 18 : 40,
+            },
+            {
+                name: 'الأرباح',
+                type: 'line',
+                yAxisIndex: 1,
+                data: drillData.profits,
+                lineStyle: { color: '#0891b2', width: 2.5 },
+                itemStyle: { color: '#0891b2', borderWidth: 2 },
+                symbol: 'circle',
+                symbolSize: 8,
+                smooth: true,
+                areaStyle: { color: 'rgba(8,145,178,0.08)' },
+            },
+        ],
+        legend: { data: ['المبيعات', 'الأرباح'], bottom: 0, left: 'center', textStyle: { color: '#94a3b8', fontSize: 11 } },
+        grid: { bottom: '15%' },
     };
 
     // ── مبيعات مقابل أرباح حسب المنتج ──
@@ -251,8 +278,8 @@ export default function SalesPage() {
                 </div>
             </div>
 
-            {/* جدول المنتجات */}
-            <EnterpriseTable title="تفاصيل أداء المنتجات" columns={prodColumns} data={products} pageSize={10} />
+            {/* جدول التحليل التفصيلي — سوق / فئة / منتج */}
+            <DrillDownTable />
         </div>
     );
 }

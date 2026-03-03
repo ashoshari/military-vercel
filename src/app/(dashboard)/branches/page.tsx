@@ -48,41 +48,26 @@ export default function BranchesPage() {
     const topBranch = [...branches].sort((a, b) => b.revenue - a.revenue)[0];
     const avgScore = Math.round(branchScores.reduce((a, b) => a + b.score, 0) / branchScores.length);
 
-    // ── مقياس الأداء الكلي (Gauge) ──
-    const overallGaugeOption = {
-        series: [{
-            type: 'gauge',
-            startAngle: 200,
-            endAngle: -20,
-            min: 0, max: 100,
-            radius: '90%',
-            pointer: { show: false },
-            progress: {
-                show: true, overlap: false, roundCap: true,
-                clip: false,
-                itemStyle: {
-                    color: avgScore >= 70 ? '#00e5a0' : avgScore >= 50 ? '#f59e0b' : '#ef4444',
-                },
-            },
-            axisLine: { lineStyle: { width: 14, color: [[1, 'var(--bg-elevated)']] } },
-            splitLine: { show: false },
-            axisTick: { show: false },
-            axisLabel: {
-                show: true, distance: -24, color: '#64748b', fontSize: 9,
-                formatter: (v: number) => v === 0 ? '0%' : v === 100 ? '100%' : '',
-            },
-            anchor: { show: false },
-            title: { show: false },
-            detail: {
-                valueAnimation: true,
-                fontSize: 22, fontWeight: 'bold',
-                offsetCenter: [0, 0],
-                color: avgScore >= 70 ? '#00e5a0' : avgScore >= 50 ? '#f59e0b' : '#ef4444',
-                formatter: '{value}%',
-            },
-            data: [{ value: avgScore, name: '' }],
-        }],
+    // ── Custom SVG Gauge ──
+    const gaugeRadius = 90;
+    const gaugeStroke = 14;
+    const gaugeCenter = gaugeRadius + gaugeStroke + 8;
+    const svgSize = gaugeCenter * 2;
+    const startAngle = 220;
+    const endAngle = -40;
+    const totalAngle = startAngle - endAngle; // 260°
+    const scoreAngle = startAngle - (avgScore / 100) * totalAngle;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const arcPath = (r: number, sA: number, eA: number) => {
+        const sx = gaugeCenter + r * Math.cos(toRad(sA));
+        const sy = gaugeCenter - r * Math.sin(toRad(sA));
+        const ex = gaugeCenter + r * Math.cos(toRad(eA));
+        const ey = gaugeCenter - r * Math.sin(toRad(eA));
+        const large = sA - eA > 180 ? 1 : 0;
+        return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
     };
+
+    const sortedBranches = [...branchScores].sort((a, b) => b.score - a.score);
 
     // ── أداء الفروع (شريط ملون) ──
     const branchPerfOption = {
@@ -116,7 +101,7 @@ export default function BranchesPage() {
         legend: {
             data: branchScores.map(b => b.name),
             bottom: 0,
-            textStyle: { color: '#94a3b8', fontSize: 9 },
+            textStyle: { fontSize: 9 },
             type: 'scroll' as const,
         },
         dataZoom: [{ type: 'inside' as const }],
@@ -124,14 +109,12 @@ export default function BranchesPage() {
         xAxis: {
             type: 'category' as const,
             data: categoryScores.map(c => c.cat),
-            axisLabel: { rotate: 25, fontSize: 9, color: '#94a3b8' },
-            axisLine: { lineStyle: { color: '#334155' } },
+            axisLabel: { rotate: 25, fontSize: 9 },
         },
         yAxis: {
             type: 'value' as const,
             max: 100,
-            axisLabel: { formatter: '{value}%', color: '#94a3b8', fontSize: 9 },
-            splitLine: { lineStyle: { color: '#1e293b' } },
+            axisLabel: { formatter: '{value}%', fontSize: 9 },
         },
         series: branchScores.map((b, bi) => ({
             name: b.name,
@@ -221,10 +204,60 @@ export default function BranchesPage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-0">
-                    {/* Gauge */}
-                    <div className="p-4 border-b xl:border-b-0 xl:border-l" style={{ borderColor: 'var(--border-subtle)' }}>
-                        <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>متوسط درجة أداء الفروع الكلية</p>
-                        <ChartCard title="" option={overallGaugeOption} height="500px" />
+                    {/* Custom SVG Gauge */}
+                    <div className="p-5 border-b xl:border-b-0 xl:border-l flex flex-col items-center" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <p className="text-[11px] font-semibold mb-3 self-end" style={{ color: 'var(--text-muted)' }}>متوسط درجة أداء الفروع الكلية</p>
+                        <svg width={svgSize} height={gaugeCenter + 28} viewBox={`0 0 ${svgSize} ${gaugeCenter + 28}`} style={{ overflow: 'visible' }}>
+                            <defs>
+                                <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#ef4444" />
+                                    <stop offset="40%" stopColor="#f59e0b" />
+                                    <stop offset="100%" stopColor="#00e5a0" />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="3" result="blur" />
+                                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                                </filter>
+                            </defs>
+                            {/* Background track */}
+                            <path d={arcPath(gaugeRadius, startAngle, endAngle)} fill="none" stroke="var(--bg-elevated)" strokeWidth={gaugeStroke} strokeLinecap="round" />
+                            {/* Gradient progress arc */}
+                            <path d={arcPath(gaugeRadius, startAngle, scoreAngle)} fill="none" stroke="url(#gaugeGrad)" strokeWidth={gaugeStroke} strokeLinecap="round" filter="url(#glow)" />
+                            {/* Tick marks */}
+                            {[0, 25, 50, 75, 100].map(v => {
+                                const a = startAngle - (v / 100) * totalAngle;
+                                const ix = gaugeCenter + (gaugeRadius - gaugeStroke - 4) * Math.cos(toRad(a));
+                                const iy = gaugeCenter - (gaugeRadius - gaugeStroke - 4) * Math.sin(toRad(a));
+                                const ox = gaugeCenter + (gaugeRadius + gaugeStroke / 2 + 6) * Math.cos(toRad(a));
+                                const oy = gaugeCenter - (gaugeRadius + gaugeStroke / 2 + 6) * Math.sin(toRad(a));
+                                return (
+                                    <g key={v}>
+                                        <line x1={gaugeCenter + (gaugeRadius - 6) * Math.cos(toRad(a))} y1={gaugeCenter - (gaugeRadius - 6) * Math.sin(toRad(a))} x2={ix} y2={iy} stroke="var(--text-muted)" strokeWidth="1" opacity="0.4" />
+                                        <text x={ox} y={oy + 3} textAnchor="middle" fontSize="8" fill="var(--text-muted)">{v}</text>
+                                    </g>
+                                );
+                            })}
+                            {/* Center score */}
+                            <text x={gaugeCenter} y={gaugeCenter - 8} textAnchor="middle" fontSize="34" fontWeight="800" fill={avgScore >= 70 ? '#00e5a0' : avgScore >= 50 ? '#f59e0b' : '#ef4444'}>
+                                {avgScore}%
+                            </text>
+                            <text x={gaugeCenter} y={gaugeCenter + 14} textAnchor="middle" fontSize="10" fill="var(--text-muted)">
+                                متوسط الأداء العام
+                            </text>
+                        </svg>
+
+                        {/* Mini branch scores list */}
+                        <div className="w-full mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5">
+                            {sortedBranches.map(b => (
+                                <div key={b.id} className="flex items-center gap-1.5">
+                                    <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+                                        <div className="h-full rounded-full transition-all" style={{ width: `${b.score}%`, background: getBarColor(b.score) }} />
+                                    </div>
+                                    <span className="text-[9px] font-bold w-7 text-left" style={{ color: getBarColor(b.score) }} dir="ltr">{b.score}%</span>
+                                    <span className="text-[9px] truncate max-w-[70px]" style={{ color: 'var(--text-muted)' }}>{b.name.split(' ').slice(1).join(' ')}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* الأوزان المعيارية */}
@@ -266,7 +299,7 @@ export default function BranchesPage() {
                                                     <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)', minWidth: '60px' }}>
                                                         <div className="h-full rounded-full" style={{ width: `${b.salesContrib}%`, background: '#2563eb' }} />
                                                     </div>
-                                                    <span className="text-[10px] font-semibold" style={{ color: '#93c5fd' }} dir="ltr">{b.salesContrib.toFixed(2)}%</span>
+                                                    <span className="text-[10px] font-semibold" style={{ color: '#2563eb' }} dir="ltr">{b.salesContrib.toFixed(2)}%</span>
                                                 </div>
                                             </td>
                                             <td>
@@ -274,7 +307,7 @@ export default function BranchesPage() {
                                                     <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)', minWidth: '60px' }}>
                                                         <div className="h-full rounded-full" style={{ width: `${b.transContrib}%`, background: '#7c3aed' }} />
                                                     </div>
-                                                    <span className="text-[10px] font-semibold" style={{ color: '#c4b5fd' }} dir="ltr">{b.transContrib.toFixed(2)}%</span>
+                                                    <span className="text-[10px] font-semibold" style={{ color: '#7c3aed' }} dir="ltr">{b.transContrib.toFixed(2)}%</span>
                                                 </div>
                                             </td>
                                             <td style={{ textAlign: 'center' }}>

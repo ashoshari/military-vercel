@@ -13,49 +13,103 @@ interface TreeNode {
     children?: TreeNode[];
 }
 
+// ── Deterministic seed-based pseudo-random ──
+let _seed = 42;
+const srand = () => { _seed = (_seed * 16807 + 0) % 2147483647; return (_seed & 0x7fffffff) / 2147483647; };
+
+// ── Product names pool ──
+const PROD_NAMES = [
+    'أرز بسمتي ممتاز', 'أرز حبة متوسطة', 'أرز مطبوخ فاخر', 'أرز أصفر سنوات الخير',
+    'زيت زيتون بكر', 'زيت عباد شمس 2ل', 'زيت ذرة 1ل', 'زيت نباتي 3ل',
+    'حليب طازج كامل', 'حليب قليل الدسم', 'لبن زبادي 1ك', 'لبنة طازجة 500غ',
+    'سكر أبيض 1كغ', 'سكر بني عضوي', 'ملح طعام ناعم', 'ملح يود مدعم',
+    'شاي أخضر فاخر', 'شاي أسود سيلاني', 'قهوة عربية 250غ', 'نسكافيه كلاسيك',
+    'معكرونة سباغيتي', 'معكرونة بيني', 'فتوتشيني 400غ', 'لازانيا جاهزة',
+    'صابون غسيل 3ك', 'منظف أرضيات', 'مبيض ملابس 2ل', 'معطر أقمشة',
+    'شامبو ضد القشرة', 'بلسم شعر مغذي', 'كريم مرطب يومي', 'واقي شمس SPF50',
+    'حفاضات مقاس 3', 'حفاضات مقاس 4', 'مناديل مبللة 80ق', 'زجاجة رضاعة',
+    'تونة معلبة 185غ', 'فول مدمس 400غ', 'حمص بالطحينة', 'ذرة حلوة معلبة',
+    'عصير برتقال 1ل', 'عصير تفاح طبيعي', 'مياه معدنية 1.5ل', 'مشروب غازي 330مل',
+    'دجاج مجمد 1200غ', 'صدور دجاج طازج', 'لحمة مفرومة 1ك', 'ستيك عجل 500غ',
+    'خبز عربي 6 أرغفة', 'خبز توست أبيض', 'كعك بالسمسم', 'صامولي 8 حبات',
+];
+
+const SUB_MAP: Record<string, string[]> = {
+    'منتجات غذائية': ['حبوب وأرز', 'زيوت', 'حليب وألبان', 'سكر وملح', 'شاي وقهوة', 'معكرونة', 'بقوليات', 'معلبات', 'خبز ومعجنات', 'بهارات وتوابل', 'صلصات', 'عسل ومربى'],
+    'مستلزمات منزلية': ['منظفات', 'أدوات مطبخ', 'أكياس وأغلفة', 'إسفنج وفرش', 'معطرات جو', 'ورق ألمنيوم'],
+    'العناية الشخصية': ['شامبو وبلسم', 'كريمات بشرة', 'معجون أسنان', 'مزيل عرق', 'عطور', 'حلاقة رجالية'],
+    'مشروبات': ['عصائر طبيعية', 'مياه معدنية', 'مشروبات غازية', 'مشروبات طاقة', 'شاي مثلج'],
+    'لحوم ودواجن': ['دجاج طازج', 'لحم عجل', 'لحم خروف', 'لحوم مجمدة', 'نقانق ومرتديلا'],
+    'مستلزمات الأطفال': ['حفاضات', 'حليب أطفال', 'طعام أطفال', 'زجاجات وأدوات'],
+    'منتجات ورقية': ['مناديل', 'ورق تواليت', 'فوط صحية', 'ورق مطبخ'],
+    'أجهزة وإلكترونيات': ['بطاريات', 'إضاءة LED', 'توصيلات كهرباء', 'شواحن'],
+    'حلويات وسناكات': ['شوكولاتة', 'بسكويت', 'شيبس', 'مكسرات', 'حلاوة طحينية', 'فشار'],
+    'منتجات تجميل': ['مكياج', 'طلاء أظافر', 'مرطبات شفاه', 'كحل وماسكارا'],
+};
+
+const CATS = [
+    { label: 'منتجات غذائية', pct: 0.36 },
+    { label: 'مستلزمات منزلية', pct: 0.14 },
+    { label: 'العناية الشخصية', pct: 0.11 },
+    { label: 'مشروبات', pct: 0.09 },
+    { label: 'لحوم ودواجن', pct: 0.08 },
+    { label: 'حلويات وسناكات', pct: 0.07 },
+    { label: 'مستلزمات الأطفال', pct: 0.05 },
+    { label: 'منتجات ورقية', pct: 0.04 },
+    { label: 'منتجات تجميل', pct: 0.03 },
+    { label: 'أجهزة وإلكترونيات', pct: 0.02 },
+    { label: 'غير مصنف', pct: 0.01 },
+];
+
+const BRANCHES = [
+    { label: 'سوق المنارة المركزي', pct: 0.18 },
+    { label: 'سوق سطح النجم', pct: 0.12 },
+    { label: 'فرع عمّان الغربي', pct: 0.10 },
+    { label: 'فرع إربد الرئيسي', pct: 0.09 },
+    { label: 'فرع الزرقاء الشمالي', pct: 0.08 },
+    { label: 'فرع العقبة الميناء', pct: 0.07 },
+    { label: 'فرع مادبا المدينة', pct: 0.07 },
+    { label: 'فرع السلط وسط البلد', pct: 0.06 },
+    { label: 'فرع الكرك الجنوبي', pct: 0.06 },
+    { label: 'فرع المفرق الشمالي', pct: 0.06 },
+    { label: 'فرع جرش التراث', pct: 0.06 },
+    { label: 'فرع الطفيلة', pct: 0.05 },
+];
+
+// ── Build tree deterministically ──
+const TOTAL = 1847520;
+_seed = 42; // reset seed for deterministic output
+
 const treeData: TreeNode = {
     id: 'root',
     label: 'صافي المبيعات',
     labelEn: 'Net Sales',
-    value: 421924,
-    children: [
-        {
-            id: 'b1', label: 'سوق المنارة', value: 328505,
-            children: [
-                {
-                    id: 'c1', label: 'منتجات غذائية', value: 191753,
-                    children: [
-                        { id: 's1', label: 'حبوب', value: 45443, children: [{ id: 'p1', label: 'أرز مطبوخ ممتاز', value: 5988 }, { id: 'p2', label: 'أرز حبة متوسطة', value: 3927 }, { id: 'p3', label: 'أرز بسمتي ممتاز', value: 3719 }, { id: 'p4', label: 'أرز أصفر سنوات الخير', value: 3283 }, { id: 'p5', label: 'أرز صواريخ حبة م...', value: 2971 }] },
-                        { id: 's2', label: 'ساس', value: 34106 },
-                        { id: 's3', label: 'حليب', value: 29993 },
-                        { id: 's4', label: 'زيوت', value: 23541 },
-                        { id: 's5', label: 'بقوليات مقلغة', value: 10093 },
-                        { id: 's6', label: 'مشروبات', value: 8754 },
-                        { id: 's7', label: 'منتجات طبية', value: 8322 },
-                        { id: 's8', label: 'نهارات وأعشاب', value: 8234 },
-                        { id: 's9', label: 'حلويات', value: 6364 },
-                    ]
-                },
-                { id: 'c2', label: 'غير مصنف', value: 60086 },
-                { id: 'c3', label: 'مستلزمات منزلية', value: 27232 },
-                { id: 'c4', label: 'العناية الشخصية', value: 26823 },
-                { id: 'c5', label: 'منتظمات', value: 16231 },
-                { id: 'c6', label: 'منتجات ورقية', value: 5748 },
-                { id: 'c7', label: 'مستلزمات الأطفال', value: 356 },
-                { id: 'c8', label: 'أجهزة وإلكترونيات', value: 168 },
-                { id: 'c9', label: 'فرفاشية', value: 108 },
-            ]
-        },
-        {
-            id: 'b2', label: 'سوق سطح النجم', value: 97419,
-            children: [
-                { id: 'c10', label: 'منتجات غذائية', value: 55283 },
-                { id: 'c11', label: 'مستلزمات منزلية', value: 18421 },
-                { id: 'c12', label: 'العناية الشخصية', value: 14200 },
-                { id: 'c13', label: 'مشروبات', value: 9515 },
-            ]
-        },
-    ],
+    value: TOTAL,
+    children: BRANCHES.map((b, bi) => {
+        const bVal = Math.round(TOTAL * b.pct + srand() * 5000);
+        return {
+            id: `b${bi}`, label: b.label, value: bVal,
+            children: CATS.map((c, ci) => {
+                const cVal = Math.round(bVal * c.pct + srand() * 2000);
+                const subs = SUB_MAP[c.label] || ['متفرقات', 'عام', 'أخرى'];
+                return {
+                    id: `b${bi}-c${ci}`, label: c.label, value: cVal,
+                    children: subs.map((s, si) => {
+                        const sVal = Math.round(cVal / subs.length * (1 - si * 0.07) + srand() * 800);
+                        const pCount = 12 + Math.round(srand() * 6);
+                        return {
+                            id: `b${bi}-c${ci}-s${si}`, label: s, value: sVal,
+                            children: Array.from({ length: pCount }, (_, pi) => ({
+                                id: `b${bi}-c${ci}-s${si}-p${pi}`,
+                                label: PROD_NAMES[pi % PROD_NAMES.length],
+                                value: Math.round(sVal / pCount * (1 - pi * 0.05) + srand() * 200),
+                            })),
+                        };
+                    }),
+                };
+            }),
+        };
+    }),
 };
 
 type Level = { label: string; node: TreeNode };
@@ -87,10 +141,10 @@ function TreeItem({ node, max, selected, onClick }: {
                     style={{ background: selected ? '#2563eb' : '#3b82f6' }}
                 />
             </div>
-            <p className="text-[11px] font-medium leading-tight text-right truncate max-w-[140px]" style={{ color: selected ? '#93c5fd' : 'var(--text-secondary)' }}>
+            <p className="text-[11px] font-medium leading-tight text-right truncate max-w-[140px]" style={{ color: selected ? 'var(--accent-blue)' : 'var(--text-secondary)' }}>
                 {node.label}
             </p>
-            <p className="text-xs font-semibold mt-0.5" style={{ color: selected ? '#60a5fa' : 'var(--text-muted)' }} dir="ltr">
+            <p className="text-xs font-semibold mt-0.5" style={{ color: selected ? 'var(--accent-blue)' : 'var(--text-muted)' }} dir="ltr">
                 {node.value.toLocaleString('en-US')}
             </p>
         </button>
@@ -170,9 +224,9 @@ export default function TreeDrillDown() {
                     >
                         {path.map((lvl, i) => (
                             <span key={lvl.node.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
-                                style={{ background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)', color: '#93c5fd' }}>
+                                style={{ background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)', color: 'var(--accent-blue)' }}>
                                 <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>{lvl.label}</span>
-                                <span style={{ color: '#60a5fa' }}>{lvl.node.label}</span>
+                                <span style={{ color: 'var(--accent-blue)' }}>{lvl.node.label}</span>
                                 <button onClick={() => removeFilter(i)} className="opacity-60 hover:opacity-100 transition-opacity">
                                     <X size={10} />
                                 </button>
@@ -193,8 +247,8 @@ export default function TreeDrillDown() {
                 {/* عمود الجذر: Net Sales */}
                 <div className="flex-shrink-0 flex flex-col items-start justify-center ml-2" style={{ minWidth: '110px' }}>
                     <div className="p-2 rounded-md" style={{ background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.25)' }}>
-                        <p className="text-[10px] font-semibold" style={{ color: '#60a5fa' }}>Net Sales</p>
-                        <p className="text-sm font-bold" style={{ color: '#93c5fd' }} dir="ltr">
+                        <p className="text-[10px] font-semibold" style={{ color: 'var(--accent-blue)' }}>Net Sales</p>
+                        <p className="text-sm font-bold" style={{ color: 'var(--accent-blue)' }} dir="ltr">
                             {treeData.value.toLocaleString('en-US')}
                         </p>
                     </div>
