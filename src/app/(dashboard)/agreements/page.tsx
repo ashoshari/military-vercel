@@ -31,9 +31,30 @@ export default function AgreementsPage() {
             { type: 'value' as const, name: 'الهامش / الخصم %', nameLocation: 'middle' as const, nameGap: 40 },
         ],
         series: [
-            { name: 'المواد', type: 'bar', data: agreements.filter((a) => a.materials > 0).map((a) => ({ value: a.materials, itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] } })), barWidth: 24 },
-            { name: 'هامش الربح', type: 'line', yAxisIndex: 1, data: agreements.filter((a) => a.materials > 0).map((a) => a.profitMargin), lineStyle: { color: '#047857', width: 2 }, itemStyle: { color: '#047857' } },
-            { name: 'نسبة الخصم', type: 'line', yAxisIndex: 1, data: agreements.filter((a) => a.materials > 0).map((a) => a.discountRate), lineStyle: { color: '#d97706', width: 2, type: 'dashed' as const }, itemStyle: { color: '#d97706' } },
+            {
+                name: 'المواد',
+                type: 'bar',
+                data: agreements
+                    .filter((a) => a.materials > 0)
+                    .map((a) => ({ value: a.materials, itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] } })),
+                barWidth: 24,
+            },
+            {
+                name: 'هامش الربح',
+                type: 'line',
+                yAxisIndex: 1,
+                data: agreements.filter((a) => a.materials > 0).map((a) => a.profitMargin),
+                lineStyle: { color: '#22c55e', width: 2 },
+                itemStyle: { color: '#22c55e' },
+            },
+            {
+                name: 'نسبة الخصم',
+                type: 'line',
+                yAxisIndex: 1,
+                data: agreements.filter((a) => a.materials > 0).map((a) => a.discountRate),
+                lineStyle: { color: '#f59e0b', width: 2, type: 'dashed' as const },
+                itemStyle: { color: '#f59e0b' },
+            },
         ],
         legend: { data: ['المواد', 'هامش الربح', 'نسبة الخصم'], bottom: 0, left: 'center' },
         grid: { left: '14%', right: '14%', top: '12%', bottom: '22%', containLabel: true },
@@ -46,10 +67,10 @@ export default function AgreementsPage() {
         series: [{
             type: 'bar',
             data: [
-                { value: 2160000, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } },
-                { value: 850000, itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] } },
-                { value: 180000, itemStyle: { color: '#7c3aed', borderRadius: [4, 4, 0, 0] } },
-                { value: 450000, itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] } },
+                { value: 2160000, itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] } },
+                { value: 850000, itemStyle: { color: '#0ea5e9', borderRadius: [4, 4, 0, 0] } },
+                { value: 180000, itemStyle: { color: '#6366f1', borderRadius: [4, 4, 0, 0] } },
+                { value: 450000, itemStyle: { color: '#f59e0b', borderRadius: [4, 4, 0, 0] } },
             ],
             barWidth: 40,
         }],
@@ -58,13 +79,15 @@ export default function AgreementsPage() {
     // ── مجموعات المنتجات حسب الاتفاقية ──
     const productGroupsOption = {
         series: [{
-            type: 'pie', radius: ['45%', '72%'],
+            type: 'pie',
+            radius: ['36%', '54%'],
+            center: ['50%', '42%'],
             data: [
-                { name: 'بقالة (أرز)', value: 35, itemStyle: { color: '#047857' } },
-                { name: 'ألبان', value: 25, itemStyle: { color: '#2563eb' } },
-                { name: 'منظفات', value: 20, itemStyle: { color: '#7c3aed' } },
-                { name: 'لحوم', value: 12, itemStyle: { color: '#d97706' } },
-                { name: 'أخرى', value: 8, itemStyle: { color: '#64748b' } },
+                { name: 'بقالة (أرز)', value: 35, itemStyle: { color: '#22c55e' } },
+                { name: 'ألبان', value: 25, itemStyle: { color: '#3b82f6' } },
+                { name: 'منظفات', value: 20, itemStyle: { color: '#6366f1' } },
+                { name: 'لحوم', value: 12, itemStyle: { color: '#f59e0b' } },
+                { name: 'أخرى', value: 8, itemStyle: { color: '#94a3b8' } },
             ],
             label: { color: '#94a3b8', fontSize: 11 }, labelLine: { lineStyle: { color: '#334155' } },
         }],

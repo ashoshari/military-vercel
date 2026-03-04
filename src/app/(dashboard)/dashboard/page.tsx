@@ -26,12 +26,15 @@ export default function DashboardPage() {
                 type: 'line',
                 data: salesData.map((d) => d.revenue),
                 smooth: true,
-                lineStyle: { color: '#047857', width: 2 },
-                itemStyle: { color: '#047857' },
+                lineStyle: { color: '#00e5a0', width: 2 },
+                itemStyle: { color: '#00e5a0' },
                 areaStyle: {
                     color: {
                         type: 'linear' as const, x: 0, y: 0, x2: 0, y2: 1,
-                        colorStops: [{ offset: 0, color: 'rgba(4, 120, 87, 0.2)' }, { offset: 1, color: 'rgba(4, 120, 87, 0)' }],
+                        colorStops: [
+                            { offset: 0, color: 'rgba(0, 229, 160, 0.18)' },
+                            { offset: 1, color: 'rgba(0, 229, 160, 0)' },
+                        ],
                     },
                 },
             },
@@ -55,7 +58,10 @@ export default function DashboardPage() {
             type: 'bar',
             data: topBranches.map((b, i) => ({
                 value: b.revenue,
-                itemStyle: { color: ['#047857', '#0891b2', '#2563eb', '#7c3aed', '#d97706'][i], borderRadius: [0, 4, 4, 0] },
+                itemStyle: {
+                    color: ['#00e5a0', '#00d4ff', '#3b82f6', '#a855f7', '#f59e0b'][i],
+                    borderRadius: [0, 4, 4, 0],
+                },
             })),
             barWidth: 20,
         }],
@@ -70,8 +76,8 @@ export default function DashboardPage() {
         },
         series: [{
             type: 'pie',
-            radius: ['50%', '75%'],
-            center: ['50%', '45%'],
+            radius: ['46%', '68%'],
+            center: ['50%', '42%'],
             data: categories.map((c) => ({ name: c.nameAr, value: c.value, itemStyle: { color: c.color } })),
             label: { show: true, position: 'outside' as const, color: '#64748b', fontSize: 11, formatter: '{b}: {d}%' },
             labelLine: { lineStyle: { color: '#334155' } },
@@ -86,8 +92,21 @@ export default function DashboardPage() {
             { type: 'value' as const, name: 'النمو %', axisLabel: { formatter: (v: number) => `${v}%` } },
         ],
         series: [
-            { name: 'الإيرادات', type: 'bar', data: regions.map((r) => r.revenue), itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] }, barWidth: 30 },
-            { name: 'النمو', type: 'line', yAxisIndex: 1, data: regions.map((r) => r.growth), lineStyle: { color: '#047857', width: 2 }, itemStyle: { color: '#047857' } },
+            {
+                name: 'الإيرادات',
+                type: 'bar',
+                data: regions.map((r) => r.revenue),
+                itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] },
+                barWidth: 30,
+            },
+            {
+                name: 'النمو',
+                type: 'line',
+                yAxisIndex: 1,
+                data: regions.map((r) => r.growth),
+                lineStyle: { color: '#00e5a0', width: 2 },
+                itemStyle: { color: '#00e5a0' },
+            },
         ],
         legend: { data: ['الإيرادات', 'النمو'], bottom: 0, left: 'center' },
     };

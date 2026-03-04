@@ -28,7 +28,7 @@ export default function CustomersPage() {
         yAxis: { type: 'category' as const, data: days, splitArea: { show: true }, axisLabel: { fontSize: 10 } },
         visualMap: {
             min: 5, max: 95, calculable: true, orient: 'horizontal' as const, left: 'center', bottom: '0%',
-            inRange: { color: ['#22c55e', '#84cc16', '#eab308', '#f97316', '#ef4444', '#dc2626'] },
+            inRange: { color:['#dcfce7', '#bbf7d0', '#86efac', '#4ade80', '#22c55e', '#14532d'] },
             textStyle: { color: 'var(--text-muted)' },
         },
         series: [{
@@ -42,13 +42,15 @@ export default function CustomersPage() {
     // ── طريقة الدفع ──
     const paymentMethodOption = {
         series: [{
-            type: 'pie', radius: ['50%', '75%'],
+            type: 'pie',
+            radius: ['45%', '70%'],
+            center: ['50%', '45%'],
             data: [
-                { name: 'نقدي', value: 45, itemStyle: { color: '#047857' } },
-                { name: 'فيزا', value: 25, itemStyle: { color: '#2563eb' } },
-                { name: 'محفظة إلكترونية', value: 18, itemStyle: { color: '#7c3aed' } },
-                { name: 'دفع لاحق', value: 8, itemStyle: { color: '#d97706' } },
-                { name: 'آخر', value: 4, itemStyle: { color: '#64748b' } },
+                { name: 'نقدي', value: 45, itemStyle: { color: '#22c55e' } },   // green
+                { name: 'فيزا', value: 25, itemStyle: { color: '#0ea5e9' } },   // cyan/blue
+                { name: 'محفظة إلكترونية', value: 18, itemStyle: { color: '#6366f1' } }, // indigo
+                { name: 'دفع لاحق', value: 8, itemStyle: { color: '#f59e0b' } }, // amber
+                { name: 'آخر', value: 4, itemStyle: { color: '#94a3b8' } },     // muted slate
             ],
             label: { color: '#94a3b8', fontSize: 11 }, labelLine: { lineStyle: { color: '#334155' } },
         }],
@@ -62,8 +64,23 @@ export default function CustomersPage() {
             { type: 'value' as const, name: 'الاستفادة %' },
         ],
         series: [
-            { name: 'مستخدمي الخصومات', type: 'bar', data: [12000, 14000, 18000, 15000, 16000, 22000, 20000, 19000, 24000, 21000, 28000, 35000].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 18 },
-            { name: 'نسبة الاستفادة', type: 'line', yAxisIndex: 1, data: [13, 15, 19, 16, 17, 24, 22, 21, 26, 23, 30, 38], lineStyle: { color: '#d97706', width: 2 }, itemStyle: { color: '#d97706' } },
+            {
+                name: 'مستخدمي الخصومات',
+                type: 'bar',
+                data: [12000, 14000, 18000, 15000, 16000, 22000, 20000, 19000, 24000, 21000, 28000, 35000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] }, // normalized green
+                })),
+                barWidth: 18,
+            },
+            {
+                name: 'نسبة الاستفادة',
+                type: 'line',
+                yAxisIndex: 1,
+                data: [13, 15, 19, 16, 17, 24, 22, 21, 26, 23, 30, 38],
+                lineStyle: { color: '#0ea5e9', width: 2 }, // normalized cyan/blue
+                itemStyle: { color: '#0ea5e9' },
+            },
         ],
         legend: { data: ['مستخدمي الخصومات', 'نسبة الاستفادة'], bottom: 0, left: 'center' },
     };
@@ -72,7 +89,17 @@ export default function CustomersPage() {
     const invoiceValueOption = {
         xAxis: { type: 'category' as const, data: ['<20', '20-50', '50-100', '100-200', '200-500', '500+'] },
         yAxis: { type: 'value' as const, name: 'العملاء', axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` } },
-        series: [{ type: 'bar', data: [8000, 22000, 32000, 18000, 9000, 3500].map((v, i) => ({ value: v, itemStyle: { color: `hsl(${160 + i * 20}, 55%, ${40 - i * 3}%)`, borderRadius: [4, 4, 0, 0] } })), barWidth: 32 }],
+        series: [{
+            type: 'bar',
+            data: [8000, 22000, 32000, 18000, 9000, 3500].map((v, i) => ({
+                value: v,
+                itemStyle: {
+                    color: ['#bbf7d0', '#86efac', '#4ade80', '#22c55e', '#16a34a', '#166534'][i], // light→dark greens
+                    borderRadius: [4, 4, 0, 0],
+                },
+            })),
+            barWidth: 32,
+        }],
     };
 
     // ── Transaction Frequency vs ATV ──
@@ -93,7 +120,7 @@ export default function CustomersPage() {
         visualMap: {
             show: true, dimension: 2, min: 0, max: 1.88, calculable: true,
             orient: 'horizontal' as const, left: 'center', top: 0,
-            inRange: { color: ['#eab308', '#a3e635', '#22c55e', '#059669'] },
+            inRange: { color: ['#dcfce7', '#86efac', '#22c55e', '#14532d'] },
             text: ['1.88K', '0.00K'], textStyle: { fontSize: 9, color: 'var(--text-muted)' },
             formatter: (v: number) => `${v.toFixed(2)}K`,
         },

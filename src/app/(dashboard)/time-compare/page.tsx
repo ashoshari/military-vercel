@@ -13,9 +13,37 @@ export default function TimeComparePage() {
         xAxis: { type: 'category' as const, data: months },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: '2025', type: 'line', data: [2100000, 2200000, 2500000, 2300000, 2400000, 2800000, 2600000, 2700000, 2900000, 2750000, 3000000, 3200000], lineStyle: { color: '#047857', width: 3 }, itemStyle: { color: '#047857' }, areaStyle: { color: { type: 'linear' as const, x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(4,120,87,0.15)' }, { offset: 1, color: 'rgba(4,120,87,0)' }] } } },
-            { name: '2024', type: 'line', data: [1900000, 2000000, 2200000, 2100000, 2150000, 2500000, 2350000, 2400000, 2600000, 2500000, 2700000, 2900000], lineStyle: { color: '#2563eb', width: 2, type: 'dashed' as const }, itemStyle: { color: '#2563eb' } },
-            { name: '2023', type: 'line', data: [1700000, 1800000, 1900000, 1850000, 1900000, 2200000, 2100000, 2150000, 2300000, 2200000, 2400000, 2600000], lineStyle: { color: '#64748b', width: 1, type: 'dotted' as const }, itemStyle: { color: '#64748b' } },
+            {
+                name: '2025',
+                type: 'line',
+                data: [2100000, 2200000, 2500000, 2300000, 2400000, 2800000, 2600000, 2700000, 2900000, 2750000, 3000000, 3200000],
+                lineStyle: { color: '#22c55e', width: 3 },
+                itemStyle: { color: '#22c55e' },
+                areaStyle: {
+                    color: {
+                        type: 'linear' as const,
+                        x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(34,197,94,0.15)' },
+                            { offset: 1, color: 'rgba(34,197,94,0)' },
+                        ],
+                    },
+                },
+            },
+            {
+                name: '2024',
+                type: 'line',
+                data: [1900000, 2000000, 2200000, 2100000, 2150000, 2500000, 2350000, 2400000, 2600000, 2500000, 2700000, 2900000],
+                lineStyle: { color: '#3b82f6', width: 2, type: 'dashed' as const },
+                itemStyle: { color: '#3b82f6' },
+            },
+            {
+                name: '2023',
+                type: 'line',
+                data: [1700000, 1800000, 1900000, 1850000, 1900000, 2200000, 2100000, 2150000, 2300000, 2200000, 2400000, 2600000],
+                lineStyle: { color: '#64748b', width: 1, type: 'dotted' as const },
+                itemStyle: { color: '#64748b' },
+            },
         ],
         legend: { data: ['2025', '2024', '2023'], bottom: 0, left: 'center' },
     };
@@ -25,8 +53,22 @@ export default function TimeComparePage() {
         xAxis: { type: 'category' as const, data: months },
         yAxis: { type: 'value' as const, axisLabel: { formatter: '{value}%' } },
         series: [
-            { name: '2025', type: 'line', smooth: true, data: [32, 33, 35, 34, 33, 36, 35, 34, 37, 36, 38, 39], lineStyle: { color: '#047857', width: 2 }, itemStyle: { color: '#047857' } },
-            { name: '2024', type: 'line', smooth: true, data: [30, 31, 32, 31, 30, 33, 32, 31, 34, 33, 35, 36], lineStyle: { color: '#2563eb', width: 2, type: 'dashed' as const }, itemStyle: { color: '#2563eb' } },
+            {
+                name: '2025',
+                type: 'line',
+                smooth: true,
+                data: [32, 33, 35, 34, 33, 36, 35, 34, 37, 36, 38, 39],
+                lineStyle: { color: '#22c55e', width: 2 },
+                itemStyle: { color: '#22c55e' },
+            },
+            {
+                name: '2024',
+                type: 'line',
+                smooth: true,
+                data: [30, 31, 32, 31, 30, 33, 32, 31, 34, 33, 35, 36],
+                lineStyle: { color: '#3b82f6', width: 2, type: 'dashed' as const },
+                itemStyle: { color: '#3b82f6' },
+            },
         ],
         legend: { data: ['2025', '2024'], bottom: 0, left: 'center' },
     };
@@ -36,8 +78,24 @@ export default function TimeComparePage() {
         xAxis: { type: 'category' as const, data: ['الربع 1', 'الربع 2', 'الربع 3', 'الربع 4'] },
         yAxis: { type: 'value' as const, axisLabel: { formatter: '{value}%' } },
         series: [
-            { name: '2025/2024', type: 'bar', data: [8.5, 10.2, 7.8, 9.1].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 28 },
-            { name: '2024/2023', type: 'bar', data: [12.1, 11.5, 10.8, 9.3].map((v) => ({ value: v, itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] } })), barWidth: 28 },
+            {
+                name: '2025/2024',
+                type: 'bar',
+                data: [8.5, 10.2, 7.8, 9.1].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 28,
+            },
+            {
+                name: '2024/2023',
+                type: 'bar',
+                data: [12.1, 11.5, 10.8, 9.3].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 28,
+            },
         ],
         legend: { data: ['2025/2024', '2024/2023'], bottom: 0, left: 'center' },
     };
@@ -47,8 +105,24 @@ export default function TimeComparePage() {
         xAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         yAxis: { type: 'category' as const, data: ['عمّان المركزي', 'إربد الرئيسي', 'فرع الزرقاء', 'العقبة الميناء', 'السلط'], inverse: true },
         series: [
-            { name: '2025', type: 'bar', data: [4200000, 3100000, 2800000, 2400000, 1900000].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [0, 4, 4, 0] } })), barWidth: 14 },
-            { name: '2024', type: 'bar', data: [3800000, 2900000, 2500000, 2200000, 1800000].map((v) => ({ value: v, itemStyle: { color: '#334155', borderRadius: [0, 4, 4, 0] } })), barWidth: 14 },
+            {
+                name: '2025',
+                type: 'bar',
+                data: [4200000, 3100000, 2800000, 2400000, 1900000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#22c55e', borderRadius: [0, 4, 4, 0] },
+                })),
+                barWidth: 14,
+            },
+            {
+                name: '2024',
+                type: 'bar',
+                data: [3800000, 2900000, 2500000, 2200000, 1800000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#334155', borderRadius: [0, 4, 4, 0] },
+                })),
+                barWidth: 14,
+            },
         ],
         legend: { data: ['2025', '2024'], bottom: 0, left: 'center' },
         grid: { left: '22%', right: '8%', top: '10%', bottom: '18%' },
@@ -59,8 +133,22 @@ export default function TimeComparePage() {
         xAxis: { type: 'category' as const, data: months },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` } },
         series: [
-            { name: '2025', type: 'bar', data: [145000, 152000, 168000, 160000, 165000, 185000, 175000, 180000, 192000, 185000, 200000, 215000].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 14 },
-            { name: '2024', type: 'bar', data: [132000, 138000, 150000, 145000, 148000, 165000, 158000, 162000, 172000, 168000, 180000, 195000].map((v) => ({ value: v, itemStyle: { color: '#334155', borderRadius: [4, 4, 0, 0] } })), barWidth: 14 },
+            {
+                name: '2025',
+                type: 'bar',
+                data: [145000, 152000, 168000, 160000, 165000, 185000, 175000, 180000, 192000, 185000, 200000, 215000].map(
+                    (v) => ({ value: v, itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] } })
+                ),
+                barWidth: 14,
+            },
+            {
+                name: '2024',
+                type: 'bar',
+                data: [132000, 138000, 150000, 145000, 148000, 165000, 158000, 162000, 172000, 168000, 180000, 195000].map(
+                    (v) => ({ value: v, itemStyle: { color: '#334155', borderRadius: [4, 4, 0, 0] } })
+                ),
+                barWidth: 14,
+            },
         ],
         legend: { data: ['2025', '2024'], bottom: 0, left: 'center' },
     };

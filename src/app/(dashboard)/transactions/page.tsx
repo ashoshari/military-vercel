@@ -179,9 +179,16 @@ export default function TransactionsPage() {
             data: holidayData,
             smooth: false,
             showSymbol: false,
-            lineStyle: { width: 1.5, color: '#2563eb' },
+            lineStyle: { width: 1.5, color: '#3b82f6' },
             areaStyle: {
-                color: { type: 'linear' as const, x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(37,99,235,0.2)' }, { offset: 1, color: 'rgba(37,99,235,0.01)' }] },
+                color: {
+                    type: 'linear' as const,
+                    x: 0, y: 0, x2: 0, y2: 1,
+                    colorStops: [
+                        { offset: 0, color: 'rgba(59,130,246,0.20)' },
+                        { offset: 1, color: 'rgba(59,130,246,0.02)' },
+                    ],
+                },
             },
         }],
         dataZoom: [{ type: 'inside' as const, start: 0, end: 100 }],
@@ -195,7 +202,7 @@ export default function TransactionsPage() {
         { year: '2022', branches: [{ name: 'سوق المنارة', val: 28000 }, { name: 'سوق سلاح الجو', val: 21000 }, { name: 'سوق العساكرة', val: 15500 }] },
     ];
     const allBranchNames = ['سوق المنارة', 'سوق سلاح الجو', 'سوق العساكرة'];
-    const branchColors = ['#047857', '#2563eb', '#d97706'];
+    const branchColors = ['#22c55e', '#3b82f6', '#f59e0b'];
 
     const waterfallOption = {
         tooltip: { trigger: 'axis' as const },
@@ -231,9 +238,27 @@ export default function TransactionsPage() {
             { type: 'value' as const, axisLabel: { formatter: '{value}', fontSize: 9 }, name: 'ATV', nameTextStyle: { fontSize: 8 } },
         ],
         series: [
-            { name: 'صافي المبيعات', type: 'bar' as const, data: qNetSales.map(v => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 18 },
-            { name: 'قيمة الربح', type: 'bar' as const, data: qProfit.map(v => ({ value: v, itemStyle: { color: '#0891b2', borderRadius: [4, 4, 0, 0] } })), barWidth: 18 },
-            { name: 'متوسط قيمة المعاملة (ATV)', type: 'line' as const, yAxisIndex: 1, data: qAtv, lineStyle: { color: '#dc2626', width: 2 }, itemStyle: { color: '#dc2626' }, smooth: true },
+            {
+                name: 'صافي المبيعات',
+                type: 'bar' as const,
+                data: qNetSales.map(v => ({ value: v, itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] } })),
+                barWidth: 18,
+            },
+            {
+                name: 'قيمة الربح',
+                type: 'bar' as const,
+                data: qProfit.map(v => ({ value: v, itemStyle: { color: '#0ea5e9', borderRadius: [4, 4, 0, 0] } })),
+                barWidth: 18,
+            },
+            {
+                name: 'متوسط قيمة المعاملة (ATV)',
+                type: 'line' as const,
+                yAxisIndex: 1,
+                data: qAtv,
+                lineStyle: { color: '#ef4444', width: 2 },
+                itemStyle: { color: '#ef4444' },
+                smooth: true,
+            },
         ],
     };
 

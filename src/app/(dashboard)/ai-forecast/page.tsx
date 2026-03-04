@@ -16,10 +16,38 @@ export default function AIForecastPage() {
         xAxis: { type: 'category' as const, data: forecastData.map((d) => d.date), axisLabel: { rotate: 30, fontSize: 10 } },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: 'الفعلي', type: 'line', data: forecastData.map((d) => d.actual), lineStyle: { color: '#047857', width: 2 }, itemStyle: { color: '#047857' } },
-            { name: 'المتوقع', type: 'line', data: forecastData.map((d) => d.predicted), lineStyle: { color: '#0891b2', width: 2 }, itemStyle: { color: '#0891b2' } },
-            { name: 'الحد الأعلى', type: 'line', data: forecastData.map((d) => d.upperBound), lineStyle: { opacity: 0 }, itemStyle: { opacity: 0 }, areaStyle: { color: 'rgba(8,145,178,0.06)' }, stack: 'band' },
-            { name: 'الحد الأدنى', type: 'line', data: forecastData.map((d) => d.lowerBound), lineStyle: { opacity: 0 }, itemStyle: { opacity: 0 }, areaStyle: { color: 'rgba(8,145,178,0.06)' }, stack: 'band' },
+            {
+                name: 'الفعلي',
+                type: 'line',
+                data: forecastData.map((d) => d.actual),
+                lineStyle: { color: '#22c55e', width: 2 },
+                itemStyle: { color: '#22c55e' },
+            },
+            {
+                name: 'المتوقع',
+                type: 'line',
+                data: forecastData.map((d) => d.predicted),
+                lineStyle: { color: '#0ea5e9', width: 2 },
+                itemStyle: { color: '#0ea5e9' },
+            },
+            {
+                name: 'الحد الأعلى',
+                type: 'line',
+                data: forecastData.map((d) => d.upperBound),
+                lineStyle: { opacity: 0 },
+                itemStyle: { opacity: 0 },
+                areaStyle: { color: 'rgba(14,165,233,0.06)' },
+                stack: 'band',
+            },
+            {
+                name: 'الحد الأدنى',
+                type: 'line',
+                data: forecastData.map((d) => d.lowerBound),
+                lineStyle: { opacity: 0 },
+                itemStyle: { opacity: 0 },
+                areaStyle: { color: 'rgba(14,165,233,0.06)' },
+                stack: 'band',
+            },
         ],
         legend: { data: ['الفعلي', 'المتوقع'], bottom: 0, left: 'center' },
         grid: { bottom: '18%' },
@@ -30,8 +58,22 @@ export default function AIForecastPage() {
         xAxis: { type: 'category' as const, data: futureData.map((d) => d.date) },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: 'الأرباح المتوقعة', type: 'bar', data: futureData.map((d) => ({ value: Math.round(d.predicted * 0.35), itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 28 },
-            { name: 'المبيعات المتوقعة', type: 'line', data: futureData.map((d) => d.predicted), lineStyle: { color: '#0891b2', width: 2 }, itemStyle: { color: '#0891b2' } },
+            {
+                name: 'الأرباح المتوقعة',
+                type: 'bar',
+                data: futureData.map((d) => ({
+                    value: Math.round(d.predicted * 0.35),
+                    itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 28,
+            },
+            {
+                name: 'المبيعات المتوقعة',
+                type: 'line',
+                data: futureData.map((d) => d.predicted),
+                lineStyle: { color: '#0ea5e9', width: 2 },
+                itemStyle: { color: '#0ea5e9' },
+            },
         ],
         legend: { data: ['الأرباح المتوقعة', 'المبيعات المتوقعة'], bottom: 0, left: 'center' },
     };
@@ -41,8 +83,12 @@ export default function AIForecastPage() {
         xAxis: { type: 'category' as const, data: futureData.map((d) => d.date) },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` } },
         series: [{
-            name: 'المرتجعات المتوقعة', type: 'bar',
-            data: futureData.map((d) => ({ value: Math.round(d.predicted * 0.048), itemStyle: { color: '#dc2626', borderRadius: [4, 4, 0, 0], opacity: 0.7 } })),
+            name: 'المرتجعات المتوقعة',
+            type: 'bar',
+            data: futureData.map((d) => ({
+                value: Math.round(d.predicted * 0.048),
+                itemStyle: { color: '#ef4444', borderRadius: [4, 4, 0, 0], opacity: 0.7 },
+            })),
             barWidth: 28,
         }],
     };

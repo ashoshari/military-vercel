@@ -20,10 +20,21 @@ export default function OperationsPage() {
         xAxis: { type: 'category' as const, data: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` } },
         series: [{
-            name: 'الأرباح', type: 'line', smooth: true,
+            name: 'الأرباح',
+            type: 'line',
+            smooth: true,
             data: [580000, 620000, 710000, 680000, 720000, 840000, 790000, 810000, 870000, 830000, 920000, 980000],
-            lineStyle: { color: '#047857', width: 3 }, itemStyle: { color: '#047857' },
-            areaStyle: { color: { type: 'linear' as const, x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(4,120,87,0.2)' }, { offset: 1, color: 'rgba(4,120,87,0)' }] } },
+            lineStyle: { color: '#00e5a0', width: 3 },
+            itemStyle: { color: '#00e5a0' },
+            areaStyle: {
+                color: {
+                    type: 'linear' as const, x: 0, y: 0, x2: 0, y2: 1,
+                    colorStops: [
+                        { offset: 0, color: 'rgba(0,229,160,0.18)' },
+                        { offset: 1, color: 'rgba(0,229,160,0)' },
+                    ],
+                },
+            },
         }],
     };
 
@@ -55,8 +66,23 @@ export default function OperationsPage() {
             { type: 'value' as const, name: 'متوسط القيمة', axisLabel: { formatter: (v: number) => `${v} د.أ` } },
         ],
         series: [
-            { name: 'عدد الفواتير', type: 'bar', data: [45000, 52000, 38000, 24000, 15000, 10500].map((v) => ({ value: v, itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] } })), barWidth: 28 },
-            { name: 'متوسط القيمة', type: 'line', yAxisIndex: 1, data: [28, 65, 115, 178, 245, 380], lineStyle: { color: '#047857', width: 2 }, itemStyle: { color: '#047857' } },
+            {
+                name: 'عدد الفواتير',
+                type: 'bar',
+                data: [45000, 52000, 38000, 24000, 15000, 10500].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 28,
+            },
+            {
+                name: 'متوسط القيمة',
+                type: 'line',
+                yAxisIndex: 1,
+                data: [28, 65, 115, 178, 245, 380],
+                lineStyle: { color: '#00e5a0', width: 2 },
+                itemStyle: { color: '#00e5a0' },
+            },
         ],
         legend: { data: ['عدد الفواتير', 'متوسط القيمة'], bottom: 0, left: 'center' },
     };
@@ -69,8 +95,24 @@ export default function OperationsPage() {
             { type: 'value' as const, name: 'القيمة', axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` } },
         ],
         series: [
-            { name: 'عدد الوحدات', type: 'bar', data: [72000, 45000, 38000, 55000, 62000, 28000, 32000, 18000].map((v) => ({ value: v, itemStyle: { color: '#0891b2', borderRadius: [4, 4, 0, 0] } })), barWidth: 16 },
-            { name: 'القيمة المادية', type: 'bar', data: [360000, 315000, 285000, 110000, 93000, 196000, 128000, 234000].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 16 },
+            {
+                name: 'عدد الوحدات',
+                type: 'bar',
+                data: [72000, 45000, 38000, 55000, 62000, 28000, 32000, 18000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#00d4ff', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+            },
+            {
+                name: 'القيمة المادية',
+                type: 'bar',
+                data: [360000, 315000, 285000, 110000, 93000, 196000, 128000, 234000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#00e5a0', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+            },
         ],
         legend: { data: ['عدد الوحدات', 'القيمة المادية'], bottom: 0, left: 'center' },
     };

@@ -108,7 +108,7 @@ const COLUMNS = [
 ];
 
 // ── MiniBar component ──
-function MiniBar({ value, max, color = '#3b82f6' }: { value: number; max: number; color?: string }) {
+function MiniBar({ value, max, color = 'var(--accent-blue)' }: { value: number; max: number; color?: string }) {
     const pct = Math.min((value / max) * 100, 100);
     return (
         <div style={{ display: 'inline-block', width: '50px', height: '6px', borderRadius: '3px', background: 'var(--bg-elevated)', verticalAlign: 'middle', marginRight: '6px' }}>
@@ -152,16 +152,17 @@ export default function DrillDownTable() {
         const isOpen = expanded[key];
         const indent = level * 24;
 
+        // ألوان الخلفية لكل مستوى (فرع → فئة → منتج) متناسقة مع جداول الخصومات / العمليات
         const bgColors = [
-            'transparent',
-            'rgba(37,99,235,0.04)',
-            'rgba(37,99,235,0.02)',
+            'transparent',                       // Branch row
+            'rgba(4,120,87,0.02)',               // Category level (خفيف أخضر)
+            'rgba(8,145,178,0.02)',              // Product level (خفيف سماوي)
         ];
 
         const levelColors = [
-            'var(--text-primary)',
-            'var(--accent-blue)',
-            'var(--text-secondary)',
+            'var(--text-primary)',               // Branch name
+            'var(--accent-cyan)',                // Category name
+            'var(--text-secondary)',             // Product name
         ];
 
         const rows: React.ReactNode[] = [];
@@ -175,23 +176,41 @@ export default function DrillDownTable() {
                     transition: 'background 0.15s',
                 }}
                 onClick={() => hasChildren && toggle(key)}
-                onMouseEnter={(e) => { if (hasChildren) (e.currentTarget as HTMLElement).style.background = 'rgba(37,99,235,0.08)'; }}
+                onMouseEnter={(e) => {
+                    if (hasChildren) {
+                        (e.currentTarget as HTMLElement).style.background =
+                            level === 0 ? 'rgba(0,229,160,0.06)' : level === 1 ? 'rgba(8,145,178,0.06)' : 'rgba(148,163,184,0.06)';
+                    }
+                }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = bgColors[level] || 'transparent'; }}
             >
                 {/* Name column */}
                 <td style={{ paddingRight: `${indent + 12}px`, whiteSpace: 'nowrap' }}>
                     <div className="flex items-center gap-1.5">
                         {hasChildren ? (
-                            <span style={{
-                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                width: '16px', height: '16px', borderRadius: '4px',
-                                background: isOpen ? 'rgba(37,99,235,0.15)' : 'var(--bg-elevated)',
-                                transition: 'all 0.2s',
-                            }}>
-                                {isOpen
-                                    ? <ChevronDown size={11} style={{ color: '#3b82f6' }} />
-                                    : <ChevronLeft size={11} style={{ color: 'var(--text-muted)' }} />
-                                }
+                            <span
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '16px',
+                                    height: '16px',
+                                    borderRadius: '4px',
+                                    background:
+                                        level === 0
+                                            ? (isOpen ? 'rgba(0,229,160,0.15)' : 'var(--bg-elevated)')
+                                            : (isOpen ? 'rgba(8,145,178,0.12)' : 'var(--bg-elevated)'),
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                {isOpen ? (
+                                    <ChevronDown
+                                        size={11}
+                                        style={{ color: level === 0 ? 'var(--accent-green)' : 'var(--accent-cyan)' }}
+                                    />
+                                ) : (
+                                    <ChevronLeft size={11} style={{ color: 'var(--text-muted)' }} />
+                                )}
                             </span>
                         ) : (
                             <span style={{ width: '16px', display: 'inline-block' }} />
@@ -212,14 +231,24 @@ export default function DrillDownTable() {
                     return (
                         <td key={col.key} style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
                             <div className="flex items-center gap-1">
-                                {showBar && <MiniBar value={val} max={maxGross} color={col.key === 'grossSales' ? '#3b82f6' : '#0891b2'} />}
+                                {showBar && (
+                                    <MiniBar
+                                        value={val}
+                                        max={maxGross}
+                                        color={col.key === 'grossSales' ? 'var(--accent-blue)' : 'var(--accent-green)'}
+                                    />
+                                )}
                                 <span
                                     className="text-xs font-medium"
                                     style={{
-                                        color: isVoid && val > 100 ? 'var(--accent-red)'
-                                            : isDisc ? 'var(--accent-amber)'
-                                                : level === 0 ? 'var(--text-primary)'
-                                                    : 'var(--text-secondary)',
+                                        color:
+                                            isVoid && val > 100
+                                                ? 'var(--accent-red)'
+                                                : isDisc
+                                                    ? 'var(--accent-amber)'
+                                                    : level === 0
+                                                        ? 'var(--text-primary)'
+                                                        : 'var(--text-secondary)',
                                     }}
                                     dir="ltr"
                                 >
@@ -270,18 +299,20 @@ export default function DrillDownTable() {
                         {tableData.map((branch, bi) => renderRow(branch, 0, 'root', bi))}
 
                         {/* Total row */}
-                        <tr style={{
-                            background: 'rgba(37,99,235,0.10)',
-                            borderTop: '2px solid rgba(37,99,235,0.3)',
-                        }}>
+                        <tr
+                            style={{
+                                background: 'var(--accent-green-dim)',
+                                borderTop: '2px solid rgba(0,229,160,0.3)',
+                            }}
+                        >
                             <td>
-                                <span className="text-xs font-bold" style={{ color: 'var(--accent-blue)', paddingRight: '12px' }}>
+                                <span className="text-xs font-bold" style={{ color: 'var(--accent-green)', paddingRight: '12px' }}>
                                     الإجمالي — Total
                                 </span>
                             </td>
                             {COLUMNS.map(col => (
                                 <td key={col.key} style={{ textAlign: 'left' }}>
-                                    <span className="text-xs font-bold" style={{ color: 'var(--accent-blue)' }} dir="ltr">
+                                    <span className="text-xs font-bold" style={{ color: 'var(--accent-green)' }} dir="ltr">
                                         {fmt(totals[col.key], col.key)}
                                     </span>
                                 </td>

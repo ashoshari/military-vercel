@@ -40,9 +40,34 @@ export default function SalesPage() {
         xAxis: { type: 'category' as const, data: months },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: `${selectedYear}`, type: 'bar', data: currentYearData.map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 16, barGap: '20%' },
-            { name: `${Number(selectedYear) - 1}`, type: 'bar', data: previousYearData.map((v) => ({ value: v, itemStyle: { color: '#334155', borderRadius: [4, 4, 0, 0] } })), barWidth: 16 },
-            { name: 'الفرق %', type: 'line', yAxisIndex: 0, data: currentYearData.map((v, i) => Math.round(((v - previousYearData[i]) / previousYearData[i]) * 100 * 100) / 100), lineStyle: { color: '#0891b2', width: 2, type: 'dashed' as const }, itemStyle: { color: '#0891b2' }, tooltip: { valueFormatter: (v: number) => `${v}%` } },
+            {
+                name: `${selectedYear}`,
+                type: 'bar',
+                data: currentYearData.map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#00e5a0', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+                barGap: '20%',
+            },
+            {
+                name: `${Number(selectedYear) - 1}`,
+                type: 'bar',
+                data: previousYearData.map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#334155', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+            },
+            {
+                name: 'الفرق %',
+                type: 'line',
+                yAxisIndex: 0,
+                data: currentYearData.map((v, i) => Math.round(((v - previousYearData[i]) / previousYearData[i]) * 100 * 100) / 100),
+                lineStyle: { color: '#00d4ff', width: 2, type: 'dashed' as const },
+                itemStyle: { color: '#00d4ff' },
+                tooltip: { valueFormatter: (v: number) => `${v}%` },
+            },
         ],
         legend: { data: [`${selectedYear}`, `${Number(selectedYear) - 1}`, 'الفرق %'], bottom: 0, left: 'center' },
     };
@@ -71,7 +96,10 @@ export default function SalesPage() {
             {
                 name: 'المبيعات',
                 type: 'bar',
-                data: drillData.values.map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })),
+                data: drillData.values.map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#00e5a0', borderRadius: [4, 4, 0, 0] },
+                })),
                 barWidth: drillLevel === 'month' ? 18 : 40,
             },
             {
@@ -79,8 +107,8 @@ export default function SalesPage() {
                 type: 'line',
                 yAxisIndex: 1,
                 data: drillData.profits,
-                lineStyle: { color: '#0891b2', width: 2.5 },
-                itemStyle: { color: '#0891b2', borderWidth: 2 },
+                lineStyle: { color: '#00d4ff', width: 2.5 },
+                itemStyle: { color: '#00d4ff', borderWidth: 2 },
                 symbol: 'circle',
                 symbolSize: 8,
                 smooth: true,
@@ -99,8 +127,23 @@ export default function SalesPage() {
             { type: 'value' as const, name: 'الأرباح', axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` } },
         ],
         series: [
-            { name: 'الكمية المباعة', type: 'bar', data: products.slice(0, 8).map((p) => ({ value: p.unitsSold, itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] } })), barWidth: 16 },
-            { name: 'الأرباح', type: 'line', yAxisIndex: 1, data: products.slice(0, 8).map((p) => Math.round(p.revenue * p.margin / 100)), lineStyle: { color: '#047857', width: 2 }, itemStyle: { color: '#047857' } },
+            {
+                name: 'الكمية المباعة',
+                type: 'bar',
+                data: products.slice(0, 8).map((p) => ({
+                    value: p.unitsSold,
+                    itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+            },
+            {
+                name: 'الأرباح',
+                type: 'line',
+                yAxisIndex: 1,
+                data: products.slice(0, 8).map((p) => Math.round(p.revenue * p.margin / 100)),
+                lineStyle: { color: '#00e5a0', width: 2 },
+                itemStyle: { color: '#00e5a0' },
+            },
         ],
         legend: { data: ['الكمية المباعة', 'الأرباح'], bottom: 0, left: 'center' },
         grid: { bottom: '20%' },
@@ -111,8 +154,24 @@ export default function SalesPage() {
         xAxis: { type: 'category' as const, data: ['بدون خصم', '5%', '10%', '15%', '20%', '25%+'] },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: 'المبيعات', type: 'bar', data: [8200000, 5100000, 4300000, 3600000, 2100000, 1300000].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 28 },
-            { name: 'الأرباح', type: 'bar', data: [2050000, 1120000, 730000, 468000, 189000, 52000].map((v) => ({ value: v, itemStyle: { color: '#0891b2', borderRadius: [4, 4, 0, 0] } })), barWidth: 28 },
+            {
+                name: 'المبيعات',
+                type: 'bar',
+                data: [8200000, 5100000, 4300000, 3600000, 2100000, 1300000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#00e5a0', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 28,
+            },
+            {
+                name: 'الأرباح',
+                type: 'bar',
+                data: [2050000, 1120000, 730000, 468000, 189000, 52000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#00d4ff', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 28,
+            },
         ],
         legend: { data: ['المبيعات', 'الأرباح'], bottom: 0, left: 'center' },
     };
@@ -124,11 +183,14 @@ export default function SalesPage() {
         series: [{
             type: 'bar',
             data: [
-                { value: totalRevenue, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } },
-                { value: totalCost, itemStyle: { color: '#dc2626', borderRadius: [4, 4, 0, 0] } },
-                { value: totalDiscount, itemStyle: { color: '#d97706', borderRadius: [4, 4, 0, 0] } },
-                { value: totalReturns * 50, itemStyle: { color: '#dc2626', borderRadius: [4, 4, 0, 0] } },
-                { value: totalRevenue - totalCost - totalDiscount - totalReturns * 50, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } },
+                { value: totalRevenue, itemStyle: { color: '#00e5a0', borderRadius: [4, 4, 0, 0] } },
+                { value: totalCost, itemStyle: { color: '#ef4444', borderRadius: [4, 4, 0, 0] } },
+                { value: totalDiscount, itemStyle: { color: '#f59e0b', borderRadius: [4, 4, 0, 0] } },
+                { value: totalReturns * 50, itemStyle: { color: '#ef4444', borderRadius: [4, 4, 0, 0] } },
+                {
+                    value: totalRevenue - totalCost - totalDiscount - totalReturns * 50,
+                    itemStyle: { color: '#00e5a0', borderRadius: [4, 4, 0, 0] },
+                },
             ],
             barWidth: 36,
         }],

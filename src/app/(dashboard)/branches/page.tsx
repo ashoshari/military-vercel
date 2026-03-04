@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
@@ -131,7 +131,7 @@ export default function BranchesPage() {
 
     // ── أداء فئات المنتجات (مجمّع لكل الفروع) ──
     const branchKeys = ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'b7', 'b8'] as const;
-    const branchColors = ['#2563eb', '#d97706', '#047857', '#7c3aed', '#0891b2', '#dc2626', '#059669', '#9333ea'];
+    const branchColors = ['#00e5a0', '#00d4ff', '#3b82f6', '#a855f7', '#f59e0b', '#ef4444', '#0891b2', '#d97706'];
     const categoryPerfOption = {
         tooltip: {
             trigger: 'axis' as const,

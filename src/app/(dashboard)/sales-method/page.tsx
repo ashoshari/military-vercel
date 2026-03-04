@@ -33,8 +33,17 @@ export default function SalesMethodPage() {
                 type: 'bar',
                 data: paymentRows.map((r, i) => ({
                     value: r.sales,
-                    itemStyle: { color: ['#2563eb', '#1d4ed8', '#1e40af'][i], borderRadius: [4, 4, 0, 0] },
-                    label: { show: true, position: 'top', formatter: `${(r.sales / 1000).toFixed(1)}K`, color: '#94a3b8', fontSize: 10 },
+                    itemStyle: {
+                        color: ['#22c55e', '#0ea5e9', '#3b82f6'][i],
+                        borderRadius: [4, 4, 0, 0],
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: `${(r.sales / 1000).toFixed(1)}K`,
+                        color: '#94a3b8',
+                        fontSize: 10,
+                    },
                 })),
                 barWidth: 40,
             },
@@ -65,8 +74,17 @@ export default function SalesMethodPage() {
                 type: 'bar',
                 data: salesTypeRows.map((r, i) => ({
                     value: r.sales,
-                    itemStyle: { color: ['#2563eb', '#3b82f6'][i], borderRadius: [4, 4, 0, 0] },
-                    label: { show: true, position: 'top', formatter: `${(r.sales / 1000).toFixed(1)}K`, color: '#94a3b8', fontSize: 10 },
+                    itemStyle: {
+                        color: ['#22c55e', '#0ea5e9'][i],
+                        borderRadius: [4, 4, 0, 0],
+                    },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: `${(r.sales / 1000).toFixed(1)}K`,
+                        color: '#94a3b8',
+                        fontSize: 10,
+                    },
                 })),
                 barWidth: 60,
             },
@@ -89,10 +107,42 @@ export default function SalesMethodPage() {
         xAxis: { type: 'category' as const, data: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: 'نقدي', type: 'line', stack: 'total', data: [850000, 820000, 900000, 880000, 870000, 950000, 920000, 910000, 980000, 940000, 1000000, 1100000], areaStyle: { opacity: 0.3 }, lineStyle: { color: '#047857' }, itemStyle: { color: '#047857' } },
-            { name: 'فيزا/ماستركارد', type: 'line', stack: 'total', data: [560000, 580000, 620000, 600000, 630000, 700000, 680000, 690000, 730000, 720000, 780000, 850000], areaStyle: { opacity: 0.3 }, lineStyle: { color: '#2563eb' }, itemStyle: { color: '#2563eb' } },
-            { name: 'كوبون / قسيمة', type: 'line', stack: 'total', data: [80000, 90000, 100000, 110000, 95000, 120000, 115000, 108000, 125000, 118000, 130000, 145000], areaStyle: { opacity: 0.3 }, lineStyle: { color: '#d97706' }, itemStyle: { color: '#d97706' } },
-            { name: 'دفع لاحق', type: 'line', stack: 'total', data: [200000, 190000, 210000, 220000, 200000, 230000, 220000, 210000, 240000, 230000, 250000, 280000], areaStyle: { opacity: 0.3 }, lineStyle: { color: '#7c3aed' }, itemStyle: { color: '#7c3aed' } },
+            {
+                name: 'نقدي',
+                type: 'line',
+                stack: 'total',
+                data: [850000, 820000, 900000, 880000, 870000, 950000, 920000, 910000, 980000, 940000, 1000000, 1100000],
+                areaStyle: { opacity: 0.3 },
+                lineStyle: { color: '#22c55e', width: 2 },
+                itemStyle: { color: '#22c55e' },
+            },
+            {
+                name: 'فيزا/ماستركارد',
+                type: 'line',
+                stack: 'total',
+                data: [560000, 580000, 620000, 600000, 630000, 700000, 680000, 690000, 730000, 720000, 780000, 850000],
+                areaStyle: { opacity: 0.3 },
+                lineStyle: { color: '#0ea5e9', width: 2 },
+                itemStyle: { color: '#0ea5e9' },
+            },
+            {
+                name: 'كوبون / قسيمة',
+                type: 'line',
+                stack: 'total',
+                data: [80000, 90000, 100000, 110000, 95000, 120000, 115000, 108000, 125000, 118000, 130000, 145000],
+                areaStyle: { opacity: 0.3 },
+                lineStyle: { color: '#f59e0b', width: 2 },
+                itemStyle: { color: '#f59e0b' },
+            },
+            {
+                name: 'دفع لاحق',
+                type: 'line',
+                stack: 'total',
+                data: [200000, 190000, 210000, 220000, 200000, 230000, 220000, 210000, 240000, 230000, 250000, 280000],
+                areaStyle: { opacity: 0.3 },
+                lineStyle: { color: '#6366f1', width: 2 },
+                itemStyle: { color: '#6366f1' },
+            },
         ],
         legend: { data: ['نقدي', 'فيزا/ماستركارد', 'كوبون / قسيمة', 'دفع لاحق'], bottom: 0, left: 'center' },
     };
@@ -105,8 +155,23 @@ export default function SalesMethodPage() {
             { type: 'value' as const, name: 'الهامش %' },
         ],
         series: [
-            { name: 'الإيرادات', type: 'bar', data: [10300000, 6900000, 1200000, 2500000, 800000].map((v) => ({ value: v, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 36 },
-            { name: 'هامش الربح', type: 'line', yAxisIndex: 1, data: [22.1, 19.5, 14.3, 15.3, 12.7], lineStyle: { color: '#d97706', width: 2 }, itemStyle: { color: '#d97706' } },
+            {
+                name: 'الإيرادات',
+                type: 'bar',
+                data: [10300000, 6900000, 1200000, 2500000, 800000].map((v) => ({
+                    value: v,
+                    itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 36,
+            },
+            {
+                name: 'هامش الربح',
+                type: 'line',
+                yAxisIndex: 1,
+                data: [22.1, 19.5, 14.3, 15.3, 12.7],
+                lineStyle: { color: '#f59e0b', width: 2 },
+                itemStyle: { color: '#f59e0b' },
+            },
         ],
         legend: { data: ['الإيرادات', 'هامش الربح'], bottom: 0, left: 'center' },
     };
@@ -116,8 +181,23 @@ export default function SalesMethodPage() {
         xAxis: { type: 'category' as const, data: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'] },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: 'بطاقة عسكرية', type: 'bar', data: [2200000, 2150000, 2400000, 2350000, 2300000, 2600000, 2500000, 2450000, 2700000, 2600000, 2800000, 3100000].map(v => ({ value: v, itemStyle: { color: '#2563eb', borderRadius: [4, 4, 0, 0] } })), barWidth: 14, barGap: '20%' },
-            { name: 'مدني', type: 'bar', data: [850000, 830000, 950000, 940000, 920000, 1050000, 1000000, 990000, 1100000, 1050000, 1150000, 1280000].map(v => ({ value: v, itemStyle: { color: '#0891b2', borderRadius: [4, 4, 0, 0] } })), barWidth: 14 },
+            {
+                name: 'بطاقة عسكرية',
+                type: 'bar',
+                data: [2200000, 2150000, 2400000, 2350000, 2300000, 2600000, 2500000, 2450000, 2700000, 2600000, 2800000, 3100000].map(
+                    (v) => ({ value: v, itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] } })
+                ),
+                barWidth: 14,
+                barGap: '20%',
+            },
+            {
+                name: 'مدني',
+                type: 'bar',
+                data: [850000, 830000, 950000, 940000, 920000, 1050000, 1000000, 990000, 1100000, 1050000, 1150000, 1280000].map(
+                    (v) => ({ value: v, itemStyle: { color: '#0ea5e9', borderRadius: [4, 4, 0, 0] } })
+                ),
+                barWidth: 14,
+            },
         ],
         legend: { data: ['بطاقة عسكرية', 'مدني'], bottom: 0, left: 'center' },
     };

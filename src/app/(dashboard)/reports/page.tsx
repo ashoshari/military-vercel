@@ -56,9 +56,31 @@ export default function ReportsPage() {
         xAxis: { type: 'category' as const, data: previewData.map(d => d.market.split(' ')[0]), axisLabel: { fontSize: 10 } },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
-            { name: 'الإيرادات', type: 'bar', data: previewData.map(d => ({ value: d.revenue, itemStyle: { color: '#047857', borderRadius: [4, 4, 0, 0] } })), barWidth: 16 },
-            { name: 'التكلفة', type: 'bar', data: previewData.map(d => ({ value: d.cost, itemStyle: { color: '#334155', borderRadius: [4, 4, 0, 0] } })), barWidth: 16 },
-            { name: 'الأرباح', type: 'line', data: previewData.map(d => d.profit), lineStyle: { color: '#0891b2', width: 2 }, itemStyle: { color: '#0891b2' } },
+            {
+                name: 'الإيرادات',
+                type: 'bar',
+                data: previewData.map(d => ({
+                    value: d.revenue,
+                    itemStyle: { color: '#22c55e', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+            },
+            {
+                name: 'التكلفة',
+                type: 'bar',
+                data: previewData.map(d => ({
+                    value: d.cost,
+                    itemStyle: { color: '#94a3b8', borderRadius: [4, 4, 0, 0] },
+                })),
+                barWidth: 16,
+            },
+            {
+                name: 'الأرباح',
+                type: 'line',
+                data: previewData.map(d => d.profit),
+                lineStyle: { color: '#0ea5e9', width: 2 },
+                itemStyle: { color: '#0ea5e9' },
+            },
         ],
         legend: { data: ['الإيرادات', 'التكلفة', 'الأرباح'], top: 0, left: 0 },
     };
@@ -67,8 +89,9 @@ export default function ReportsPage() {
         series: [{
             type: 'pie', radius: ['40%', '70%'],
             data: previewData.slice(0, 5).map((d, i) => ({
-                name: d.market.split(' ')[0], value: d.revenue,
-                itemStyle: { color: ['#047857', '#2563eb', '#7c3aed', '#d97706', '#0891b2'][i] },
+                name: d.market.split(' ')[0],
+                value: d.revenue,
+                itemStyle: { color: ['#22c55e', '#3b82f6', '#6366f1', '#f59e0b', '#0ea5e9'][i] },
             })),
             label: { color: '#94a3b8', fontSize: 11 }, labelLine: { lineStyle: { color: '#334155' } },
         }],

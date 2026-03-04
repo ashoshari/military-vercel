@@ -285,8 +285,11 @@ export default function TreeDrillDown() {
                                 </div>
 
                                 {/* العناصر */}
-                                <div className="space-y-0">
-                                    {col.nodes.slice(0, 10).map((node) => (
+                                <div
+                                    className="space-y-0 overflow-y-auto"
+                                    style={{ maxHeight: '650px', paddingRight: '2px' }}
+                                >
+                                    {col.nodes.map((node) => (
                                         <TreeItem
                                             key={node.id}
                                             node={node}
@@ -295,11 +298,6 @@ export default function TreeDrillDown() {
                                             onClick={() => handleSelect(colIdx, node)}
                                         />
                                     ))}
-                                    {col.nodes.length > 10 && (
-                                        <div className="flex justify-center pt-1">
-                                            <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
-                                        </div>
-                                    )}
                                 </div>
                             </motion.div>
 
