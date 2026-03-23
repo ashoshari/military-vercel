@@ -2,6 +2,7 @@
 
 import '@/lib/echarts/register-bar-line-pie';
 import '@/lib/echarts/register-heatmap';
+import '@/lib/echarts/register-scatter';
 import dynamic from 'next/dynamic';
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -140,14 +141,13 @@ export default function CustomersPage() {
             left: 'center',
             top: 0,
             inRange: { color: GREEN_SCALE },
-            text: ['1.88K', '0.00K'],
             textStyle: { fontSize: 9, color: 'var(--text-muted)' },
             formatter: (v: number) => `${v.toFixed(2)}K`,
         },
         series: [{
             type: 'scatter',
             data: txScatterData,
-            symbolSize: (d: number[]) => d[3],
+            symbolSize: (d: unknown) => (Array.isArray(d) ? (d[3] as number) : 8),
             encode: { x: 0, y: 1 },
             itemStyle: { opacity: 0.75 },
         }],
