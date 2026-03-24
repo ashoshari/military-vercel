@@ -362,12 +362,12 @@ export default function SalesPage() {
                                 <th>السنة</th>
                                 <th>الربع</th>
                                 <th>الشهر</th>
-                                <th style={{ textAlign: 'left' }}>صافي المبيعات</th>
-                                <th style={{ textAlign: 'left' }}>صافي المبيعات YoY</th>
-                                <th style={{ textAlign: 'center' }}>نمو YoY%</th>
-                                <th style={{ textAlign: 'center' }}>نمو MoM%</th>
-                                <th style={{ textAlign: 'center' }}>عدد الفواتير</th>
-                                <th style={{ textAlign: 'center' }}>هامش الربح %</th>
+                                <th style={{ textAlign: 'start' }}>صافي المبيعات</th>
+                                <th style={{ textAlign: 'start' }}>صافي المبيعات YoY</th>
+                                <th style={{ textAlign: 'start' }}>نمو YoY%</th>
+                                <th style={{ textAlign: 'start' }}>نمو MoM%</th>
+                                <th style={{ textAlign: 'start' }}>عدد الفواتير</th>
+                                <th style={{ textAlign: 'start' }}>هامش الربح %</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -388,20 +388,20 @@ export default function SalesPage() {
                                     <td style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{row.year}</td>
                                     <td style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{row.quarter}</td>
                                     <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{row.month}</td>
-                                    <td style={{ textAlign: 'left' }}>
+                                    <td style={{ textAlign: 'start' }}>
                                         <div className="flex items-center gap-1">
                                             <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }} dir="ltr">{row.net.toLocaleString('en-US')}</span>
                                             <div style={{ width: `${Math.min(row.net / 25, 80)}px`, height: '6px', borderRadius: '3px', background: 'var(--accent-blue)', opacity: 0.5 }} />
                                         </div>
                                     </td>
-                                    <td style={{ textAlign: 'left' }}>
+                                    <td style={{ textAlign: 'start' }}>
                                         {netYoyPrior != null ? (
                                             <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }} dir="ltr">{netYoyPrior.toLocaleString('en-US')}</span>
                                         ) : (
                                             <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>
                                         )}
                                     </td>
-                                    <td style={{ textAlign: 'center' }}>
+                                    <td style={{ textAlign: 'start' }}>
                                         {row.yoy != null ? (
                                             <span className="inline-flex items-center gap-0.5 text-xs font-semibold" style={{ color: row.yoy >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }} dir="ltr">
                                                 {row.yoy >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -409,7 +409,7 @@ export default function SalesPage() {
                                             </span>
                                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>}
                                     </td>
-                                    <td style={{ textAlign: 'center' }}>
+                                    <td style={{ textAlign: 'start' }}>
                                         {row.mom != null ? (
                                             <span className="inline-flex items-center gap-0.5 text-xs font-semibold" style={{ color: row.mom >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }} dir="ltr">
                                                 {row.mom >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -417,10 +417,10 @@ export default function SalesPage() {
                                             </span>
                                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>}
                                     </td>
-                                    <td style={{ textAlign: 'center' }}>
+                                    <td style={{ textAlign: 'start' }}>
                                         <span className="text-xs" style={{ color: 'var(--text-secondary)' }} dir="ltr">{row.invoices.toLocaleString('en-US')}</span>
                                     </td>
-                                    <td style={{ textAlign: 'center' }}>
+                                    <td style={{ textAlign: 'start' }}>
                                         <span className="text-xs font-semibold" style={{ color: row.margin > 20 ? 'var(--accent-green)' : row.margin > 10 ? 'var(--accent-amber)' : 'var(--accent-red)' }} dir="ltr">
                                             {row.margin.toFixed(2)}%
                                         </span>
