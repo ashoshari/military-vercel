@@ -314,7 +314,7 @@ export default function SalesPage() {
                         <ChartTitleFlagBadge flag="green" size="sm" />
                         <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>التحليل الزمني التفصيلي للمبيعات</h3>
                     </div>
-                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>صافي المبيعات • YoY% • MoM% • عدد الفواتير • هامش الربح</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>صافي المبيعات • صافي المبيعات YoY (العام السابق) • YoY% • MoM% • عدد الفواتير • هامش الربح</p>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="enterprise-table">
@@ -324,6 +324,7 @@ export default function SalesPage() {
                                 <th>الربع</th>
                                 <th>الشهر</th>
                                 <th style={{ textAlign: 'left' }}>صافي المبيعات</th>
+                                <th style={{ textAlign: 'left' }}>صافي المبيعات YoY</th>
                                 <th style={{ textAlign: 'center' }}>نمو YoY%</th>
                                 <th style={{ textAlign: 'center' }}>نمو MoM%</th>
                                 <th style={{ textAlign: 'center' }}>عدد الفواتير</th>
@@ -340,7 +341,10 @@ export default function SalesPage() {
                                 { year: '2021', quarter: 'الربع 1', month: 'يناير', net: 831, yoy: null, mom: null, invoices: 334, margin: 31.07 },
                                 { year: '2020', quarter: 'الربع 1', month: 'مارس', net: 1821, yoy: null, mom: 565.75, invoices: 649, margin: 2.24 },
                                 { year: '2020', quarter: 'الربع 1', month: 'فبراير', net: 273, yoy: null, mom: null, invoices: 113, margin: 1.49 },
-                            ] as { year: string; quarter: string; month: string; net: number; yoy: number | null; mom: number | null; invoices: number; margin: number }[]).map((row, i) => (
+                            ] as { year: string; quarter: string; month: string; net: number; yoy: number | null; mom: number | null; invoices: number; margin: number }[]).map((row, i) => {
+                                const netYoyPrior =
+                                    row.yoy != null && row.yoy !== -100 ? Math.round(row.net / (1 + row.yoy / 100)) : null;
+                                return (
                                 <tr key={i}>
                                     <td style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{row.year}</td>
                                     <td style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{row.quarter}</td>
@@ -350,6 +354,13 @@ export default function SalesPage() {
                                             <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }} dir="ltr">{row.net.toLocaleString('en-US')}</span>
                                             <div style={{ width: `${Math.min(row.net / 25, 80)}px`, height: '6px', borderRadius: '3px', background: 'var(--accent-blue)', opacity: 0.5 }} />
                                         </div>
+                                    </td>
+                                    <td style={{ textAlign: 'left' }}>
+                                        {netYoyPrior != null ? (
+                                            <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }} dir="ltr">{netYoyPrior.toLocaleString('en-US')}</span>
+                                        ) : (
+                                            <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>
+                                        )}
                                     </td>
                                     <td style={{ textAlign: 'center' }}>
                                         {row.yoy != null ? (
@@ -376,7 +387,8 @@ export default function SalesPage() {
                                         </span>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
