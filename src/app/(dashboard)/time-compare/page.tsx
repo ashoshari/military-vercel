@@ -289,23 +289,23 @@ export default function TimeComparePage() {
 
             {/* صافي المبيعات الفترة 1 + الفترة 2 + ATV */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard title="صافي المبيعات — الفترة 1" subtitle="Net Sales Period 1 by Date" option={p1Option} height="280px" delay={1} />
-                <ChartCard title="صافي المبيعات — الفترة 2" subtitle="Net Sales Period 2 by Date" option={p2Option} height="280px" delay={2} />
-                <ChartCard title="ATV حسب الفترة" subtitle="متوسط قيمة المعاملة" option={atvOption} height="280px" delay={3} />
+                <ChartCard title="صافي المبيعات — الفترة 1" titleFlag="green" subtitle="Net Sales Period 1 by Date" option={p1Option} height="280px" delay={1} />
+                <ChartCard title="صافي المبيعات — الفترة 2" titleFlag="green" subtitle="Net Sales Period 2 by Date" option={p2Option} height="280px" delay={2} />
+                <ChartCard title="ATV حسب الفترة" titleFlag="green" subtitle="متوسط قيمة المعاملة" option={atvOption} height="280px" delay={3} />
             </div>
 
             {/* صافي المبيعات حسب الفرع + الربح حسب الفرع + دائري الخصم */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard title="صافي المبيعات حسب الفرع والفترة" subtitle="Net Sales by Branch & Period" option={branchSalesOption} height="300px" delay={1} />
-                <ChartCard title="قيمة الربح حسب الفرع والفترة" subtitle="Profit Value by Branch & Period" option={branchProfitOption} height="300px" delay={2} />
-                <ChartCard title="قيمة الخصم حسب الفترة" subtitle="Discount Value by Period" option={discountPieOption} height="300px" delay={3} />
+                <ChartCard title="صافي المبيعات حسب الفرع والفترة" titleFlag="green" subtitle="Net Sales by Branch & Period" option={branchSalesOption} height="300px" delay={1} />
+                <ChartCard title="قيمة الربح حسب الفرع والفترة" titleFlag="green" subtitle="Profit Value by Branch & Period" option={branchProfitOption} height="300px" delay={2} />
+                <ChartCard title="قيمة الخصم حسب الفترة" titleFlag="green" subtitle="Discount Value by Period" option={discountPieOption} height="300px" delay={3} />
             </div>
 
             {/* خصم حسب الفرع (بار) + خصم حسب الفئة (بار) + دائري المعاملات */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <ChartCard title="قيمة الخصم حسب الفرع" subtitle="Discount Value by Branch & Period" option={discBranch1Option} height="300px" delay={1} />
-                <ChartCard title="قيمة الخصم حسب الفئة" subtitle="Discount Value by Category & Period" option={discCatOption} height="300px" delay={2} />
-                <ChartCard title="عدد المعاملات حسب الفترة" subtitle="No. of Transactions by Period" option={txPieOption} height="300px" delay={3} />
+                <ChartCard title="قيمة الخصم حسب الفرع" titleFlag="green" subtitle="Discount Value by Branch & Period" option={discBranch1Option} height="300px" delay={1} />
+                <ChartCard title="قيمة الخصم حسب الفئة" titleFlag="green" subtitle="Discount Value by Category & Period" option={discCatOption} height="300px" delay={2} />
+                <ChartCard title="عدد المعاملات حسب الفترة" titleFlag="green" subtitle="No. of Transactions by Period" option={txPieOption} height="300px" delay={3} />
             </div>
 
             <ChartCard

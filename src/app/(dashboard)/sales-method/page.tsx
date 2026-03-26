@@ -243,6 +243,7 @@ export default function SalesMethodPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <ChartCard
                     title="صافي المبيعات وحجم المبيعات حسب طريقة الدفع"
+                    titleFlag="green"
                     subtitle="Net Sales and Product Sales Volume by Payment Type"
                     option={paymentTypeOption}
                     height="320px"
@@ -250,6 +251,7 @@ export default function SalesMethodPage() {
                 />
                 <ChartCard
                     title="صافي المبيعات وحجم المبيعات حسب نوع البيع"
+                    titleFlag="green"
                     subtitle="Net Sales and Product Sales Volume by SalesType"
                     option={salesTypeOption}
                     height="320px"

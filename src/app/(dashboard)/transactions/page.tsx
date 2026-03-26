@@ -11,6 +11,7 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
 });
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
+import SectionTitleWithFlag from '@/components/ui/SectionTitleWithFlag';
 
 // ── بيانات الفروع مع sub و sub al sub ──
 const branchData = [
@@ -333,7 +334,7 @@ export default function TransactionsPage() {
             {/* ── جدول الفروع مع drill-down ── */}
             <div className="glass-panel overflow-hidden">
                 <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>تفاصيل المعاملات حسب الفرع</h3>
+                    <SectionTitleWithFlag title="تفاصيل المعاملات حسب الفرع" />
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Branch Transaction Details — فرع → فئة → منتج</p>
                 </div>
                 <div className="overflow-x-auto">

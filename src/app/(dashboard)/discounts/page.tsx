@@ -12,6 +12,7 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
 });
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
+import SectionTitleWithFlag from '@/components/ui/SectionTitleWithFlag';
 
 function hexToRgba(hex: string, alpha: number): string {
     const h = hex.replace('#', '');
@@ -495,8 +496,8 @@ export default function DiscountsPage() {
 
             {/* ── هامش الربح + Scatter ── */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="% هامش الربح حسب الفئة ونطاق الخصم" subtitle="% Profit Margin by Category and Discount Range" option={profitMarginByCatOption} height="360px" delay={1} />
-                <ChartCard title="نسب الخصم وحجم مبيعات المنتجات" subtitle="Discount Percentages & Product Sales Volume by Category" option={scatterOption} height="360px" delay={2} />
+                <ChartCard title="% هامش الربح حسب الفئة ونطاق الخصم" titleFlag="green" subtitle="% Profit Margin by Category and Discount Range" option={profitMarginByCatOption} height="360px" delay={1} />
+                <ChartCard title="نسب الخصم وحجم مبيعات المنتجات" titleFlag="green" subtitle="Discount Percentages & Product Sales Volume by Category" option={scatterOption} height="360px" delay={2} />
             </div>
 
             {/* ── صافي المبيعات حسب نطاق الخصم ── */}
@@ -505,7 +506,7 @@ export default function DiscountsPage() {
             {/* ── جدول مقارنة الفئات ── */}
             <div className="glass-panel overflow-hidden">
                 <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>مقارنة أداء فئات الخصم</h3>
+                    <SectionTitleWithFlag title="مقارنة أداء فئات الخصم" />
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Discount Category Comparison — مع/بدون خصومات</p>
                 </div>
                 <div className="overflow-x-auto">
@@ -623,7 +624,7 @@ export default function DiscountsPage() {
             {/* ── جدول أداء الفروع ── */}
             <div className="glass-panel overflow-hidden">
                 <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>تفاصيل أداء الخصومات حسب الفرع</h3>
+                    <SectionTitleWithFlag title="تفاصيل أداء الخصومات حسب الفرع" />
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Branch Discount Performance Details</p>
                 </div>
                 <div className="overflow-x-auto">
@@ -754,8 +755,7 @@ export default function DiscountsPage() {
 
             <ChartCard
                 title="تحليل المبيعات حسب نسبة الخصم"
-                titleFlag="red"
-                titleFlagNumber={1}
+                titleFlag="green"
                 subtitle="تأثير الخصومات على المبيعات والأرباح"
                 option={salesByDiscountOption}
                 height="300px"

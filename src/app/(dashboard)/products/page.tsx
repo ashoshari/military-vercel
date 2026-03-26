@@ -288,19 +288,19 @@ export default function ProductsPage() {
 
             {/* ── صافي المبيعات حسب الفئة + Scatter ── */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="صافي المبيعات حسب الفئة" subtitle="Net Sales by Category" option={salesByCatOption} height="320px" delay={1} />
-                <ChartCard title="حجم المبيعات مقابل هامش الربح" subtitle="Product Volume & % Profit Margin by Category" option={scatterOption} height="320px" delay={2} />
+                <ChartCard title="صافي المبيعات حسب الفئة" titleFlag="green" subtitle="Net Sales by Category" option={salesByCatOption} height="320px" delay={1} />
+                <ChartCard title="حجم المبيعات مقابل هامش الربح" titleFlag="green" subtitle="Product Volume & % Profit Margin by Category" option={scatterOption} height="320px" delay={2} />
             </div>
 
             {/* ── أفضل 10 + أدنى 10 — حسب الشهر ── */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="أفضل 10 منتجات — اتجاه الربح الشهري" subtitle="Top 10 Products — Monthly Profit Trend" option={top10Option} height="380px" delay={1} />
-                <ChartCard title="أدنى 10 منتجات — اتجاه الربح الشهري" subtitle="Bottom 10 Products — Monthly Profit Trend" option={bottom10Option} height="380px" delay={2} />
+                <ChartCard title="أفضل 10 منتجات — اتجاه الربح الشهري" titleFlag="green" subtitle="Top 10 Products — Monthly Profit Trend" option={top10Option} height="380px" delay={1} />
+                <ChartCard title="أدنى 10 منتجات — اتجاه الربح الشهري" titleFlag="green" subtitle="Bottom 10 Products — Monthly Profit Trend" option={bottom10Option} height="380px" delay={2} />
             </div>
 
             {/* ── مساهمة الأرباح + المرتجعات ── */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="% مساهمة حجم المبيعات والأرباح" subtitle="Sales Volume Contribution & Profit Contribution by Product %" option={contribOption} height="480px" delay={1} />
+                <ChartCard title="% مساهمة حجم المبيعات والأرباح" titleFlag="green" subtitle="Sales Volume Contribution & Profit Contribution by Product %" option={contribOption} height="480px" delay={1} />
                 <ChartCard title="المرتجعات حسب المنتج" subtitle="عدد المرتجعات مع نسبة الإرجاع" option={returnsOption} height="320px" delay={2} />
             </div>
 
