@@ -131,8 +131,8 @@ export default function CustomersPage() {
     }
     const txFreqOption = {
         grid: { left: '10%', right: '14%', top: '12%', bottom: '15%' },
-        xAxis: { type: 'value' as const, name: 'إجمالي المعاملات لكل عميل', nameLocation: 'center' as const, nameGap: 30, max: 700 },
-        yAxis: { type: 'value' as const, name: 'ATV لكل عميل', nameLocation: 'center' as const, nameGap: 35, max: 140 },
+        xAxis: { type: 'value' as const, name: 'اجمالي قيمة الفواتير', nameLocation: 'center' as const, nameGap: 30, max: 700 },
+        yAxis: { type: 'value' as const, name: 'عدد الفواتير', nameLocation: 'center' as const, nameGap: 35, max: 140 },
         visualMap: {
             show: true,
             dimension: 2,
@@ -180,14 +180,14 @@ export default function CustomersPage() {
 
             <ChartCard title="خريطة حرارية — أوقات الذروة" titleFlag="green" subtitle="كثافة العملاء حسب اليوم والساعة (Heatmap)" option={heatmapOption} height="340px" delay={1} />
 
-            <ChartCard title="تكرار المعاملات مقابل متوسط قيمة المعاملة" titleFlag="green" subtitle="Transaction Frequency vs. Average Transaction Value" option={txFreqOption} height="400px" delay={2} />
+            <ChartCard title="متوسط حجم السلة لكل عميل" titleFlag="green" subtitle="Transaction Frequency vs. Average Transaction Value" option={txFreqOption} height="400px" delay={2} />
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <ChartCard title="طريقة الدفع" subtitle="توزيع طرق الدفع للمستهلكين" option={paymentMethodOption} height="340px" delay={3} />
                 <ChartCard title="توزيع قيمة الفاتورة" subtitle="عدد العملاء حسب قيمة الفاتورة (د.أ)" option={invoiceValueOption} height="340px" delay={4} />
             </div>
 
-            <ChartCard title="استفادة من الخصومات والكوبونات" subtitle="عدد المستخدمين ونسبة الاستفادة الشهرية" option={discountUsageOption} height="300px" delay={5} />
+            <ChartCard title="استفادة من الخصومات والكوبونات" titleFlag="green" subtitle="عدد المستخدمين ونسبة الاستفادة الشهرية" option={discountUsageOption} height="300px" delay={5} />
 
             <CustomerInsightsTable />
         </div>

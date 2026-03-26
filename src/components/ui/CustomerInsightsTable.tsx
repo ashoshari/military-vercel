@@ -3,6 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search, ChevronUp, ChevronDown } from 'lucide-react';
+import AnalyticsTableCard from '@/components/ui/AnalyticsTableCard';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 // ── هيكل بيانات العميل ──
 interface Customer {
@@ -93,32 +95,19 @@ export default function CustomerInsightsTable() {
         ? (sortDir === 'desc' ? <ChevronDown size={10} /> : <ChevronUp size={10} />)
         : <ChevronDown size={10} style={{ opacity: 0.25 }} />;
 
-    const Th = ({ k, label, align = 'right' }: { k?: SortKey; label: string; align?: 'right' | 'center' | 'left' }) => (
-        <th onClick={() => k && toggleSort(k)} style={{ padding: '9px 10px', textAlign: align, fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap', cursor: k ? 'pointer' : 'default', userSelect: 'none', background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}
-            className={k ? 'hover:bg-white/5 transition-colors' : ''}>
-            <div className="flex items-center gap-0.5" style={{ justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start' }}>
-                {label}{k && <SortIcon k={k} />}
-            </div>
-        </th>
-    );
-
-    const InlineBar = ({ value, max, color }: { value: number; max: number; color: string }) => (
-        <div className="flex items-center gap-1.5">
-            <div style={{ width: 44, height: 5, borderRadius: 3, background: 'var(--bg-elevated)', flexShrink: 0, overflow: 'hidden' }}>
-                <div style={{ width: `${Math.max(2, (value / max) * 100)}%`, height: '100%', background: color, borderRadius: 3 }} />
-            </div>
+    const sortHeaderLabel = (label: string, k?: SortKey) => (
+        <div className="flex items-center gap-0.5 justify-center">
+            {label}{k && <SortIcon k={k} />}
         </div>
     );
 
     return (
-        <div className="glass-panel overflow-hidden">
-            {/* رأس ومحرك البحث */}
-            <div className="px-5 py-4 border-b flex items-center justify-between flex-wrap gap-3" style={{ borderColor: 'var(--border-subtle)' }}>
-                <div>
-                    <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>مصفوفة تحليل العملاء</h3>
-                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Customer Insights — {filtered.length} عميل</p>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', minWidth: 220 }}>
+        <AnalyticsTableCard
+            title="مصفوفة تحليل العملاء"
+            flag="green"
+            subtitles={<p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Customer Insights — {filtered.length} عميل</p>}
+            headerExtra={
+                <div className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)', minWidth: 220 }}>
                     <Search size={13} style={{ color: 'var(--text-muted)' }} />
                     <input
                         value={search}
@@ -128,88 +117,60 @@ export default function CustomerInsightsTable() {
                         style={{ color: 'var(--text-primary)' }}
                     />
                 </div>
-            </div>
+            }
+        >
+            <AnalyticsTable
+                headers={[
+                    { label: sortHeaderLabel('اسم العميل', 'name'), align: 'right' },
+                    { label: sortHeaderLabel('إجمالي المبيعات', 'totalSales'), align: 'center' },
+                    { label: sortHeaderLabel('عدد المعاملات', 'totalTransactions'), align: 'center' },
+                    { label: sortHeaderLabel('متوسط ATV', 'atv'), align: 'center' },
+                    { label: 'متوسط حجم السلة', align: 'center' },
+                    { label: sortHeaderLabel('متوسط عمر العميل', 'avgLifespan'), align: 'center' },
+                    { label: sortHeaderLabel('قيمة عمر العميل (CLV)', 'clv'), align: 'center' },
+                    { label: 'شريحة CLV', align: 'center' },
+                    { label: 'شريحة العميل', align: 'center' },
+                ]}
+            >
+                {pageData.map((c, i) => {
+                    const clvStyle = clvColor(c.clvSegment);
+                    return (
+                        <motion.tr
+                            key={c.name}
+                            initial={{ opacity: 0, x: -4 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.02 }}
+                            className="hover:bg-white/[0.015] transition-colors"
+                            style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                        >
+                            <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                {c.name}
+                            </td>
 
-            {/* الجدول */}
-            <div className="overflow-x-auto">
-                <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr>
-                            <Th label="اسم العميل" k="name" align="right" />
-                            <Th label="إجمالي المبيعات" k="totalSales" align="center" />
-                            <Th label="عدد المعاملات" k="totalTransactions" align="center" />
-                            <Th label="متوسط ATV" k="atv" align="center" />
-                            <Th label="متوسط حجم السلة" align="center" />
-                            <Th label="متوسط عمر العميل" k="avgLifespan" align="center" />
-                            <Th label="قيمة عمر العميل (CLV)" k="clv" align="center" />
-                            <Th label="شريحة CLV" align="center" />
-                            <Th label="شريحة العميل" align="center" />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pageData.map((c, i) => {
-                            const clvStyle = clvColor(c.clvSegment);
-                            return (
-                                <motion.tr key={c.name} initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.02 }}
-                                    className="hover:bg-white/[0.015] transition-colors"
-                                    style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            <AnalyticsBarCell value={c.totalSales} max={maxSales} color="#3b82f6" text={fmtN(c.totalSales)} />
+                            <AnalyticsBarCell value={c.totalTransactions} max={maxTrans} color="#3b82f6" text={fmtN(c.totalTransactions)} />
+                            <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{fmt2(c.atv)}</span>
+                            </td>
+                            <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{c.avgBasket}</span>
+                            </td>
+                            <AnalyticsBarCell value={c.avgLifespan} max={maxLife} color="#3b82f6" text={String(c.avgLifespan)} />
+                            <AnalyticsBarCell value={c.clv} max={maxClv} color="#3b82f6" text={fmt2(c.clv)} />
 
-                                    {/* الاسم */}
-                                    <td style={{ padding: '7px 10px', fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>{c.name}</td>
+                            <td style={analyticsTdBaseStyle('center')}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: clvStyle.text }}>{c.clvSegment}</span>
+                            </td>
 
-                                    {/* المبيعات + شريط */}
-                                    <td style={{ padding: '7px 10px' }}>
-                                        <div className="flex items-center gap-2 justify-center">
-                                            <InlineBar value={c.totalSales} max={maxSales} color="var(--accent-cyan)" />
-                                            <span style={{ fontSize: 10, color: 'var(--accent-cyan)', minWidth: 32, textAlign: 'right' }} dir="ltr">{fmtN(c.totalSales)}</span>
-                                        </div>
-                                    </td>
-
-                                    {/* المعاملات + شريط */}
-                                    <td style={{ padding: '7px 10px' }}>
-                                        <div className="flex items-center gap-2 justify-center">
-                                            <InlineBar value={c.totalTransactions} max={maxTrans} color="var(--accent-blue)" />
-                                            <span style={{ fontSize: 10, color: 'var(--accent-blue)', minWidth: 32, textAlign: 'right' }} dir="ltr">{fmtN(c.totalTransactions)}</span>
-                                        </div>
-                                    </td>
-
-                                    {/* ATV */}
-                                    <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 11, color: 'var(--text-secondary)' }} dir="ltr">{fmt2(c.atv)}</td>
-
-                                    {/* السلة */}
-                                    <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 11, color: 'var(--text-secondary)' }} dir="ltr">{c.avgBasket}</td>
-
-                                    {/* عمر العميل + شريط */}
-                                    <td style={{ padding: '7px 10px' }}>
-                                        <div className="flex items-center gap-2 justify-center">
-                                            <InlineBar value={c.avgLifespan} max={maxLife} color="var(--accent-green)" />
-                                            <span style={{ fontSize: 10, color: 'var(--accent-green)', minWidth: 16, textAlign: 'right' }} dir="ltr">{c.avgLifespan}</span>
-                                        </div>
-                                    </td>
-
-                                    {/* CLV + شريط */}
-                                    <td style={{ padding: '7px 10px' }}>
-                                        <div className="flex items-center gap-2 justify-center">
-                                            {c.clv > 0 && <InlineBar value={c.clv} max={maxClv} color={c.clvSegment === 'High' ? 'var(--accent-green)' : c.clvSegment === 'Medium' ? 'var(--accent-amber)' : 'var(--text-muted)'} />}
-                                            <span style={{ fontSize: 10, fontWeight: 600, color: c.clv > 0 ? (c.clvSegment === 'High' ? 'var(--accent-green)' : 'var(--accent-amber)') : 'var(--text-muted)', minWidth: 44, textAlign: 'right' }} dir="ltr">{fmt2(c.clv)}</span>
-                                        </div>
-                                    </td>
-
-                                    {/* شريحة CLV */}
-                                    <td style={{ padding: '7px 10px', textAlign: 'center' }}>
-                                        <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: clvStyle.bg, color: clvStyle.text }}>{c.clvSegment}</span>
-                                    </td>
-
-                                    {/* شريحة العميل */}
-                                    <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: segmentColor(c.segment), whiteSpace: 'nowrap' }}>
-                                        {c.segment}
-                                    </td>
-                                </motion.tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+                            <td style={analyticsTdBaseStyle('center')}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: segmentColor(c.segment), whiteSpace: 'nowrap' }}>
+                                    {c.segment}
+                                </span>
+                            </td>
+                        </motion.tr>
+                    );
+                })}
+            </AnalyticsTable>
 
             {/* Pagination */}
             <div className="px-5 py-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -226,6 +187,6 @@ export default function CustomerInsightsTable() {
                     ))}
                 </div>
             </div>
-        </div>
+        </AnalyticsTableCard>
     );
 }

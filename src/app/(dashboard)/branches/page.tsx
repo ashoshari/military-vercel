@@ -20,6 +20,7 @@ import MetricsBubblePlot, { type MetricsBubblePoint } from '@/components/ui/Metr
 import { BRANCH_PRODUCT_ANALYSIS, buildProductBubbleRows, type ProductBubbleRow } from '@/lib/branchProductAnalysis';
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
 import DrillDownTable from '@/components/ui/DrillDownTable';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 // ── بيانات الأداء المرجّح لكل فرع (جدول + رسوم) ──
 const branchScores = [
@@ -447,55 +448,46 @@ export default function BranchesPage() {
 
                         {/* جدول الفروع المرجّح */}
                         <div className="overflow-x-auto">
-                            <table className="enterprise-table">
-                                <thead>
-                                    <tr>
-                                        <th>الفرع</th>
-                                        <th style={{ textAlign: 'center' }}>الربح</th>
-                                        <th style={{ textAlign: 'center' }}>عدد الموظفين مقارنة بالمبيعات</th>
-                                        <th style={{ textAlign: 'center' }}>المرتجعات</th>
-                                        <th style={{ textAlign: 'center' }}>النمو</th>
-                                        <th style={{ textAlign: 'center' }}>الخصم</th>
-                                        <th style={{ textAlign: 'center' }}>المبيعات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {branchScores.map(b => {
+                            <AnalyticsTable
+                                headers={[
+                                    { label: 'الفرع', align: 'right' },
+                                    { label: 'الربح', align: 'center' },
+                                    { label: 'عدد الموظفين مقارنة بالمبيعات', align: 'center' },
+                                    { label: 'المرتجعات', align: 'center' },
+                                    { label: 'النمو', align: 'center' },
+                                    { label: 'الخصم', align: 'center' },
+                                    { label: 'المبيعات', align: 'center' },
+                                ]}
+                            >
+                                {(() => {
+                                    const maxProfit = Math.max(...branchScores.map((b) => b.profit), 1);
+                                    const maxSales = Math.max(...branchScores.map((b) => b.sales), 1);
+                                    const maxEmpPerM = Math.max(
+                                        ...branchScores.map((b) => (b.sales > 0 ? (b.employees / b.sales) * 1_000_000 : 0)),
+                                        1
+                                    );
+                                    return branchScores.map((b) => {
                                         const empPerM = b.sales > 0 ? (b.employees / b.sales) * 1_000_000 : 0;
                                         return (
                                             <tr key={b.id}>
-                                                <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{b.name}</td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className="text-xs font-semibold" style={{ color: 'var(--accent-green)' }} dir="ltr">
-                                                        {b.profit.toLocaleString('en-US')}
-                                                    </span>
+                                                <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                                    {b.name}
                                                 </td>
-                                                <td style={{ textAlign: 'center' }} title="عدد الموظفين / موظف لكل مليون مبيعات">
-                                                    <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }} dir="ltr">
-                                                        {b.employees} · {empPerM.toFixed(1)}
-                                                    </span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }} dir="ltr">{b.returns.toFixed(1)}%</span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className="text-xs font-semibold" style={{ color: b.growth >= 0 ? 'var(--accent-green)' : 'var(--accent-amber)' }} dir="ltr">
+                                                <AnalyticsBarCell value={b.profit} max={maxProfit} color="#3b82f6" text={b.profit.toLocaleString('en-US')} />
+                                                <AnalyticsBarCell value={empPerM} max={maxEmpPerM} color="#3b82f6" text={`${b.employees} · ${empPerM.toFixed(1)}`} />
+                                                <AnalyticsBarCell value={b.returns} max={10} color="#3b82f6" text={`${b.returns.toFixed(1)}%`} />
+                                                <td style={analyticsTdBaseStyle('center')}>
+                                                    <span style={{ fontSize: 10, fontWeight: 600, color: b.growth >= 0 ? 'var(--accent-green)' : 'var(--accent-amber)' }} dir="ltr">
                                                         {b.growth >= 0 ? '+' : ''}{b.growth.toFixed(1)}%
                                                     </span>
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }} dir="ltr">{b.discount.toFixed(1)}%</span>
-                                                </td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }} dir="ltr">
-                                                        {b.sales.toLocaleString('en-US')}
-                                                    </span>
-                                                </td>
+                                                <AnalyticsBarCell value={b.discount} max={10} color="#3b82f6" text={`${b.discount.toFixed(1)}%`} />
+                                                <AnalyticsBarCell value={b.sales} max={maxSales} color="#3b82f6" text={b.sales.toLocaleString('en-US')} />
                                             </tr>
                                         );
-                                    })}
-                                </tbody>
-                            </table>
+                                    });
+                                })()}
+                            </AnalyticsTable>
                         </div>
                     </div>
                 </div>
@@ -578,69 +570,58 @@ export default function BranchesPage() {
 
                 {/* جدول تفصيلي للفئات */}
                 <div className="px-5 pb-4 overflow-x-auto">
-                    <table className="enterprise-table">
-                        <thead>
-                            <tr>
-                                <th style={{ minWidth: '120px' }}>الفئة</th>
-                                {branchScores.map(b => <th key={b.id} style={{ textAlign: 'center', fontSize: '10px', padding: '4px 6px' }}>{b.name.split(' ').slice(0, 2).join(' ')}</th>)}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {categoryScores.map(c => {
-                                const row = c as unknown as Record<string, number | string>;
-                                const isOpen = expandedCats[c.cat];
-                                const hasSubs = c.subs && c.subs.length > 0;
-                                return (
-                                    <React.Fragment key={c.cat}>
-                                        <tr
-                                            style={{ cursor: hasSubs ? 'pointer' : 'default' }}
-                                            onClick={() => hasSubs && setExpandedCats(p => ({ ...p, [c.cat]: !p[c.cat] }))}
-                                        >
-                                            <td style={{ color: 'var(--text-primary)', fontWeight: 500, minWidth: '120px' }}>
-                                                <div className="flex items-center gap-1.5">
-                                                    {hasSubs && (
-                                                        <span style={{ display: 'inline-flex', alignItems: 'center', width: 14, height: 14, borderRadius: 3, background: isOpen ? 'rgba(37,99,235,0.12)' : 'var(--bg-elevated)' }}>
-                                                            {isOpen ? <ChevronDown size={10} style={{ color: 'var(--accent-blue)' }} /> : <ChevronLeft size={10} style={{ color: 'var(--text-muted)' }} />}
-                                                        </span>
-                                                    )}
-                                                    {c.cat}
-                                                </div>
+                    <AnalyticsTable
+                        headers={[
+                            { label: 'الفئة', align: 'right', width: '120px' },
+                            ...branchScores.map((b) => ({ label: b.name.split(' ').slice(0, 2).join(' '), align: 'center' as const, width: '88px' as const })),
+                        ]}
+                        minWidth={Math.max(560, 120 + branchScores.length * 88)}
+                    >
+                        {categoryScores.map((c) => {
+                            const row = c as unknown as Record<string, number | string>;
+                            const isOpen = expandedCats[c.cat];
+                            const hasSubs = c.subs && c.subs.length > 0;
+                            return (
+                                <React.Fragment key={c.cat}>
+                                    <tr
+                                        className={hasSubs ? 'cursor-pointer hover:bg-white/[0.015] transition-colors' : undefined}
+                                        style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                                        onClick={() => hasSubs && setExpandedCats((p) => ({ ...p, [c.cat]: !p[c.cat] }))}
+                                    >
+                                        <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            <div className="flex items-center gap-1.5">
+                                                {hasSubs && (
+                                                    <span style={{ display: 'inline-flex', alignItems: 'center', width: 14, height: 14, borderRadius: 3, background: isOpen ? 'rgba(37,99,235,0.12)' : 'var(--bg-elevated)' }}>
+                                                        {isOpen ? <ChevronDown size={10} style={{ color: 'var(--accent-blue)' }} /> : <ChevronLeft size={10} style={{ color: 'var(--text-muted)' }} />}
+                                                    </span>
+                                                )}
+                                                {c.cat}
+                                            </div>
+                                        </td>
+                                        {branchScores.map((b, bi) => {
+                                            const val = Number(row[`b${bi + 1}`]) || 0;
+                                            return (
+                                                <AnalyticsBarCell key={b.id} value={val} max={100} color={getBarColor(val)} text={`${val}%`} />
+                                            );
+                                        })}
+                                    </tr>
+                                    {isOpen && c.subs?.map((sub) => (
+                                        <tr key={sub.name} style={{ background: 'rgba(8,145,178,0.02)', borderBottom: '1px solid var(--border-subtle)' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('right'), paddingRight: '28px', fontSize: 10, color: 'var(--text-secondary)' }}>
+                                                <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>└</span> {sub.name}
                                             </td>
                                             {branchScores.map((b, bi) => {
-                                                const val = Number(row[`b${bi + 1}`]) || 0;
+                                                const val = Number((sub as unknown as Record<string, number>)[`b${bi + 1}`]) || 0;
                                                 return (
-                                                    <td key={b.id} style={{ textAlign: 'center', padding: '4px 6px' }}>
-                                                        <div style={{
-                                                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                                            minWidth: 38, padding: '2px 6px', borderRadius: 4,
-                                                            background: val >= 70 ? 'rgba(34,197,94,0.15)' : val >= 50 ? 'rgba(234,179,8,0.12)' : val >= 30 ? 'rgba(249,115,22,0.12)' : 'rgba(239,68,68,0.12)',
-                                                        }}>
-                                                            <span className="text-[11px] font-bold" style={{ color: getBarColor(val) }} dir="ltr">{val}%</span>
-                                                        </div>
-                                                    </td>
+                                                    <AnalyticsBarCell key={b.id} value={val} max={100} color={getBarColor(val)} text={`${val}%`} />
                                                 );
                                             })}
                                         </tr>
-                                        {isOpen && c.subs?.map(sub => (
-                                            <tr key={sub.name} style={{ background: 'var(--bg-elevated)', opacity: 0.9 }}>
-                                                <td style={{ paddingRight: '28px', color: 'var(--text-secondary)', fontSize: '11px', minWidth: '120px' }}>
-                                                    <span style={{ color: 'var(--text-muted)', marginLeft: 4 }}>└</span> {sub.name}
-                                                </td>
-                                                {branchScores.map((b, bi) => {
-                                                    const val = Number((sub as unknown as Record<string, number>)[`b${bi + 1}`]) || 0;
-                                                    return (
-                                                        <td key={b.id} style={{ textAlign: 'center', padding: '3px 6px' }}>
-                                                            <span className="text-[10px] font-semibold" style={{ color: getBarColor(val) }} dir="ltr">{val}%</span>
-                                                        </td>
-                                                    );
-                                                })}
-                                            </tr>
-                                        ))}
-                                    </React.Fragment>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                    ))}
+                                </React.Fragment>
+                            );
+                        })}
+                    </AnalyticsTable>
                 </div>
             </div>
 
@@ -776,9 +757,6 @@ export default function BranchesPage() {
                     return out;
                 });
                 const maxAbsDelta = Math.max(...allDeltas.map(Math.abs), 1);
-                /** Narrow divergent bars live inside this track; column stays wide via th/td minWidth. */
-                const YOY_DELTA_TRACK_MAX_PX = 204;
-                const YOY_DELTA_BAR_MAX_PCT = 42;
                 const fmt = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : `${v}`;
                 const fmtDelta = (v: number) => `${v >= 0 ? '+' : ''}${fmt(v)}`;
                 const pct = (ac: number, py: number) => py === 0 ? 0 : ((ac - py) / py * 100);
@@ -807,66 +785,14 @@ export default function BranchesPage() {
                     );
                 }
 
-                function renderYoyDeltaTrack(delta: number, tier: 'branch' | 'year' | 'quarter' | 'month') {
-                    const barW = (Math.abs(delta) / maxAbsDelta) * YOY_DELTA_BAR_MAX_PCT;
-                    const h = tier === 'branch' ? 18 : tier === 'month' ? 12 : 14;
-                    const inset = tier === 'branch' ? 2 : 1;
-                    const labelGap = tier === 'branch' ? 6 : tier === 'month' ? 3 : 4;
-                    const opacity = tier === 'branch' ? 1 : tier === 'quarter' ? 0.65 : tier === 'month' ? 0.55 : 0.7;
-                    const br = tier === 'branch' ? 3 : 2;
-                    const labelCls = tier === 'branch' ? 'text-[10px] font-bold' : tier === 'month' ? 'text-[8px] font-semibold' : 'text-[9px] font-semibold';
+                function renderYoyDeltaCell(delta: number) {
                     return (
-                        <div className="w-full flex justify-center items-center" style={{ minWidth: 0 }}>
-                            <div
-                                className="relative shrink-0 mx-auto"
-                                style={{ width: '100%', maxWidth: YOY_DELTA_TRACK_MAX_PX, height: h }}
-                            >
-                                <div className="absolute top-0 bottom-0 left-1/2 w-px -translate-x-1/2" style={{ background: 'var(--border-subtle)' }} />
-                                {delta < 0 ? (
-                                    <div
-                                        className="absolute"
-                                        style={{
-                                            right: '50%',
-                                            top: inset,
-                                            bottom: inset,
-                                            width: `${barW}%`,
-                                            background: 'var(--accent-red)',
-                                            borderRadius: `${br}px 0 0 ${br}px`,
-                                            opacity,
-                                        }}
-                                    />
-                                ) : (
-                                    <div
-                                        className="absolute"
-                                        style={{
-                                            left: '50%',
-                                            top: inset,
-                                            bottom: inset,
-                                            width: `${barW}%`,
-                                            background: 'var(--accent-green)',
-                                            borderRadius: `0 ${br}px ${br}px 0`,
-                                            opacity,
-                                        }}
-                                    />
-                                )}
-                                <span
-                                    className={labelCls}
-                                    dir="ltr"
-                                    style={{
-                                        position: 'absolute',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: delta >= 0 ? 'var(--accent-green)' : 'var(--accent-red)',
-                                        whiteSpace: 'nowrap',
-                                        ...(delta < 0
-                                            ? { right: `calc(50% + ${barW}% + ${labelGap}px)` }
-                                            : { left: `calc(50% + ${barW}% + ${labelGap}px)` }),
-                                    }}
-                                >
-                                    {fmtDelta(delta)}
-                                </span>
-                            </div>
-                        </div>
+                        <AnalyticsBarCell
+                            value={Math.abs(delta)}
+                            max={maxAbsDelta}
+                            color={delta >= 0 ? '#3b82f6' : '#ef4444'}
+                            text={fmtDelta(delta)}
+                        />
                     );
                 }
 
@@ -880,17 +806,16 @@ export default function BranchesPage() {
                             <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>تسلسل: سوق ← سنة ← ربع سنوي ← شهر — كل مستوى مغلق افتراضياً</p>
                         </div>
                         <div className="overflow-x-auto w-full min-w-0">
-                            <table className="enterprise-table w-full" style={{ minWidth: 780 }}>
-                                <thead>
-                                    <tr>
-                                        <th style={{ minWidth: 160 }}>سوق / سنة / ربع / شهر</th>
-                                        <th style={{ textAlign: 'center', minWidth: 88 }}>مبيعات العام السابق</th>
-                                        <th style={{ textAlign: 'center', minWidth: 88 }}>مبيعات العام الحالي</th>
-                                        <th style={{ textAlign: 'center', minWidth: 300, width: '32%' }}>الفرق</th>
-                                        <th style={{ textAlign: 'center', minWidth: 88 }}>التغير%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            <AnalyticsTable
+                                minWidth={780}
+                                headers={[
+                                    { label: 'سوق / سنة / ربع / شهر', align: 'right', width: 160 },
+                                    { label: 'مبيعات العام السابق', align: 'center', width: 88 },
+                                    { label: 'مبيعات العام الحالي', align: 'center', width: 88 },
+                                    { label: 'الفرق', align: 'center', width: 300 },
+                                    { label: 'التغير%', align: 'center', width: 88 },
+                                ]}
+                            >
                                     {yoyData.map(d => {
                                         const delta = d.ac - d.py;
                                         const deltaPct = pct(d.ac, d.py);
@@ -901,19 +826,17 @@ export default function BranchesPage() {
                                                     style={{ cursor: 'pointer' }}
                                                     onClick={() => setExpandedCats(p => ({ ...p, [yoyKey.branch(d.branch)]: !p[yoyKey.branch(d.branch)] }))}
                                                 >
-                                                    <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                                                    <td style={{ ...analyticsTdBaseStyle('right'), fontWeight: 700, color: 'var(--text-primary)' }}>
                                                         <div className="flex items-center gap-1.5">
                                                             {chevron(branchOpen)}
                                                             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>سوق</span>
                                                             {d.branch}
                                                         </div>
                                                     </td>
-                                                    <td style={{ textAlign: 'center', fontWeight: 500, color: 'var(--text-secondary)' }} dir="ltr">{fmt(d.py)}</td>
-                                                    <td style={{ textAlign: 'center', fontWeight: 500, color: 'var(--text-secondary)' }} dir="ltr">{fmt(d.ac)}</td>
-                                                    <td style={{ padding: '6px 20px', minWidth: 300, verticalAlign: 'middle' }}>
-                                                        {renderYoyDeltaTrack(delta, 'branch')}
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>{renderPctCell(d.ac, d.py, false)}</td>
+                                                    <td style={analyticsTdBaseStyle('center')} dir="ltr">{fmt(d.py)}</td>
+                                                    <td style={analyticsTdBaseStyle('center')} dir="ltr">{fmt(d.ac)}</td>
+                                                    {renderYoyDeltaCell(delta)}
+                                                    <td style={analyticsTdBaseStyle('center')}>{renderPctCell(d.ac, d.py, false)}</td>
                                                 </tr>
                                                 {branchOpen && d.years.map(y => {
                                                     const yk = yoyKey.year(d.branch, y.year);
@@ -926,7 +849,7 @@ export default function BranchesPage() {
                                                                 style={{ cursor: 'pointer', background: 'var(--bg-elevated)' }}
                                                                 onClick={e => { e.stopPropagation(); setExpandedCats(p => ({ ...p, [yk]: !p[yk] })); }}
                                                             >
-                                                                <td style={{ paddingInlineStart: 22, color: 'var(--text-muted)', fontSize: 12 }}>
+                                                                <td style={{ ...analyticsTdBaseStyle('right'), paddingInlineStart: 22, color: 'var(--text-muted)', fontSize: 12 }}>
                                                                     <div className="flex items-center gap-1.5">
                                                                         {chevron(yearOpen)}
                                                                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>سنة</span>
@@ -934,12 +857,10 @@ export default function BranchesPage() {
                                                                         {y.year}
                                                                     </div>
                                                                 </td>
-                                                                <td style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }} dir="ltr">{fmt(y.py)}</td>
-                                                                <td style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }} dir="ltr">{y.ac !== null ? fmt(y.ac as number) : ''}</td>
-                                                                <td style={{ padding: '4px 20px', minWidth: 300, verticalAlign: 'middle' }}>
-                                                                    {yDelta !== null && renderYoyDeltaTrack(yDelta, 'year')}
-                                                                </td>
-                                                                <td style={{ textAlign: 'center' }}>
+                                                                <td style={{ ...analyticsTdBaseStyle('center'), color: 'var(--text-muted)', fontSize: 12 }} dir="ltr">{fmt(y.py)}</td>
+                                                                <td style={{ ...analyticsTdBaseStyle('center'), color: 'var(--text-muted)', fontSize: 12 }} dir="ltr">{y.ac !== null ? fmt(y.ac as number) : ''}</td>
+                                                                {yDelta !== null ? renderYoyDeltaCell(yDelta) : <td style={analyticsTdBaseStyle('center')} />}
+                                                                <td style={analyticsTdBaseStyle('center')}>
                                                                     {yPct !== null && renderPctCell(y.ac as number, y.py, true)}
                                                                 </td>
                                                             </tr>
@@ -954,7 +875,7 @@ export default function BranchesPage() {
                                                                             style={{ cursor: 'pointer', background: 'rgba(0,0,0,0.02)' }}
                                                                             onClick={e => { e.stopPropagation(); setExpandedCats(p => ({ ...p, [qk]: !p[qk] })); }}
                                                                         >
-                                                                            <td style={{ paddingInlineStart: 40, color: 'var(--text-secondary)', fontSize: 12 }}>
+                                                                            <td style={{ ...analyticsTdBaseStyle('right'), paddingInlineStart: 40, color: 'var(--text-secondary)', fontSize: 12 }}>
                                                                                 <div className="flex items-center gap-1.5">
                                                                                     {chevron(qOpen)}
                                                                                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>ربع</span>
@@ -962,12 +883,10 @@ export default function BranchesPage() {
                                                                                     {q.label}
                                                                                 </div>
                                                                             </td>
-                                                                            <td style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)' }} dir="ltr">{fmt(q.py)}</td>
-                                                                            <td style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)' }} dir="ltr">{q.ac !== null ? fmt(q.ac) : ''}</td>
-                                                                            <td style={{ padding: '4px 20px', minWidth: 300, verticalAlign: 'middle' }}>
-                                                                                {qDelta !== null && renderYoyDeltaTrack(qDelta, 'quarter')}
-                                                                            </td>
-                                                                            <td style={{ textAlign: 'center' }}>
+                                                                            <td style={{ ...analyticsTdBaseStyle('center'), fontSize: 12, color: 'var(--text-secondary)' }} dir="ltr">{fmt(q.py)}</td>
+                                                                            <td style={{ ...analyticsTdBaseStyle('center'), fontSize: 12, color: 'var(--text-secondary)' }} dir="ltr">{q.ac !== null ? fmt(q.ac) : ''}</td>
+                                                                            {qDelta !== null ? renderYoyDeltaCell(qDelta) : <td style={analyticsTdBaseStyle('center')} />}
+                                                                            <td style={analyticsTdBaseStyle('center')}>
                                                                                 {qPct !== null && q.ac !== null && renderPctCell(q.ac, q.py, true)}
                                                                             </td>
                                                                         </tr>
@@ -976,7 +895,7 @@ export default function BranchesPage() {
                                                                             const mPct = m.ac !== null ? pct(m.ac, m.py) : null;
                                                                             return (
                                                                                 <tr key={m.name} style={{ background: 'var(--bg-elevated)' }}>
-                                                                                    <td style={{ paddingInlineStart: 58, color: 'var(--text-muted)', fontSize: 11 }}>
+                                                                                    <td style={{ ...analyticsTdBaseStyle('right'), paddingInlineStart: 58, color: 'var(--text-muted)', fontSize: 11 }}>
                                                                                         <div className="flex items-center gap-1.5">
                                                                                             <span style={{ display: 'inline-block', width: 14 }} />
                                                                                             <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>شهر</span>
@@ -984,12 +903,10 @@ export default function BranchesPage() {
                                                                                             {m.name}
                                                                                         </div>
                                                                                     </td>
-                                                                                    <td style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)' }} dir="ltr">{fmt(m.py)}</td>
-                                                                                    <td style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)' }} dir="ltr">{m.ac !== null ? fmt(m.ac) : ''}</td>
-                                                                                    <td style={{ padding: '3px 20px', minWidth: 300, verticalAlign: 'middle' }}>
-                                                                                        {mDelta !== null && renderYoyDeltaTrack(mDelta, 'month')}
-                                                                                    </td>
-                                                                                    <td style={{ textAlign: 'center' }}>
+                                                                                    <td style={{ ...analyticsTdBaseStyle('center'), fontSize: 11, color: 'var(--text-muted)' }} dir="ltr">{fmt(m.py)}</td>
+                                                                                    <td style={{ ...analyticsTdBaseStyle('center'), fontSize: 11, color: 'var(--text-muted)' }} dir="ltr">{m.ac !== null ? fmt(m.ac) : ''}</td>
+                                                                                    {mDelta !== null ? renderYoyDeltaCell(mDelta) : <td style={analyticsTdBaseStyle('center')} />}
+                                                                                    <td style={analyticsTdBaseStyle('center')}>
                                                                                         {mPct !== null && m.ac !== null && (
                                                                                             <div className="flex items-center justify-center gap-1" dir="ltr">
                                                                                                 <span className="text-[9px] font-semibold" style={{ color: mPct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>{mPct >= 0 ? '+' : ''}{mPct.toFixed(1)}</span>
@@ -1009,8 +926,7 @@ export default function BranchesPage() {
                                             </React.Fragment>
                                         );
                                     })}
-                                </tbody>
-                            </table>
+                            </AnalyticsTable>
                         </div>
                     </div>
                 );

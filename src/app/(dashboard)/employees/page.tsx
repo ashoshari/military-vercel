@@ -8,6 +8,8 @@ import { motion } from 'framer-motion';
 import { Users, DollarSign, ShoppingCart, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { ChartTitleFlagBadge } from '@/components/ui/ChartTitleFlagBadge';
 import MetricsBubblePlot, { type MetricsBubblePoint } from '@/components/ui/MetricsBubblePlot';
+import AnalyticsTableCard from '@/components/ui/AnalyticsTableCard';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     ssr: false,
@@ -365,106 +367,103 @@ export default function EmployeesPage() {
             </div>
 
             {/* ── Table ── */}
-            <div className="glass-panel overflow-hidden">
-                <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <div>
-                        <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>تفاصيل أداء الكاشيرات</h3>
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Cashier Performance Details</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
+            <AnalyticsTableCard
+                title="تفاصيل أداء الكاشيرات"
+                flag="green"
+                subtitles={<p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Cashier Performance Details</p>}
+                headerExtra={
+                    <div className="flex items-center justify-end gap-1.5 mt-2">
                         <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>ترتيب حسب:</span>
                         <SortBtn k="score" label="الأداء" />
                         <SortBtn k="sales" label="المبيعات" />
                         <SortBtn k="transactions" label="المعاملات" />
                     </div>
-                </div>
-                <div className="overflow-x-auto">
-                    <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-                                {['#', 'الكاشير', 'درجة الأداء', 'إجمالي المبيعات', 'عدد المعاملات', 'متوسط قيمة الحركة', 'معدل الإلغاء'].map((h, i) => (
-                                    <th key={i} style={{ padding: '9px 12px', textAlign: i <= 1 ? 'right' : 'center', fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sorted.map((c, i) => {
-                                const rank = ranked.findIndex(x => x.name === c.name) + 1;
-                                const medalColor = rank === 1 ? '#f59e0b' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7c2f' : 'var(--text-muted)';
-                                return (
-                                    <motion.tr key={c.name} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
-                                        className="hover:bg-white/[0.015] transition-colors"
-                                        style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                                        <td style={{ padding: '9px 12px', width: 32 }}>
-                                            <span style={{ fontSize: 11, fontWeight: 700, color: medalColor }} dir="ltr">{rank}</span>
-                                        </td>
-                                        <td style={{ padding: '9px 12px', whiteSpace: 'nowrap' }}>
-                                            <div className="flex items-center gap-2">
-                                                <div style={{ width: 30, height: 30, borderRadius: '50%', background: `${scoreColor(c.score)}15`, border: `1.5px solid ${scoreColor(c.score)}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: scoreColor(c.score), flexShrink: 0 }}>
-                                                    {c.name.charAt(0)}
-                                                </div>
-                                                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</span>
-                                            </div>
-                                        </td>
-                                        {/* الأداء */}
-                                        <td style={{ padding: '9px 12px', textAlign: 'center' }}>
-                                            <div className="flex items-center gap-2 justify-center">
-                                                <div style={{ width: 60, height: 5, borderRadius: 3, background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${(c.score / 70) * 100}%`, height: '100%', background: scoreColor(c.score), borderRadius: 3 }} />
-                                                </div>
-                                                <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(c.score), minWidth: 42 }} dir="ltr">{c.score.toFixed(2)}%</span>
-                                            </div>
-                                        </td>
-                                        {/* المبيعات */}
-                                        <td style={{ padding: '9px 12px', textAlign: 'center' }}>
-                                            <div className="flex items-center gap-2 justify-center">
-                                                <div style={{ width: 52, height: 5, borderRadius: 3, background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${(c.sales / maxSales) * 100}%`, height: '100%', background: 'var(--accent-green)', borderRadius: 3 }} />
-                                                </div>
-                                                <span style={{ fontSize: 11, color: 'var(--accent-green)', minWidth: 48 }} dir="ltr">{fmtN(c.sales)}</span>
-                                            </div>
-                                        </td>
-                                        {/* المعاملات */}
-                                        <td style={{ padding: '9px 12px', textAlign: 'center' }}>
-                                            <div className="flex items-center gap-2 justify-center">
-                                                <div style={{ width: 52, height: 5, borderRadius: 3, background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${(c.transactions / maxTrans) * 100}%`, height: '100%', background: 'var(--accent-cyan)', borderRadius: 3 }} />
-                                                </div>
-                                                <span style={{ fontSize: 11, color: 'var(--accent-cyan)', minWidth: 44 }} dir="ltr">{fmtN(c.transactions)}</span>
-                                            </div>
-                                        </td>
-                                        {/* ATV */}
-                                        <td style={{ padding: '9px 12px', textAlign: 'center' }}>
-                                            <div className="flex items-center gap-2 justify-center">
-                                                <div style={{ width: 44, height: 5, borderRadius: 3, background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${(c.atv / maxAtv) * 100}%`, height: '100%', background: 'var(--accent-amber)', borderRadius: 3 }} />
-                                                </div>
-                                                <span style={{ fontSize: 11, color: 'var(--accent-amber)', minWidth: 32 }} dir="ltr">{c.atv.toFixed(2)}</span>
-                                            </div>
-                                        </td>
-                                        {/* الإلغاء */}
-                                        <td style={{ padding: '9px 12px', textAlign: 'center' }}>
-                                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, background: c.voidRate === 0 ? 'rgba(100,116,139,0.12)' : c.voidRate <= 0.05 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)', color: c.voidRate === 0 ? 'var(--text-muted)' : c.voidRate <= 0.05 ? 'var(--accent-amber)' : 'var(--accent-red)' }} dir="ltr">
-                                                {c.voidRate.toFixed(2)}%
-                                            </span>
-                                        </td>
-                                    </motion.tr>
-                                );
-                            })}
-                        </tbody>
-                        <tfoot>
-                            <tr style={{ background: 'var(--accent-green-dim)', borderTop: `2px solid rgba(0,229,160,0.2)` }}>
-                                <td colSpan={2} style={{ padding: '9px 12px', fontSize: 11, fontWeight: 700, color: 'var(--accent-green)' }}>الإجمالي الكلي</td>
-                                <td style={{ padding: '9px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: scoreColor(avgScore) }} dir="ltr">{avgScore.toFixed(2)}%</td>
-                                <td style={{ padding: '9px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent-green)' }} dir="ltr">{fmtN(totalSales)}</td>
-                                <td style={{ padding: '9px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent-cyan)' }} dir="ltr">{fmtN(totalTrans)}</td>
-                                <td style={{ padding: '9px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent-amber)' }} dir="ltr">{fmt2(avgAtv)}</td>
-                                <td style={{ padding: '9px 12px', textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--accent-red)' }} dir="ltr">{avgVoidRate.toFixed(2)}%</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
+                }
+            >
+                <AnalyticsTable
+                    headers={[
+                        { label: '#', align: 'right', width: 32 },
+                        { label: 'الكاشير', align: 'right' },
+                        { label: 'درجة الأداء', align: 'center' },
+                        { label: 'إجمالي المبيعات', align: 'center' },
+                        { label: 'عدد المعاملات', align: 'center' },
+                        { label: 'متوسط قيمة الحركة', align: 'center' },
+                        { label: 'معدل الإلغاء', align: 'center' },
+                    ]}
+                >
+                    {sorted.map((c, i) => {
+                        const rank = ranked.findIndex(x => x.name === c.name) + 1;
+                        const medalColor = rank === 1 ? '#f59e0b' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7c2f' : 'var(--text-muted)';
+                        return (
+                            <motion.tr
+                                key={c.name}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: i * 0.02 }}
+                                className="hover:bg-white/[0.015] transition-colors"
+                                style={{ borderBottom: '1px solid var(--border-subtle)' }}
+                            >
+                                <td style={{ ...analyticsTdBaseStyle('right'), width: 32 }}>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: medalColor }} dir="ltr">{rank}</span>
+                                </td>
+                                <td style={{ ...analyticsTdBaseStyle('right') }}>
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            style={{
+                                                width: 30,
+                                                height: 30,
+                                                borderRadius: '50%',
+                                                background: `${scoreColor(c.score)}15`,
+                                                border: `1.5px solid ${scoreColor(c.score)}30`,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: 11,
+                                                fontWeight: 700,
+                                                color: scoreColor(c.score),
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            {c.name.charAt(0)}
+                                        </div>
+                                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{c.name}</span>
+                                    </div>
+                                </td>
+
+                                <AnalyticsBarCell value={c.score} max={100} color={scoreColor(c.score)} text={`${c.score.toFixed(2)}%`} />
+                                <AnalyticsBarCell value={c.sales} max={maxSales} color="#3b82f6" text={fmtN(c.sales)} />
+                                <AnalyticsBarCell value={c.transactions} max={maxTrans} color="#3b82f6" text={fmtN(c.transactions)} />
+                                <AnalyticsBarCell value={c.atv} max={maxAtv} color="#3b82f6" text={c.atv.toFixed(2)} />
+
+                                <td style={analyticsTdBaseStyle('center')}>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: c.voidRate === 0 ? 'var(--text-muted)' : c.voidRate <= 0.05 ? 'var(--accent-amber)' : 'var(--accent-red)' }} dir="ltr">
+                                        {c.voidRate.toFixed(2)}%
+                                    </span>
+                                </td>
+                            </motion.tr>
+                        );
+                    })}
+
+                    <tr style={{ background: 'var(--accent-green-dim)', borderTop: `2px solid rgba(0,229,160,0.2)` }}>
+                        <td colSpan={2} style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: 700, color: 'var(--accent-green)' }}>الإجمالي الكلي</td>
+                        <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                            <span style={{ fontSize: 11, fontWeight: 700, color: scoreColor(avgScore) }}>{avgScore.toFixed(2)}%</span>
+                        </td>
+                        <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{fmtN(totalSales)}</span>
+                        </td>
+                        <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{fmtN(totalTrans)}</span>
+                        </td>
+                        <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{fmt2(avgAtv)}</span>
+                        </td>
+                        <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)' }}>{avgVoidRate.toFixed(2)}%</span>
+                        </td>
+                    </tr>
+                </AnalyticsTable>
+            </AnalyticsTableCard>
         </div>
     );
 }

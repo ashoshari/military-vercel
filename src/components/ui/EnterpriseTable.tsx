@@ -7,6 +7,7 @@ import {
     Download, Columns3, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { ChartTitleFlagBadge, type ChartCardTitleFlag } from '@/components/ui/ChartTitleFlagBadge';
+import { analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 export interface TableColumn<T> {
     key: string;
@@ -188,14 +189,41 @@ export default function EnterpriseTable<T extends Record<string, unknown>>({
 
             {/* الجدول */}
             <div className="overflow-x-auto">
-                <table className="enterprise-table" dir="rtl">
+                <table
+                    dir="rtl"
+                    style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                    }}
+                >
                     <thead>
-                        <tr>
-                            {expandable && <th style={{ width: '40px' }} />}
+                        <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+                            {expandable && (
+                                <th
+                                    style={{
+                                        padding: '9px 12px',
+                                        textAlign: 'center',
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        color: 'var(--text-muted)',
+                                        whiteSpace: 'nowrap',
+                                        width: 40,
+                                    }}
+                                />
+                            )}
                             {activeColumns.map((col) => (
                                 <th
                                     key={col.key}
-                                    style={{ width: col.width, textAlign: col.align || 'right', cursor: col.sortable ? 'pointer' : 'default' }}
+                                    style={{
+                                        padding: '9px 12px',
+                                        textAlign: col.align || 'right',
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        color: 'var(--text-muted)',
+                                        whiteSpace: 'nowrap',
+                                        width: col.width,
+                                        cursor: col.sortable ? 'pointer' : 'default',
+                                    }}
                                     onClick={() => col.sortable && handleSort(col.key)}
                                 >
                                     <div className="flex items-center gap-1">
@@ -219,9 +247,9 @@ export default function EnterpriseTable<T extends Record<string, unknown>>({
 
                             return (
                                 <React.Fragment key={globalIdx}>
-                                    <tr>
+                                    <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                                         {expandable && (
-                                            <td>
+                                            <td style={analyticsTdBaseStyle('center')}>
                                                 <button
                                                     onClick={() => toggleExpand(globalIdx)}
                                                     className="p-1 rounded"
@@ -232,7 +260,7 @@ export default function EnterpriseTable<T extends Record<string, unknown>>({
                                             </td>
                                         )}
                                         {activeColumns.map((col) => (
-                                            <td key={col.key} style={{ textAlign: col.align || 'right' }}>
+                                            <td key={col.key} style={analyticsTdBaseStyle(col.align || 'right')}>
                                                 {col.render
                                                     ? col.render(row[col.key], row, globalIdx)
                                                     : formatValue(row[col.key], col.format)}
@@ -241,7 +269,10 @@ export default function EnterpriseTable<T extends Record<string, unknown>>({
                                     </tr>
                                     {isExpanded && renderExpandedRow && (
                                         <tr>
-                                            <td colSpan={activeColumns.length + (expandable ? 1 : 0)} style={{ padding: 0, background: 'var(--bg-input)' }}>
+                                            <td
+                                                colSpan={activeColumns.length + (expandable ? 1 : 0)}
+                                                style={{ padding: 0, background: 'var(--bg-input)', borderBottom: '1px solid var(--border-subtle)' }}
+                                            >
                                                 <motion.div
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}

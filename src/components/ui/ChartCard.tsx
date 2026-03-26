@@ -14,6 +14,8 @@ export type { ChartCardTitleFlag };
 interface ChartCardProps {
     title: string;
     subtitle?: string;
+    /** Renders before the title badges/title (inline and fullscreen). */
+    titleLeading?: React.ReactNode;
     /** Optional colored flag next to the chart title (inline and fullscreen). */
     titleFlag?: ChartCardTitleFlag;
     /** Optional number shown inside the flag (any `titleFlag` color). */
@@ -50,6 +52,7 @@ function scheduleAfterIdle(cb: () => void): { cancel: () => void } {
 function ChartCard({
     title,
     subtitle,
+    titleLeading,
     titleFlag,
     titleFlagNumber,
     headerExtra,
@@ -410,6 +413,7 @@ function ChartCard({
                 {showTitleBlock && (
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
+                            {titleLeading}
                             {titleFlag && (
                                 <ChartTitleFlagBadge flag={titleFlag} flagNumber={titleFlagNumber} size="sm" />
                             )}
@@ -493,6 +497,7 @@ function ChartCard({
                                 {showTitleBlock && (
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-2.5">
+                                            {titleLeading}
                                             {titleFlag && (
                                                 <ChartTitleFlagBadge flag={titleFlag} flagNumber={titleFlagNumber} size="lg" />
                                             )}

@@ -2,7 +2,6 @@
 
 import '@/lib/echarts/register-bar-line-pie';
 import dynamic from 'next/dynamic';
-import React from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, ShoppingBag, DollarSign, ArrowLeftRight, Users, Shield } from 'lucide-react';
 
@@ -11,6 +10,8 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
 });
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
+import AnalyticsTableCard from '@/components/ui/AnalyticsTableCard';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 // ── بيانات نوع الدفع ──
 const paymentRows = [
@@ -262,81 +263,73 @@ export default function SalesMethodPage() {
             {/* جداول تفصيلية */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {/* جدول طريقة الدفع */}
-                <div className="glass-panel overflow-hidden">
-                    <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                        <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>تفاصيل طريقة الدفع</h3>
-                        <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Payment Type Breakdown</p>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="enterprise-table">
-                            <thead>
-                                <tr>
-                                    <th>طريقة الدفع</th>
-                                    <th style={{ textAlign: 'left' }}>صافي المبيعات</th>
-                                    <th style={{ textAlign: 'center' }}>حجم المبيعات</th>
-                                    <th style={{ textAlign: 'center' }}>الهامش %</th>
+                <AnalyticsTableCard
+                    title="تفاصيل طريقة الدفع"
+                    flag="green"
+                    subtitles={<p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Payment Type Breakdown</p>}
+                >
+                    <AnalyticsTable
+                        headers={[
+                            { label: 'طريقة الدفع', align: 'right' },
+                            { label: 'صافي المبيعات', align: 'center' },
+                            { label: 'حجم المبيعات', align: 'center' },
+                            { label: 'الهامش %', align: 'center' },
+                        ]}
+                    >
+                        {(() => {
+                            const maxSales = Math.max(...paymentRows.map((r) => r.sales), 1);
+                            const maxVol = Math.max(...paymentRows.map((r) => r.volume), 1);
+                            return paymentRows.map((r) => (
+                                <tr key={r.method} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                    <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                        {r.method}
+                                    </td>
+                                    <AnalyticsBarCell value={r.sales} max={maxSales} color="#3b82f6" text={fmt(r.sales)} />
+                                    <AnalyticsBarCell value={r.volume} max={maxVol} color="#3b82f6" text={fmt(r.volume)} />
+                                    <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)' }}>{r.margin}%</span>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {paymentRows.map(r => (
-                                    <tr key={r.method}>
-                                        <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{r.method}</td>
-                                        <td style={{ textAlign: 'left' }}>
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }} dir="ltr">{fmt(r.sales)}</span>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }} dir="ltr">{fmt(r.volume)}</span>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--accent-green)' }} dir="ltr">{r.margin}%</span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                            ));
+                        })()}
+                    </AnalyticsTable>
+                </AnalyticsTableCard>
 
                 {/* جدول نوع البيع */}
-                <div className="glass-panel overflow-hidden">
-                    <div className="px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                        <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>تفاصيل نوع البيع</h3>
-                        <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>SalesType Breakdown</p>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="enterprise-table">
-                            <thead>
-                                <tr>
-                                    <th>نوع الزبون</th>
-                                    <th style={{ textAlign: 'left' }}>صافي المبيعات</th>
-                                    <th style={{ textAlign: 'center' }}>حجم المبيعات</th>
-                                    <th style={{ textAlign: 'center' }}>الهامش %</th>
+                <AnalyticsTableCard
+                    title="تفاصيل نوع البيع"
+                    flag="green"
+                    subtitles={<p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>SalesType Breakdown</p>}
+                >
+                    <AnalyticsTable
+                        headers={[
+                            { label: 'نوع الزبون', align: 'right' },
+                            { label: 'صافي المبيعات', align: 'center' },
+                            { label: 'حجم المبيعات', align: 'center' },
+                            { label: 'الهامش %', align: 'center' },
+                        ]}
+                    >
+                        {(() => {
+                            const maxSales = Math.max(...salesTypeRows.map((r) => r.sales), 1);
+                            const maxVol = Math.max(...salesTypeRows.map((r) => r.volume), 1);
+                            return salesTypeRows.map((r) => (
+                                <tr key={r.type} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                                    <td style={{ ...analyticsTdBaseStyle('right') }}>
+                                        <div>
+                                            <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{r.type}</p>
+                                            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{r.typeAr}</p>
+                                        </div>
+                                    </td>
+                                    <AnalyticsBarCell value={r.sales} max={maxSales} color="#3b82f6" text={fmt(r.sales)} />
+                                    <AnalyticsBarCell value={r.volume} max={maxVol} color="#3b82f6" text={fmt(r.volume)} />
+                                    <td style={analyticsTdBaseStyle('center')} dir="ltr">
+                                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-secondary)' }}>{r.margin}%</span>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {salesTypeRows.map(r => (
-                                    <tr key={r.type}>
-                                        <td>
-                                            <div>
-                                                <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{r.type}</p>
-                                                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{r.typeAr}</p>
-                                            </div>
-                                        </td>
-                                        <td style={{ textAlign: 'left' }}>
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }} dir="ltr">{fmt(r.sales)}</span>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }} dir="ltr">{fmt(r.volume)}</span>
-                                        </td>
-                                        <td style={{ textAlign: 'center' }}>
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--accent-green)' }} dir="ltr">{r.margin}%</span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                            ));
+                        })()}
+                    </AnalyticsTable>
+                </AnalyticsTableCard>
             </div>
 
             {/* اتجاهات شهرية */}

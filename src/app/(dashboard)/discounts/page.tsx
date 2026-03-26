@@ -13,6 +13,8 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
 });
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
 import SectionTitleWithFlag from '@/components/ui/SectionTitleWithFlag';
+import { ChartTitleFlagBadge } from '@/components/ui/ChartTitleFlagBadge';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 function hexToRgba(hex: string, alpha: number): string {
     const h = hex.replace('#', '');
@@ -218,20 +220,36 @@ export default function DiscountsPage() {
         });
     };
 
-    // ── هامش الربح حسب الفئة ونطاق الخصم ──
+    // ── هامش الربح حسب الفئة و نوع الخصم ──
+    const discountTypes = [
+        'رفقاء السلاح - 10%',
+        'خصم التربية و التعليم 7%',
+        'خصم الضمان الاجتماعي 5%',
+        'خصم البريد الاردني 2%',
+    ] as const;
+    /**
+     * Static but realistic-looking distributions (each row totals 100%).
+     * Represents how margin share is distributed across discount types per category.
+     */
+    const profitMarginByCatData = {
+        comrades10: [46, 34, 52, 41, 48, 38, 55, 44, 50, 42, 47, 40],
+        edu7: [22, 26, 18, 24, 20, 28, 16, 22, 19, 23, 21, 25],
+        social5: [18, 16, 17, 19, 18, 14, 15, 18, 16, 17, 15, 18],
+        post2: [14, 24, 13, 16, 14, 20, 14, 16, 15, 18, 17, 17],
+    } as const;
     const profitMarginByCatOption = {
         tooltip: { trigger: 'axis' as const, axisPointer: { type: 'shadow' as const }, backgroundColor: '#1a2035', borderColor: '#1e293b', textStyle: { color: '#e2e8f0', fontSize: 10 } },
-        legend: { data: ['0%', '1-2%', '2-5%', '5-10%', '11-25%'], bottom: 0, left: 'center', textStyle: { color: '#64748b', fontSize: 8 } },
-        grid: { left: '20%', right: '6%', top: '14%', bottom: '18%' },
+        legend: { data: [...discountTypes], bottom: 0, left: 'center', textStyle: { color: '#64748b', fontSize: 8 } },
+        grid: { left: '16%', right: '3%', top: '14%', bottom: '18%', containLabel: true },
         xAxis: { type: 'value' as const, axisLabel: { formatter: '{value}%', fontSize: 8, color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } }, max: 100 },
         yAxis: { type: 'category' as const, data: categories.map(c => c.name), axisLabel: { fontSize: 9, color: '#94a3b8' }, axisLine: { show: false }, axisTick: { show: false } },
         series: [
             {
-                name: '0%',
+                name: discountTypes[0],
                 type: 'bar' as const,
                 stack: 'total',
                 barMaxWidth: 18,
-                data: categories.map((_, i) => [31.92, 11.27, 45.89, 40.10, 31.11, 22.15, 66.71, 40.15, 29.90, 21.99, 21.00, 21.00][i]),
+                data: categories.map((_, i) => profitMarginByCatData.comrades10[i]),
                 itemStyle: { color: palette.primaryGreen },
                 label: {
                     show: true,
@@ -241,36 +259,28 @@ export default function DiscountsPage() {
                 },
             },
             {
-                name: '1-2%',
+                name: discountTypes[1],
                 type: 'bar' as const,
                 stack: 'total',
                 barMaxWidth: 18,
-                data: categories.map((_, i) => [0, 21.67, 0, 0, 0, 41.36, 0, 0, 0, 0, 0, 0][i]),
+                data: categories.map((_, i) => profitMarginByCatData.edu7[i]),
                 itemStyle: { color: palette.primaryCyan },
             },
             {
-                name: '2-5%',
+                name: discountTypes[2],
                 type: 'bar' as const,
                 stack: 'total',
                 barMaxWidth: 18,
-                data: categories.map((_, i) => [0, 0, 0, 24.97, 0, 0, 0, 0, 0, 0, 0, 0][i]),
-                itemStyle: { color: palette.primaryBlue },
-            },
-            {
-                name: '5-10%',
-                type: 'bar' as const,
-                stack: 'total',
-                barMaxWidth: 18,
-                data: categories.map((_, i) => [0, 4.67, 0, 14.93, 0, 0, 0, 0, 0, 0, 0, 0][i]),
-                itemStyle: { color: palette.primaryAmber },
-            },
-            {
-                name: '11-25%',
-                type: 'bar' as const,
-                stack: 'total',
-                barMaxWidth: 18,
-                data: categories.map((_, i) => [0, 0, 0, 0, 0, 0, 0, 0, 21.40, 0, 0, 21.40][i]),
+                data: categories.map((_, i) => profitMarginByCatData.social5[i]),
                 itemStyle: { color: palette.primaryRed },
+            },
+            {
+                name: discountTypes[3],
+                type: 'bar' as const,
+                stack: 'total',
+                barMaxWidth: 18,
+                data: categories.map((_, i) => profitMarginByCatData.post2[i]),
+                itemStyle: { color: palette.primaryAmber },
             },
         ],
     };
@@ -496,7 +506,7 @@ export default function DiscountsPage() {
 
             {/* ── هامش الربح + Scatter ── */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="% هامش الربح حسب الفئة ونطاق الخصم" titleFlag="green" subtitle="% Profit Margin by Category and Discount Range" option={profitMarginByCatOption} height="360px" delay={1} />
+                <ChartCard title="هامش الربح حسب الفئة و نوع الخصم" titleFlag="green" subtitle="Profit Margin by Category and Discount Type" option={profitMarginByCatOption} height="360px" delay={1} />
                 <ChartCard title="نسب الخصم وحجم مبيعات المنتجات" titleFlag="green" subtitle="Discount Percentages & Product Sales Volume by Category" option={scatterOption} height="360px" delay={2} />
             </div>
 
@@ -510,22 +520,39 @@ export default function DiscountsPage() {
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Discount Category Comparison — مع/بدون خصومات</p>
                 </div>
                 <div className="overflow-x-auto">
-                    <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-                                <th style={{ padding: '9px 12px', textAlign: 'right', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', minWidth: 150 }}>فئة الخصم</th>
-                                <th colSpan={2} style={{ padding: '9px 12px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--accent-green)', borderLeft: '1px solid var(--border-subtle)' }}>مع خصومات</th>
-                                <th colSpan={2} style={{ padding: '9px 12px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', borderLeft: '1px solid var(--border-subtle)' }}>بدون خصومات</th>
-                            </tr>
-                            <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-                                <th style={{ padding: '7px 12px', textAlign: 'right', fontSize: 9, color: 'var(--text-muted)' }}></th>
-                                <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, color: 'var(--accent-green)', borderLeft: '1px solid var(--border-subtle)' }}>% هامش الربح</th>
-                                <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, color: 'var(--accent-green)' }}>% مساهمة المبيعات</th>
-                                <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, color: 'var(--text-muted)', borderLeft: '1px solid var(--border-subtle)' }}>% هامش الربح</th>
-                                <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, color: 'var(--text-muted)' }}>% مساهمة المبيعات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <AnalyticsTable
+                        headers={[]}
+                        thead={
+                            <>
+                                <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+                                    <th style={{ padding: '9px 12px', textAlign: 'right', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', minWidth: 150, whiteSpace: 'nowrap' }}>
+                                        فئة الخصم
+                                    </th>
+                                    <th colSpan={2} style={{ padding: '9px 12px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', borderLeft: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>
+                                        مع خصومات
+                                    </th>
+                                    <th colSpan={2} style={{ padding: '9px 12px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', borderLeft: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>
+                                        بدون خصومات
+                                    </th>
+                                </tr>
+                                <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
+                                    <th style={{ padding: '7px 12px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }} />
+                                    <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', borderLeft: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>
+                                        % هامش الربح
+                                    </th>
+                                    <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                        % مساهمة المبيعات
+                                    </th>
+                                    <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', borderLeft: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>
+                                        % هامش الربح
+                                    </th>
+                                    <th style={{ padding: '7px 12px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                        % مساهمة المبيعات
+                                    </th>
+                                </tr>
+                            </>
+                        }
+                    >
                             {categories.map((c) => {
                                 const isOpen = expandedCats.has(c.name);
                                 return (
@@ -536,7 +563,7 @@ export default function DiscountsPage() {
                                             className="transition-colors cursor-pointer"
                                             style={{ borderBottom: '1px solid var(--border-subtle)', background: isOpen ? 'rgba(0,229,160,0.04)' : 'transparent' }}
                                         >
-                                            <td style={{ padding: '8px 12px', fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('right'), padding: '8px 12px', fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>
                                                 <div className="flex items-center gap-2">
                                                     <span style={{ color: 'var(--accent-green)', transition: 'transform 0.2s', display: 'inline-block', transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
                                                         <ChevronDown size={13} />
@@ -545,16 +572,16 @@ export default function DiscountsPage() {
                                                     <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}>{c.products.length}</span>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '8px 12px', textAlign: 'center', borderLeft: '1px solid var(--border-subtle)' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('center'), padding: '8px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
                                                 <span style={{ fontSize: 10, fontWeight: 700, color: c.withMargin > 50 ? 'var(--accent-green)' : c.withMargin > 30 ? 'var(--accent-amber)' : 'var(--accent-red)' }} dir="ltr">{fmt2(c.withMargin)}%</span>
                                             </td>
-                                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('center'), padding: '8px 12px' }}>
                                                 <span style={{ fontSize: 10, color: 'var(--text-secondary)' }} dir="ltr">{fmt2(c.withSales)}%</span>
                                             </td>
-                                            <td style={{ padding: '8px 12px', textAlign: 'center', borderLeft: '1px solid var(--border-subtle)' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('center'), padding: '8px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
                                                 <span style={{ fontSize: 10, fontWeight: 700, color: c.noMargin > 50 ? 'var(--accent-green)' : c.noMargin > 30 ? 'var(--accent-amber)' : 'var(--text-muted)' }} dir="ltr">{fmt2(c.noMargin)}%</span>
                                             </td>
-                                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('center'), padding: '8px 12px' }}>
                                                 <span style={{ fontSize: 10, color: 'var(--text-muted)' }} dir="ltr">{fmt2(c.noSales)}%</span>
                                             </td>
                                         </tr>
@@ -570,22 +597,22 @@ export default function DiscountsPage() {
                                                     transition={{ duration: 0.18, delay: pi * 0.03 }}
                                                     style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(0,229,160,0.02)' }}
                                                 >
-                                                    <td style={{ padding: '6px 12px 6px 30px', fontSize: 10, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                                                    <td style={{ ...analyticsTdBaseStyle('right'), padding: '6px 12px 6px 30px', fontSize: 10, color: 'var(--text-secondary)' }}>
                                                         <div className="flex items-center gap-1.5">
                                                             <ChevronRight size={10} style={{ color: 'var(--accent-green)', opacity: 0.5 }} />
                                                             {p.name}
                                                         </div>
                                                     </td>
-                                                    <td style={{ padding: '6px 12px', textAlign: 'center', borderLeft: '1px solid var(--border-subtle)' }}>
+                                                    <td style={{ ...analyticsTdBaseStyle('center'), padding: '6px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
                                                         <span style={{ fontSize: 9.5, fontWeight: 600, color: p.withMargin > 50 ? 'var(--accent-green)' : p.withMargin > 30 ? 'var(--accent-amber)' : 'var(--accent-red)' }} dir="ltr">{fmt2(p.withMargin)}%</span>
                                                     </td>
-                                                    <td style={{ padding: '6px 12px', textAlign: 'center' }}>
+                                                    <td style={{ ...analyticsTdBaseStyle('center'), padding: '6px 12px' }}>
                                                         <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }} dir="ltr">{fmt2(p.withSales)}%</span>
                                                     </td>
-                                                    <td style={{ padding: '6px 12px', textAlign: 'center', borderLeft: '1px solid var(--border-subtle)' }}>
+                                                    <td style={{ ...analyticsTdBaseStyle('center'), padding: '6px 12px', borderLeft: '1px solid var(--border-subtle)' }}>
                                                         <span style={{ fontSize: 9.5, fontWeight: 600, color: p.noMargin > 50 ? 'var(--accent-green)' : p.noMargin > 30 ? 'var(--accent-amber)' : 'var(--text-muted)' }} dir="ltr">{fmt2(p.noMargin)}%</span>
                                                     </td>
-                                                    <td style={{ padding: '6px 12px', textAlign: 'center' }}>
+                                                    <td style={{ ...analyticsTdBaseStyle('center'), padding: '6px 12px' }}>
                                                         <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }} dir="ltr">{fmt2(p.noSales)}%</span>
                                                     </td>
                                                 </motion.tr>
@@ -594,8 +621,7 @@ export default function DiscountsPage() {
                                     </React.Fragment>
                                 );
                             })}
-                        </tbody>
-                    </table>
+                    </AnalyticsTable>
                 </div>
             </div>
 
@@ -628,15 +654,22 @@ export default function DiscountsPage() {
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Branch Discount Performance Details</p>
                 </div>
                 <div className="overflow-x-auto">
-                    <table dir="rtl" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border-subtle)' }}>
-                                {['الفرع', 'الفواتير', 'ف. مخصومة', '% الفواتير المخصومة', 'ف. بدون خصم', 'متوسط الخصم', 'مبيعات مخصومة', 'حجم مخصوم', 'صافي المبيعات', 'الخصومات المطبقة', '% الاستخدام', 'متوسط % الخصم'].map((h, i) => (
-                                    <th key={i} style={{ padding: '8px 10px', textAlign: i === 0 ? 'right' : 'center', fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <AnalyticsTable
+                        headers={[
+                            { label: 'الفرع', align: 'right' },
+                            { label: 'الفواتير', align: 'center' },
+                            { label: 'ف. مخصومة', align: 'center' },
+                            { label: '% الفواتير المخصومة', align: 'center' },
+                            { label: 'ف. بدون خصم', align: 'center' },
+                            { label: 'متوسط الخصم', align: 'center' },
+                            { label: 'مبيعات مخصومة', align: 'center' },
+                            { label: 'حجم مخصوم', align: 'center' },
+                            { label: 'صافي المبيعات', align: 'center' },
+                            { label: 'الخصومات المطبقة', align: 'center' },
+                            { label: '% الاستخدام', align: 'center' },
+                            { label: 'متوسط % الخصم', align: 'center' },
+                        ]}
+                    >
                             {branches.map((b) => {
                                 const isTotal = b.name === 'الإجمالي';
                                 const hasSubs = 'subs' in b && (b as any).subs;
@@ -645,28 +678,17 @@ export default function DiscountsPage() {
 
                                 const renderCells = (row: typeof b, isSub = false, isProd = false) => (
                                     <>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--text-secondary)' }} dir="ltr">{row.invoices.toFixed(isProd ? 0 : 2)}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--accent-cyan)' }} dir="ltr">{row.discInv}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center' }}>
-                                            <div className="flex items-center gap-1.5 justify-center">
-                                                <div style={{ width: 36, height: 5, borderRadius: 3, background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                                                    <div style={{ width: `${(row.discRate / 100) * 100}%`, height: '100%', background: 'var(--accent-blue)', borderRadius: 3 }} />
-                                                </div>
-                                                <span style={{ fontSize: 9, color: 'var(--accent-blue)' }} dir="ltr">{row.discRate.toFixed(2)}%</span>
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--text-secondary)' }} dir="ltr">{row.noDiscInv}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--text-secondary)' }} dir="ltr">{row.avgDisc.toFixed(2)}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--text-secondary)' }} dir="ltr">{row.discSales.toFixed(2)}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--text-secondary)' }} dir="ltr">{row.discVol}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--accent-green)' }} dir="ltr">{row.netSales.toFixed(2)}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center', fontSize: 10, color: 'var(--accent-amber)' }} dir="ltr">{row.appDisc.toFixed(2)}</td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center' }}>
-                                            <span style={{ display: 'inline-block', padding: '2px 7px', borderRadius: 20, fontSize: 9, fontWeight: 700, background: row.utilRate > 0 ? 'rgba(0,229,160,0.1)' : 'var(--bg-elevated)', color: row.utilRate > 0 ? 'var(--accent-green)' : 'var(--text-muted)' }} dir="ltr">{row.utilRate.toFixed(2)}%</span>
-                                        </td>
-                                        <td style={{ padding: '7px 10px', textAlign: 'center' }}>
-                                            <span style={{ display: 'inline-block', padding: '2px 7px', borderRadius: 20, fontSize: 9, fontWeight: 700, background: row.avgDiscRate > 0 ? 'rgba(245,158,11,0.1)' : 'var(--bg-elevated)', color: row.avgDiscRate > 0 ? 'var(--accent-amber)' : 'var(--text-muted)' }} dir="ltr">{row.avgDiscRate.toFixed(2)}%</span>
-                                        </td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.invoices.toFixed(isProd ? 0 : 2)}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.discInv}</span></td>
+                                        <AnalyticsBarCell value={row.discRate} max={100} color="#3b82f6" text={`${row.discRate.toFixed(2)}%`} />
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.noDiscInv}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.avgDisc.toFixed(2)}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.discSales.toFixed(2)}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.discVol}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.netSales.toFixed(2)}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.appDisc.toFixed(2)}</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.utilRate.toFixed(2)}%</span></td>
+                                        <td style={analyticsTdBaseStyle('center')} dir="ltr"><span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }}>{row.avgDiscRate.toFixed(2)}%</span></td>
                                     </>
                                 );
 
@@ -678,7 +700,7 @@ export default function DiscountsPage() {
                                             className={isTotal ? '' : 'hover:bg-white/[0.015] transition-colors'}
                                             style={{ borderBottom: '1px solid var(--border-subtle)', background: isTotal ? 'var(--accent-green-dim)' : isBrOpen ? 'rgba(4,120,87,0.04)' : 'transparent', fontWeight: isTotal ? 700 : 400, cursor: hasSubs ? 'pointer' : 'default' }}
                                         >
-                                            <td style={{ padding: '7px 10px', fontSize: 11, color: isTotal ? 'var(--accent-green)' : 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                                            <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: isTotal ? 700 : 600, color: isTotal ? 'var(--accent-green)' : 'var(--text-primary)' }}>
                                                 <div className="flex items-center gap-2">
                                                     {hasSubs && (
                                                         <span style={{ color: 'var(--accent-green)', transition: 'transform 0.2s', display: 'inline-block', transform: isBrOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
@@ -708,7 +730,7 @@ export default function DiscountsPage() {
                                                             className="cursor-pointer hover:bg-white/[0.015] transition-colors"
                                                             style={{ borderBottom: '1px solid var(--border-subtle)', background: isSubOpen ? 'rgba(8,145,178,0.04)' : 'rgba(4,120,87,0.02)' }}
                                                         >
-                                                            <td style={{ padding: '6px 10px 6px 28px', fontSize: 10, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                                                            <td style={{ ...analyticsTdBaseStyle('right'), padding: '6px 10px 6px 28px', fontSize: 10, color: 'var(--text-secondary)' }}>
                                                                 <div className="flex items-center gap-1.5">
                                                                     <span style={{ color: 'var(--accent-cyan)', transition: 'transform 0.2s', display: 'inline-block', transform: isSubOpen ? 'rotate(0deg)' : 'rotate(-90deg)' }}>
                                                                         <ChevronDown size={11} />
@@ -731,7 +753,7 @@ export default function DiscountsPage() {
                                                                     transition={{ duration: 0.15, delay: pi * 0.03 }}
                                                                     style={{ borderBottom: '1px solid var(--border-subtle)', background: 'rgba(8,145,178,0.02)' }}
                                                                 >
-                                                                    <td style={{ padding: '5px 10px 5px 48px', fontSize: 9.5, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                                                                    <td style={{ ...analyticsTdBaseStyle('right'), padding: '5px 10px 5px 48px', fontSize: 9.5, color: 'var(--text-muted)' }}>
                                                                         <div className="flex items-center gap-1.5">
                                                                             <ChevronRight size={9} style={{ color: 'var(--accent-amber)', opacity: 0.6 }} />
                                                                             {prod.name}
@@ -748,14 +770,15 @@ export default function DiscountsPage() {
                                     </React.Fragment>
                                 );
                             })}
-                        </tbody>
-                    </table>
+                    </AnalyticsTable>
                 </div>
             </div>
 
             <ChartCard
                 title="تحليل المبيعات حسب نسبة الخصم"
-                titleFlag="green"
+                titleLeading={<ChartTitleFlagBadge flag="green" size="sm" />}
+                titleFlag="red"
+                titleFlagNumber={1}
                 subtitle="تأثير الخصومات على المبيعات والأرباح"
                 option={salesByDiscountOption}
                 height="300px"

@@ -2,10 +2,9 @@
 
 import '@/lib/echarts/register-bar-line-pie';
 import dynamic from 'next/dynamic';
-import React, { useMemo, useState } from 'react';
+import{ useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, BarChart3, Building2, FileText, Layers } from 'lucide-react';
-import { ChartTitleFlagBadge } from '@/components/ui/ChartTitleFlagBadge';
 
 const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     ssr: false,
@@ -14,10 +13,11 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
 import { buildThreeYearMonthQuarterYearXAxes } from '@/components/ui/ChartCard';
 import { getMonthlySalesData, getProductData, type ProductData } from '@/lib/mockData';
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
-import EnterpriseTable from '@/components/ui/EnterpriseTable';
 import type { TableColumn } from '@/components/ui/EnterpriseTable';
 import TreeDrillDown from '@/components/ui/TreeDrillDown';
 import DrillDownTable from '@/components/ui/DrillDownTable';
+import AnalyticsTableCard from '@/components/ui/AnalyticsTableCard';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 export default function SalesPage() {
     const palette = useResolvedAnalyticsPalette();
@@ -367,30 +367,28 @@ export default function SalesPage() {
             <TreeDrillDown />
 
             {/* ── الجدول التفصيلي: سنة / ربع / شهر مع YoY وMoM ── */}
-            <div className="glass-panel overflow-hidden">
-                <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                    <div className="flex items-center gap-2">
-                        <ChartTitleFlagBadge flag="green" size="sm" />
-                        <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>التحليل الزمني التفصيلي للمبيعات</h3>
-                    </div>
-                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>صافي المبيعات • صافي المبيعات YoY (العام السابق) • YoY% • MoM% • عدد الفواتير • هامش الربح</p>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="enterprise-table">
-                        <thead>
-                            <tr>
-                                <th>السنة</th>
-                                <th>الربع</th>
-                                <th>الشهر</th>
-                                <th style={{ textAlign: 'start' }}>صافي المبيعات</th>
-                                <th style={{ textAlign: 'start' }}>صافي المبيعات YoY</th>
-                                <th style={{ textAlign: 'start' }}>نمو YoY%</th>
-                                <th style={{ textAlign: 'start' }}>نمو MoM%</th>
-                                <th style={{ textAlign: 'start' }}>عدد الفواتير</th>
-                                <th style={{ textAlign: 'start' }}>هامش الربح %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <AnalyticsTableCard
+                title="التحليل الزمني التفصيلي للمبيعات"
+                flag="green"
+                subtitles={
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        صافي المبيعات • صافي المبيعات YoY (العام السابق) • YoY% • MoM% • عدد الفواتير • هامش الربح
+                    </p>
+                }
+            >
+                <AnalyticsTable
+                    headers={[
+                        { label: 'السنة', align: 'right' },
+                        { label: 'الربع', align: 'right' },
+                        { label: 'الشهر', align: 'right' },
+                        { label: 'صافي المبيعات', align: 'center' },
+                        { label: 'صافي المبيعات YoY', align: 'center' },
+                        { label: 'نمو YoY%', align: 'center' },
+                        { label: 'نمو MoM%', align: 'center' },
+                        { label: 'عدد الفواتير', align: 'center' },
+                        { label: 'هامش الربح %', align: 'center' },
+                    ]}
+                >
                             {([
                                 { year: '2022', quarter: 'الربع 1', month: 'مارس', net: 2065, yoy: 61.51, mom: 62.73, invoices: 823, margin: 53.94 },
                                 { year: '2022', quarter: 'الربع 1', month: 'فبراير', net: 1513, yoy: 29.49, mom: 6.76, invoices: 614, margin: 60.93 },
@@ -403,25 +401,30 @@ export default function SalesPage() {
                             ] as { year: string; quarter: string; month: string; net: number; yoy: number | null; mom: number | null; invoices: number; margin: number }[]).map((row, i) => {
                                 const netYoyPrior =
                                     row.yoy != null && row.yoy !== -100 ? Math.round(row.net / (1 + row.yoy / 100)) : null;
+                                const rows = [
+                                    { net: row.net, netYoyPrior: netYoyPrior ?? 0, invoices: row.invoices },
+                                ];
+                                const maxNet = Math.max(...[
+                                    ...(([2065, 1513, 1418, 1284, 1665, 831, 1821, 273] as number[])),
+                                ]);
+                                const maxInv = Math.max(...(([823, 614, 581, 547, 515, 334, 649, 113] as number[])));
                                 return (
                                 <tr key={i}>
-                                    <td style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{row.year}</td>
-                                    <td style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{row.quarter}</td>
-                                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{row.month}</td>
-                                    <td style={{ textAlign: 'start' }}>
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--accent-blue)' }} dir="ltr">{row.net.toLocaleString('en-US')}</span>
-                                            <div style={{ width: `${Math.min(row.net / 25, 80)}px`, height: '6px', borderRadius: '3px', background: 'var(--accent-blue)', opacity: 0.5 }} />
-                                        </div>
-                                    </td>
-                                    <td style={{ textAlign: 'start' }}>
-                                        {netYoyPrior != null ? (
-                                            <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }} dir="ltr">{netYoyPrior.toLocaleString('en-US')}</span>
-                                        ) : (
-                                            <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>
-                                        )}
-                                    </td>
-                                    <td style={{ textAlign: 'start' }}>
+                                    <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, color: 'var(--text-muted)' }}>{row.year}</td>
+                                    <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, color: 'var(--text-muted)' }}>{row.quarter}</td>
+                                    <td style={{ ...analyticsTdBaseStyle('right'), fontSize: 11, fontWeight: 700, color: 'var(--text-primary)' }}>{row.month}</td>
+
+                                    <AnalyticsBarCell value={row.net} max={maxNet} color="#3b82f6" text={row.net.toLocaleString('en-US')} />
+
+                                    {netYoyPrior != null ? (
+                                        <AnalyticsBarCell value={netYoyPrior} max={maxNet} color="#3b82f6" text={netYoyPrior.toLocaleString('en-US')} />
+                                    ) : (
+                                        <td style={analyticsTdBaseStyle('center')}>
+                                            <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>—</span>
+                                        </td>
+                                    )}
+
+                                    <td style={analyticsTdBaseStyle('center')}>
                                         {row.yoy != null ? (
                                             <span className="inline-flex items-center gap-0.5 text-xs font-semibold" style={{ color: row.yoy >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }} dir="ltr">
                                                 {row.yoy >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -429,7 +432,7 @@ export default function SalesPage() {
                                             </span>
                                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>}
                                     </td>
-                                    <td style={{ textAlign: 'start' }}>
+                                    <td style={analyticsTdBaseStyle('center')}>
                                         {row.mom != null ? (
                                             <span className="inline-flex items-center gap-0.5 text-xs font-semibold" style={{ color: row.mom >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }} dir="ltr">
                                                 {row.mom >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -437,21 +440,17 @@ export default function SalesPage() {
                                             </span>
                                         ) : <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>—</span>}
                                     </td>
-                                    <td style={{ textAlign: 'start' }}>
-                                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }} dir="ltr">{row.invoices.toLocaleString('en-US')}</span>
-                                    </td>
-                                    <td style={{ textAlign: 'start' }}>
-                                        <span className="text-xs font-semibold" style={{ color: row.margin > 20 ? 'var(--accent-green)' : row.margin > 10 ? 'var(--accent-amber)' : 'var(--accent-red)' }} dir="ltr">
+                                    <AnalyticsBarCell value={row.invoices} max={maxInv} color="#3b82f6" text={row.invoices.toLocaleString('en-US')} />
+                                    <td style={analyticsTdBaseStyle('center')}>
+                                        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }} dir="ltr">
                                             {row.margin.toFixed(2)}%
                                         </span>
                                     </td>
                                 </tr>
                                 );
                             })}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                </AnalyticsTable>
+            </AnalyticsTableCard>
 
             {/* جدول التحليل التفصيلي — سوق / فئة / منتج */}
             <DrillDownTable />

@@ -496,7 +496,7 @@ export default function GlobalFilterBar() {
 
     return (
         <>
-            <div style={{ position: 'relative', zIndex: 100, marginBottom: 16, borderRadius: 12, background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', boxShadow: '0 2px 12px rgba(0,0,0,.2)', backdropFilter: 'blur(20px)' }}>
+            <div style={{ position: 'relative', zIndex: 1, marginBottom: 16, borderRadius: 12, background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', padding: '7px 14px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', boxShadow: '0 2px 12px rgba(0,0,0,.2)', backdropFilter: 'blur(20px)' }}>
 
                 {/* ── فلاتر لحظية ── */}
                 <span style={{ fontSize: 9, fontWeight: 800, color: 'var(--accent-green)', letterSpacing: '.5px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>⚡ لحظي</span>

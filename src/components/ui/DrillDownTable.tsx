@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronLeft } from 'lucide-react';
-import { ChartTitleFlagBadge } from './ChartTitleFlagBadge';
+import AnalyticsTableCard from '@/components/ui/AnalyticsTableCard';
+import { AnalyticsBarCell, AnalyticsTable, analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
 
 // ── Deterministic seeded random ──
 let _s = 77;
@@ -212,16 +213,6 @@ function returnsTextColor(grossSales: number, returns: number): string {
     return RETURNS_TIERS[RETURNS_TIERS.length - 1].color;
 }
 
-// ── MiniBar component ──
-function MiniBar({ value, max, color = 'var(--accent-blue)' }: { value: number; max: number; color?: string }) {
-    const pct = Math.min((value / max) * 100, 100);
-    return (
-        <div style={{ display: 'inline-block', width: '50px', height: '6px', borderRadius: '3px', background: 'var(--bg-elevated)', verticalAlign: 'middle', marginRight: '6px' }}>
-            <div style={{ width: `${pct}%`, height: '100%', borderRadius: '3px', background: color, transition: 'width 0.3s' }} />
-        </div>
-    );
-}
-
 // ── Main Component ──
 export default function DrillDownTable() {
     /** Only `true` means open; missing/`false` = closed (default closed for every row). */
@@ -257,6 +248,19 @@ export default function DrillDownTable() {
     }, []);
 
     const maxGross = useMemo(() => Math.max(...tableData.map(b => b.grossSales)), []);
+    const maxByKey = useMemo(() => {
+        const allRows: RowData[] = [];
+        const walk = (r: RowData) => {
+            allRows.push(r);
+            r.children?.forEach(walk);
+        };
+        tableData.forEach(walk);
+        const m: Record<string, number> = {};
+        COLUMNS.forEach(c => {
+            m[c.key] = Math.max(1, ...allRows.map(r => (r as any)[c.key] as number));
+        });
+        return m;
+    }, []);
 
     const fmt = (v: number, key: string) => {
         if (key === 'avgPrice') return v.toFixed(2);
@@ -266,23 +270,16 @@ export default function DrillDownTable() {
         return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
-    /** Zebra striping: even ≈ white/surface, odd ≈ gray (theme-aware). */
-    const STRIPE_EVEN = 'var(--bg-surface)';
-    const STRIPE_ODD = 'rgba(148, 163, 184, 0.09)';
-
     const renderRow = (
         row: RowData,
         level: number,
         parentKey: string,
         idx: number,
-        stripeCounter: { n: number } = { n: 0 },
     ) => {
         const key = `${parentKey}-${idx}`;
         const hasChildren = row.children && row.children.length > 0;
         const isOpen = expanded[key] === true;
         const indent = level * 24;
-        const stripeIndex = stripeCounter.n++;
-        const stripeBg = stripeIndex % 2 === 0 ? STRIPE_EVEN : STRIPE_ODD;
 
         const levelColors = [
             'var(--text-primary)',    // سوق
@@ -291,48 +288,34 @@ export default function DrillDownTable() {
             'var(--accent-blue)',     // المجموعة الثالثة
             'var(--text-secondary)',  // المادة
         ];
-        const chevronOpenBg = [
-            'rgba(0,229,160,0.15)',
-            'rgba(0,229,160,0.11)',
-            'rgba(8,145,178,0.12)',
-            'rgba(59,130,246,0.12)',
-        ];
         const chevronIconOpen = [
             'var(--accent-green)',
             'var(--accent-green)',
             'var(--accent-cyan)',
             'var(--accent-blue)',
         ];
-        const rowHoverBg = [
-            'rgba(0,229,160,0.08)',
-            'rgba(0,229,160,0.06)',
-            'rgba(8,145,178,0.08)',
-            'rgba(59,130,246,0.08)',
-        ];
         const colorIdx = Math.min(level, levelColors.length - 1);
-        const chevronIdx = Math.min(level, chevronOpenBg.length - 1);
+        const chevronIdx = Math.min(level, chevronIconOpen.length - 1);
+
+        const rowBgByLevel = [
+            isOpen ? 'rgba(4,120,87,0.04)' : 'transparent',
+            isOpen ? 'rgba(8,145,178,0.04)' : 'rgba(4,120,87,0.02)',
+            'rgba(8,145,178,0.02)',
+            'rgba(8,145,178,0.02)',
+            'transparent',
+        ];
 
         const rows: React.ReactNode[] = [];
 
         rows.push(
             <tr
                 key={key}
-                style={{
-                    background: stripeBg,
-                    cursor: hasChildren ? 'pointer' : 'default',
-                    transition: 'background 0.15s',
-                }}
+                className={hasChildren ? 'cursor-pointer hover:bg-white/[0.015] transition-colors' : undefined}
+                style={{ borderBottom: '1px solid var(--border-subtle)', background: rowBgByLevel[Math.min(level, rowBgByLevel.length - 1)] }}
                 onClick={() => hasChildren && toggle(key, row)}
-                onMouseEnter={(e) => {
-                    if (hasChildren) {
-                        (e.currentTarget as HTMLElement).style.background =
-                            rowHoverBg[chevronIdx] ?? 'rgba(148,163,184,0.12)';
-                    }
-                }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = stripeBg; }}
             >
                 {/* Name column */}
-                <td style={{ paddingRight: `${indent + 12}px`, whiteSpace: 'nowrap' }}>
+                <td style={{ ...analyticsTdBaseStyle('right'), paddingRight: `${indent + 12}px` }}>
                     <div className="flex items-center gap-1.5">
                         {hasChildren ? (
                             <span
@@ -343,7 +326,7 @@ export default function DrillDownTable() {
                                     width: '16px',
                                     height: '16px',
                                     borderRadius: '4px',
-                                    background: isOpen ? chevronOpenBg[chevronIdx] : 'var(--bg-elevated)',
+                                    background: isOpen ? 'rgba(0,229,160,0.11)' : 'var(--bg-elevated)',
                                     transition: 'all 0.2s',
                                 }}
                             >
@@ -368,40 +351,38 @@ export default function DrillDownTable() {
                 {/* Data columns */}
                 {COLUMNS.map(col => {
                     const val = (row as any)[col.key] as number;
-                    const showBar = level === 0 && (col.key === 'grossSales' || col.key === 'netSales');
                     const isReturnsCol = col.key === 'returns';
                     const isDiscPct = col.key === 'discountPct';
                     const isAvgDisc = col.key === 'avgDiscRate';
 
-                    const cellColor = isReturnsCol
-                        ? returnsTextColor(row.grossSales, row.returns)
-                        : isDiscPct
-                            ? 'var(--text-primary)'
-                            : isAvgDisc
-                                ? 'var(--accent-amber)'
-                                : level === 0
-                                    ? 'var(--text-primary)'
-                                    : 'var(--text-secondary)';
-
-                    return (
-                        <td key={col.key} style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                            <div className="flex items-center gap-1">
-                                {showBar && (
-                                    <MiniBar
-                                        value={val}
-                                        max={maxGross}
-                                        color={col.key === 'grossSales' ? 'var(--accent-blue)' : 'var(--accent-green)'}
-                                    />
-                                )}
-                                <span
-                                    className="text-xs font-medium"
-                                    style={{ color: cellColor }}
-                                    dir="ltr"
-                                >
+                    if (isReturnsCol) {
+                        return (
+                            <td key={col.key} style={analyticsTdBaseStyle('center')}>
+                                <span style={{ fontSize: 10, fontWeight: 600, color: returnsTextColor(row.grossSales, row.returns) }} dir="ltr">
                                     {fmt(val, col.key)}
                                 </span>
-                            </div>
-                        </td>
+                            </td>
+                        );
+                    }
+
+                    if (isDiscPct || isAvgDisc) {
+                        return (
+                            <td key={col.key} style={analyticsTdBaseStyle('center')}>
+                                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }} dir="ltr">
+                                    {fmt(val, col.key)}
+                                </span>
+                            </td>
+                        );
+                    }
+
+                    return (
+                        <AnalyticsBarCell
+                            key={col.key}
+                            value={val}
+                            max={maxByKey[col.key] ?? maxGross}
+                            color={isReturnsCol ? '#ef4444' : '#3b82f6'}
+                            text={fmt(val, col.key)}
+                        />
                     );
                 })}
             </tr>
@@ -410,7 +391,7 @@ export default function DrillDownTable() {
         // Render children
         if (hasChildren && isOpen) {
             row.children!.forEach((child, ci) => {
-                rows.push(...renderRow(child, level + 1, key, ci, stripeCounter));
+                rows.push(...renderRow(child, level + 1, key, ci));
             });
         }
 
@@ -418,20 +399,20 @@ export default function DrillDownTable() {
     };
 
     return (
-        <div className="glass-panel overflow-hidden">
-            <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <div className="flex items-center gap-2">
-                    <ChartTitleFlagBadge flag="green" size="sm" />
-                    <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        تحليل المبيعات التفصيلي — سوق / مجموعات / مادة
-                    </h3>
-                </div>
-                <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                    التسلسل الهرمي: سوق — المجموعة الاولى — المجموعة الثانية — المجموعة الثالثة — المادة
-                </p>
-                <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                    اضغط على أي صف للتوسع • إجمالي، صافي، عدد الفواتير، خصم، مرتجع، عدد المواد المرتجعة، كمية وعدد المواد
-                </p>
+        <AnalyticsTableCard
+            title="تحليل المبيعات التفصيلي — سوق / مجموعات / مادة"
+            flag="green"
+            subtitles={
+                <>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        التسلسل الهرمي: سوق — المجموعة الاولى — المجموعة الثانية — المجموعة الثالثة — المادة
+                    </p>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        اضغط على أي صف للتوسع • إجمالي، صافي، عدد الفواتير، خصم، مرتجع، عدد المواد المرتجعة، كمية وعدد المواد
+                    </p>
+                </>
+            }
+            headerExtra={
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px]" style={{ color: 'var(--text-muted)' }}>
                     <span className="font-medium shrink-0" style={{ color: 'var(--text-secondary)' }}>ألوان المرتجع (نسبة المرتجع / الإجمالي):</span>
                     {RETURNS_TIERS.map(tier => (
@@ -444,58 +425,39 @@ export default function DrillDownTable() {
                         </span>
                     ))}
                 </div>
-            </div>
+            }
+        >
+            <AnalyticsTable
+                minWidth="1620px"
+                headers={[
+                    { label: 'الاسم', align: 'right', width: '160px' },
+                    ...COLUMNS.map((c) => ({ label: c.label, align: 'center' as const, width: '110px' as const })),
+                ]}
+            >
+                {tableData.flatMap((branch, bi) => renderRow(branch, 0, 'root', bi))}
 
-            <div className="overflow-x-auto">
-                <table className="enterprise-table" dir="rtl" style={{ minWidth: '1620px' }}>
-                    <thead>
-                        <tr>
-                            <th style={{ minWidth: '160px', textAlign: 'right' }}>الاسم</th>
-                            {COLUMNS.map(col => (
-                                <th key={col.key} style={{ textAlign: 'right', minWidth: '110px', fontSize: '10px', lineHeight: '1.3' }}>
-                                    <div>{col.label}</div>
-                                    <div style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '9px' }}>{col.labelEn}</div>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {(() => {
-                            const stripeCounter = { n: 0 };
-                            return tableData.flatMap((branch, bi) => renderRow(branch, 0, 'root', bi, stripeCounter));
-                        })()}
-
-                        {/* Total row */}
-                        <tr
-                            style={{
-                                background: 'var(--accent-green-dim)',
-                                borderTop: '2px solid rgba(0,229,160,0.3)',
-                            }}
-                        >
-                            <td>
-                                <span className="text-xs font-bold" style={{ color: 'var(--accent-green)', paddingRight: '12px' }}>
-                                    الإجمالي — Total
+                {/* Total row */}
+                <tr style={{ background: 'var(--accent-green-dim)', borderTop: '2px solid rgba(0,229,160,0.3)' }}>
+                    <td style={analyticsTdBaseStyle('right')}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--accent-green)' }}>
+                            الإجمالي — Total
+                        </span>
+                    </td>
+                    {COLUMNS.map((col) => {
+                        const totalColor =
+                            col.key === 'returns'
+                                ? returnsTextColor(totals.grossSales, totals.returns)
+                                : 'var(--text-secondary)';
+                        return (
+                            <td key={col.key} style={analyticsTdBaseStyle('center')}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: totalColor }} dir="ltr">
+                                    {fmt((totals as any)[col.key] as number, col.key)}
                                 </span>
                             </td>
-                            {COLUMNS.map(col => {
-                                const totalColor =
-                                    col.key === 'returns'
-                                        ? returnsTextColor(totals.grossSales, totals.returns)
-                                        : col.key === 'discountPct'
-                                            ? 'var(--text-primary)'
-                                            : 'var(--accent-green)';
-                                return (
-                                    <td key={col.key} style={{ textAlign: 'right' }}>
-                                        <span className="text-xs font-bold" style={{ color: totalColor }} dir="ltr">
-                                            {fmt(totals[col.key], col.key)}
-                                        </span>
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                        );
+                    })}
+                </tr>
+            </AnalyticsTable>
+        </AnalyticsTableCard>
     );
 }
