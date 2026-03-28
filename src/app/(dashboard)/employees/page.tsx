@@ -145,7 +145,7 @@ export default function EmployeesPage() {
                 formatter: (p: { name: string; value: number }) =>
                     `${p.name}: <b style="color:${palette.primaryGreen}">${p.value}%</b>`,
             },
-            grid: { left: '26%', right: '14%', top: '2%', bottom: '2%' },
+            grid: { left: '4%', right: '4%', top: '2%', bottom: '15%', containLabel: true },
             xAxis: { type: 'value' as const, max: 80, axisLabel: { formatter: '{value}%', fontSize: 9, color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
             yAxis: {
                 type: 'category' as const,
@@ -341,6 +341,7 @@ export default function EmployeesPage() {
                         yLabel="نسبة المبيعات المرتجعة من المبيعات الكلية"
                         variant="green"
                         plotHeight={320}
+                        compactBottom
                         showDepthLegend={false}
                         formatXTick={(v) => `${v.toFixed(2)}%`}
                         entitySubtitle={() => 'كاشير'}
@@ -353,7 +354,7 @@ export default function EmployeesPage() {
                         formatPrice={(n) => `${n.toFixed(2)}%`}
                     />
                 </div>
-                <div className="min-w-0 max-h-[min(420px,55vh)] overflow-y-auto overflow-x-hidden rounded-xl">
+                <div className="min-w-0">
                     <ChartCard
                         title="ترتيب الكاشيرات حسب درجة الأداء"
                         subtitle="Overall Performance Score Ranking — الأعلى أداءً (أخضر) إلى الأسفل (أحمر)"

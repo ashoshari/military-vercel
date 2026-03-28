@@ -7,7 +7,7 @@ import {
     Download, Columns3, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { ChartTitleFlagBadge, type ChartCardTitleFlag } from '@/components/ui/ChartTitleFlagBadge';
-import { analyticsTdBaseStyle } from '@/components/ui/AnalyticsTable';
+import { analyticsTdBaseStyle, AnalyticsBarCellContent } from '@/components/ui/AnalyticsTable';
 
 export interface TableColumn<T> {
     key: string;
@@ -18,6 +18,8 @@ export interface TableColumn<T> {
     align?: 'left' | 'center' | 'right';
     render?: (value: unknown, row: T, index: number) => React.ReactNode;
     format?: 'number' | 'currency' | 'percent' | 'change';
+    /** Same blue bar background as `AnalyticsTable` / DrillDown — for numeric columns only. */
+    analyticsBar?: { max: number; color?: string };
 }
 
 interface EnterpriseTableProps<T> {
@@ -121,7 +123,7 @@ export default function EnterpriseTable<T extends Record<string, unknown>>({
             className={`glass-panel overflow-hidden ${className}`}
         >
             {/* شريط الأدوات */}
-            <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
                 <div>
                     {title && (
                         <div className="flex items-center gap-2">
@@ -259,13 +261,30 @@ export default function EnterpriseTable<T extends Record<string, unknown>>({
                                                 </button>
                                             </td>
                                         )}
-                                        {activeColumns.map((col) => (
-                                            <td key={col.key} style={analyticsTdBaseStyle(col.align || 'right')}>
-                                                {col.render
-                                                    ? col.render(row[col.key], row, globalIdx)
-                                                    : formatValue(row[col.key], col.format)}
-                                            </td>
-                                        ))}
+                                        {activeColumns.map((col) => {
+                                            const align = col.analyticsBar ? 'center' : (col.align || 'right');
+                                            const base = analyticsTdBaseStyle(align);
+                                            const tdStyle = col.analyticsBar
+                                                ? { ...base, position: 'relative' as const }
+                                                : base;
+                                            const barColor = col.analyticsBar?.color ?? '#3b82f6';
+                                            return (
+                                                <td key={col.key} style={tdStyle}>
+                                                    {col.analyticsBar && typeof row[col.key] === 'number' ? (
+                                                        <AnalyticsBarCellContent
+                                                            value={row[col.key] as number}
+                                                            max={col.analyticsBar.max}
+                                                            color={barColor}
+                                                            text={String(formatValue(row[col.key], col.format))}
+                                                        />
+                                                    ) : col.render ? (
+                                                        col.render(row[col.key], row, globalIdx)
+                                                    ) : (
+                                                        formatValue(row[col.key], col.format)
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                     {isExpanded && renderExpandedRow && (
                                         <tr>

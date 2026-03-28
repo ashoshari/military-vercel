@@ -64,7 +64,8 @@ export function analyticsTdBaseStyle(align: 'right' | 'center' | 'left' = 'cente
     };
 }
 
-export function AnalyticsBarCell({
+/** Inner bar + label (use inside a `position: relative` cell, e.g. `EnterpriseTable` with `analyticsBar`). */
+export function AnalyticsBarCellContent({
     value,
     max,
     color,
@@ -76,7 +77,7 @@ export function AnalyticsBarCell({
     text: string;
 }) {
     return (
-        <td style={{ ...analyticsTdBaseStyle('center'), position: 'relative' as const }}>
+        <>
             <div
                 style={{
                     position: 'absolute',
@@ -93,6 +94,24 @@ export function AnalyticsBarCell({
             <span style={{ position: 'relative', fontSize: 10, fontWeight: 600, color: 'var(--text-secondary)' }} dir="ltr">
                 {text}
             </span>
+        </>
+    );
+}
+
+export function AnalyticsBarCell({
+    value,
+    max,
+    color,
+    text,
+}: {
+    value: number;
+    max: number;
+    color: string;
+    text: string;
+}) {
+    return (
+        <td style={{ ...analyticsTdBaseStyle('center'), position: 'relative' as const }}>
+            <AnalyticsBarCellContent value={value} max={max} color={color} text={text} />
         </td>
     );
 }

@@ -4,7 +4,7 @@ import '@/lib/echarts/register-bar-line-pie';
 import dynamic from 'next/dynamic';
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Building2, MapPin, Award, Scale, TrendingUp, BarChart3, ChevronDown, ChevronLeft } from 'lucide-react';
+import { Building2, MapPin, Award, Scale,  BarChart3, ChevronDown, ChevronLeft } from 'lucide-react';
 import { ChartTitleFlagBadge } from '@/components/ui/ChartTitleFlagBadge';
 
 const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
@@ -15,7 +15,6 @@ import EnterpriseTable from '@/components/ui/EnterpriseTable';
 import type { TableColumn } from '@/components/ui/EnterpriseTable';
 import { getBranchData, getRegionalData, type BranchData } from '@/lib/mockData';
 import BranchMap from '@/components/ui/BranchMap';
-import BranchSalesTable from '@/components/ui/BranchSalesTable';
 import MetricsBubblePlot, { type MetricsBubblePoint } from '@/components/ui/MetricsBubblePlot';
 import { BRANCH_PRODUCT_ANALYSIS, buildProductBubbleRows, type ProductBubbleRow } from '@/lib/branchProductAnalysis';
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
@@ -349,28 +348,37 @@ export default function BranchesPage() {
         })),
     }), [branchChartColors]);
 
-    const branchColumns: TableColumn<BranchData>[] = [
-        { key: 'nameAr', header: 'الفرع', sortable: true },
-        { key: 'regionAr', header: 'المنطقة', sortable: true },
-        { key: 'revenue', header: 'الإيرادات', sortable: true, align: 'right', format: 'currency' },
-        { key: 'orders', header: 'الطلبات', sortable: true, align: 'right', format: 'number' },
-        { key: 'customers', header: 'العملاء', sortable: true, align: 'right', format: 'number' },
-        { key: 'growth', header: 'النمو', sortable: true, align: 'right', format: 'change' },
-        {
-            key: 'performance', header: 'الأداء', sortable: true, align: 'center', render: (val: unknown) => {
-                const v = Number(val);
-                const color = v >= 85 ? 'var(--accent-green)' : v >= 70 ? 'var(--accent-amber)' : 'var(--accent-red)';
-                return (
-                    <div className="flex items-center gap-2 justify-center">
-                        <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
-                            <div className="h-full rounded-full" style={{ width: `${v}%`, background: color }} />
+    const branchColumns: TableColumn<BranchData>[] = useMemo(() => {
+        const maxRev = Math.max(...branches.map((b) => b.revenue), 1);
+        const maxOrd = Math.max(...branches.map((b) => b.orders), 1);
+        const maxCust = Math.max(...branches.map((b) => b.customers), 1);
+        return [
+            { key: 'nameAr', header: 'الفرع', sortable: true },
+            { key: 'regionAr', header: 'المنطقة', sortable: true },
+            { key: 'revenue', header: 'الإيرادات', sortable: true, align: 'center', format: 'currency', analyticsBar: { max: maxRev } },
+            { key: 'orders', header: 'الطلبات', sortable: true, align: 'center', format: 'number', analyticsBar: { max: maxOrd } },
+            { key: 'customers', header: 'العملاء', sortable: true, align: 'center', format: 'number', analyticsBar: { max: maxCust } },
+            { key: 'growth', header: 'النمو', sortable: true, align: 'right', format: 'change' },
+            {
+                key: 'performance',
+                header: 'الأداء',
+                sortable: true,
+                align: 'center',
+                render: (val: unknown) => {
+                    const v = Number(val);
+                    const color = v >= 85 ? 'var(--accent-green)' : v >= 70 ? 'var(--accent-amber)' : 'var(--accent-red)';
+                    return (
+                        <div className="flex items-center gap-2 justify-center">
+                            <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+                                <div className="h-full rounded-full" style={{ width: `${v}%`, background: color }} />
+                            </div>
+                            <span className="text-xs font-semibold" style={{ color }} dir="ltr">{v}%</span>
                         </div>
-                        <span className="text-xs font-semibold" style={{ color }} dir="ltr">{v}%</span>
-                    </div>
-                );
-            }
-        },
-    ];
+                    );
+                },
+            },
+        ];
+    }, [branches]);
 
     const scoreColor = (v: number) => v >= 70 ? 'var(--accent-green)' : v >= 50 ? 'var(--accent-amber)' : 'var(--accent-red)';
 
@@ -986,7 +994,7 @@ export default function BranchesPage() {
             <DrillDownTable />
             {/* <BranchSalesTable /> */}
 
-            <EnterpriseTable title="دليل الفروع" columns={branchColumns} data={branches} pageSize={10} />
+            <EnterpriseTable title="دليل الفروع" titleFlag="green" columns={branchColumns} data={branches} pageSize={10} />
         </div >
     );
 }

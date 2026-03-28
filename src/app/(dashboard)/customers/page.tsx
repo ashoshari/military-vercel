@@ -130,7 +130,7 @@ export default function CustomersPage() {
         txScatterData.push([totalTx, atv, avgVal, sz]);
     }
     const txFreqOption = {
-        grid: { left: '10%', right: '14%', top: '12%', bottom: '15%' },
+        grid: { left: '3%', right: '4%', top: '12%', bottom: '15%' },
         xAxis: { type: 'value' as const, name: 'اجمالي قيمة الفواتير', nameLocation: 'center' as const, nameGap: 30, max: 700 },
         yAxis: { type: 'value' as const, name: 'عدد الفواتير', nameLocation: 'center' as const, nameGap: 35, max: 140 },
         visualMap: {

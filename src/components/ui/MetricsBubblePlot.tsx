@@ -108,6 +108,8 @@ export type MetricsBubblePlotProps = {
     bubbleSizing?: 'depth' | 'volume' | 'basketProfit';
     /** Min/max labels under the X axis (defaults to same compact rules as Y). */
     formatXTick?: (v: number) => string;
+    /** Tighter padding below plot + x-axis rows (e.g. when legend rows are hidden). */
+    compactBottom?: boolean;
 };
 
 const defaultEntitySubtitle = (depth: 0 | 1 | 2) =>
@@ -125,6 +127,7 @@ export default function MetricsBubblePlot({
     formatPrice = (n: number) => n.toFixed(1),
     bubbleSizing = 'depth',
     formatXTick,
+    compactBottom = false,
 }: MetricsBubblePlotProps) {
     const dl = {
         vol: detailLabels?.vol ?? 'الحجم',
@@ -221,8 +224,8 @@ export default function MetricsBubblePlot({
                 <div
                     className="grid flex-1 min-w-0 min-h-0"
                     style={{
-                        paddingTop: 8,
-                        paddingBottom: 10,
+                        paddingTop: compactBottom ? 6 : 8,
+                        paddingBottom: compactBottom ? 0 : 10,
                         paddingRight: 8,
                         gridTemplateColumns: 'auto 1fr',
                         gridTemplateRows: 'minmax(0, 1fr) auto auto',
@@ -286,7 +289,7 @@ export default function MetricsBubblePlot({
                                     y2={`${yPct}%`}
                                     stroke="var(--border-subtle)"
                                     strokeWidth={1}
-                                    strokeOpacity={0.85}
+                                    strokeOpacity={0.95}
                                     vectorEffect="non-scaling-stroke"
                                 />
                             );
@@ -302,11 +305,32 @@ export default function MetricsBubblePlot({
                                     y2="100%"
                                     stroke="var(--border-subtle)"
                                     strokeWidth={1}
-                                    strokeOpacity={0.85}
+                                    strokeOpacity={0.95}
                                     vectorEffect="non-scaling-stroke"
                                 />
                             );
                         })}
+                        {/* Y-axis spine (left) + X-axis spine (bottom) — main axes for the plot */}
+                        <line
+                            x1="0%"
+                            y1="0%"
+                            x2="0%"
+                            y2="100%"
+                            stroke="var(--text-muted)"
+                            strokeWidth={1.25}
+                            strokeOpacity={0.55}
+                            vectorEffect="non-scaling-stroke"
+                        />
+                        <line
+                            x1="0%"
+                            y1="100%"
+                            x2="100%"
+                            y2="100%"
+                            stroke="var(--text-muted)"
+                            strokeWidth={1.25}
+                            strokeOpacity={0.55}
+                            vectorEffect="non-scaling-stroke"
+                        />
                     </svg>
 
                     <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, opacity: 0.05, zIndex: 0, pointerEvents: 'none' }}>
@@ -397,7 +421,7 @@ export default function MetricsBubblePlot({
 
                     {/* X-axis tick row — column 2, under plot */}
                     <div
-                        className="relative shrink-0 h-[22px] w-full min-w-0"
+                        className={`relative shrink-0 w-full min-w-0 ${compactBottom ? 'h-[18px]' : 'h-[22px]'}`}
                         style={{ gridColumn: 2, gridRow: 2 }}
                         dir="ltr"
                     >
@@ -423,7 +447,7 @@ export default function MetricsBubblePlot({
 
                     {/* X axis title (under tick marks) */}
                     <div
-                        className="relative shrink-0 flex justify-center items-center py-0.5 text-[9px] px-1"
+                        className={`relative shrink-0 flex justify-center items-center text-[9px] px-1 ${compactBottom ? 'py-0' : 'py-0.5'}`}
                         style={{ gridColumn: 2, gridRow: 3, color: 'var(--text-muted)' }}
                         dir="ltr"
                     >
