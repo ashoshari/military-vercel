@@ -128,7 +128,7 @@ export default function TimeComparePage() {
     // ── ATV حسب الفترة (horizontal bar) ──
     const atvOption = {
         tooltip: { trigger: 'axis' as const },
-        grid: { left: '28%', right: '8%', top: '8%', bottom: '8%' },
+        grid: { left: '4%', right: '8%', top: '8%', bottom: '14%' },
         xAxis: { type: 'value' as const, axisLabel: { fontSize: 9 }, max: 100, name: '%', nameLocation: 'end' as const },
         yAxis: {
             type: 'category' as const,
@@ -218,7 +218,7 @@ export default function TimeComparePage() {
     const discCatOption = {
         tooltip: { trigger: 'axis' as const },
         legend: { data: ['الفترة 1', 'الفترة 2'], top: 4, textStyle: { fontSize: 9 } },
-        grid: { left: '8%', right: '4%', top: '18%', bottom: '20%' },
+        grid: { left: '8%', right: '4%', top: '18%', bottom: '14%' },
         xAxis: { type: 'category' as const, data: categories, axisLabel: { fontSize: 8, rotate: 25 } },
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K`, fontSize: 9 } },
         series: [

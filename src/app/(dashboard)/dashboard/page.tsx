@@ -82,7 +82,7 @@ export default function DashboardPage() {
             })),
             barWidth: 20,
         }],
-        grid: { left: '8%', right: '25%', top: '5%', bottom: '8%' },
+        grid: { left: '4%', right: '4%', top: '5%', bottom: '8%' },
     }), [palette, topBranches]);
 
     const categoryOption = useMemo(() => ({

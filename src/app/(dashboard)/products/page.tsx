@@ -3,7 +3,7 @@
 import "@/lib/echarts/register-bar-line-pie";
 import "@/lib/echarts/register-scatter";
 import dynamic from "next/dynamic";
-import  { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Package,
@@ -474,7 +474,13 @@ export default function ProductsPage() {
       bottom: 0,
       textStyle: { fontSize: 9 },
     },
-    grid: { left: "8%", right: "4%", top: "8%", bottom: "18%" },
+    grid: {
+      left: "3%",
+      right: "4%",
+      top: "8%",
+      bottom: "18%",
+      containLabel: true,
+    },
     xAxis: {
       type: "value" as const,
       axisLabel: { formatter: "{value}%", fontSize: 9 },
@@ -555,38 +561,47 @@ export default function ProductsPage() {
     grid: { bottom: "16%", top: "10%", containLabel: true },
   };
 
-  const prodColumns: TableColumn<ProductData>[] = [
-    { key: "nameAr", header: "المنتج", sortable: true },
-    { key: "categoryAr", header: "الفئة", sortable: true },
-    {
-      key: "price",
-      header: "السعر",
-      sortable: true,
-      align: "right",
-      format: "currency",
-    },
-    {
-      key: "unitsSold",
-      header: "الوحدات",
-      sortable: true,
-      align: "right",
-      format: "number",
-    },
-    {
-      key: "revenue",
-      header: "الإيرادات",
-      sortable: true,
-      align: "right",
-      format: "currency",
-    },
-    {
-      key: "margin",
-      header: "الهامش",
-      sortable: true,
-      align: "right",
-      format: "percent",
-    },
-  ];
+  const maxProdMargin = useMemo(
+    () => Math.max(...products.map((p) => p.margin), 1),
+    [products],
+  );
+
+  const prodColumns: TableColumn<ProductData>[] = useMemo(
+    () => [
+      { key: "nameAr", header: "المنتج", sortable: true },
+      { key: "categoryAr", header: "الفئة", sortable: true },
+      {
+        key: "price",
+        header: "السعر",
+        sortable: true,
+        align: "right",
+        format: "currency",
+      },
+      {
+        key: "unitsSold",
+        header: "الوحدات",
+        sortable: true,
+        align: "right",
+        format: "number",
+      },
+      {
+        key: "revenue",
+        header: "الإيرادات",
+        sortable: true,
+        align: "right",
+        format: "currency",
+      },
+      {
+        key: "margin",
+        header: "الهامش",
+        sortable: true,
+        align: "center",
+        format: "percent",
+        analyticsBar: { max: maxProdMargin },
+      },
+    ],
+    [maxProdMargin],
+  );
 
   const kpis = [
     {
@@ -781,7 +796,7 @@ export default function ProductsPage() {
           titleFlag="green"
           subtitle="عدد المرتجعات مع نسبة الإرجاع"
           option={returnsOption}
-          height="320px"
+          height="480px"
           delay={2}
         />
       </div>

@@ -34,7 +34,7 @@ export default function CustomersPage() {
     });
 
     const heatmapOption = {
-        grid: { left: '12%', right: '12%', top: '5%', bottom: '15%' },
+        grid: { left: '3%', right: '4%', top: '5%', bottom: '15%' },
         xAxis: { type: 'category' as const, data: hours, splitArea: { show: true }, axisLabel: { fontSize: 10 } },
         yAxis: { type: 'category' as const, data: days, splitArea: { show: true }, axisLabel: { fontSize: 10 } },
         visualMap: {

@@ -80,7 +80,6 @@ export default function OperationsPage() {
             })),
             barWidth: 16,
         }],
-        grid: { left: '20%', right: '8%', top: '5%', bottom: '8%' },
     };
 
     // ── تحليل السلة الشرائية: عدد المواد وقيمتها ──
