@@ -3,12 +3,11 @@
 import "@/lib/echarts/register-bar-line-pie";
 import "@/lib/echarts/register-scatter";
 import dynamic from "next/dynamic";
-import React, { useState, useMemo } from "react";
+import  { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Package,
   TrendingUp,
-  TrendingDown,
   DollarSign,
   ShoppingCart,
   BarChart3,
@@ -24,6 +23,7 @@ import EnterpriseTable from "@/components/ui/EnterpriseTable";
 import type { TableColumn } from "@/components/ui/EnterpriseTable";
 import { getProductData, type ProductData } from "@/lib/mockData";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
+import { useThemeStore } from "@/store/themeStore";
 
 const categories = [
   { name: "منتجات غذائية", netSales: 248170, volume: 150240, margin: 38.2 },
@@ -186,17 +186,27 @@ export default function ProductsPage() {
   );
   const products = useMemo(() => getProductData(), []);
   const [activeKpi, setActiveKpi] = useState<number | null>(null);
+  const mode = useThemeStore((s) => s.mode);
+  const isDark = mode === "dark";
+  /** Same as ChartCard `hasBarSeries` cartesian enhancement (bar charts only get this automatically). */
+  const barChartSpineColor = isDark ? "#64748b" : "#94a3b8";
+  const barChartSplitLineColor = isDark
+    ? "rgba(148,163,184,0.22)"
+    : "rgba(100,116,139,0.3)";
+
+  /** Same grid as «صافي المبيعات حسب الفئة» + line charts (320px / 380px rows). */
+  const productsStandardGrid = {
+    bottom: "4%",
+    top: "12%",
+    left: "3%",
+    right: "2%",
+    containLabel: true,
+  } as const;
 
   // ── مخطط صافي المبيعات حسب الفئة ──
   const salesByCatOption = {
     tooltip: { trigger: "axis" as const },
-    grid: {
-      bottom: "24%",
-      top: "12%",
-      left: "3%",
-      right: "2%",
-      containLabel: true,
-    },
+    grid: { ...productsStandardGrid },
     xAxis: {
       type: "category" as const,
       data: categories.map((c) => c.name),
@@ -258,7 +268,19 @@ export default function ProductsPage() {
       nameGap: 32,
       nameTextStyle: { fontSize: 9 },
       axisLabel: { formatter: (v: number) => fmtK(v), fontSize: 9 },
-      splitLine: { show: false },
+      axisTick: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed" as const,
+          color: barChartSplitLineColor,
+          width: 1,
+        },
+      },
     },
     yAxis: {
       name: "هامش الربح %",
@@ -267,7 +289,19 @@ export default function ProductsPage() {
       nameGap: 40,
       nameTextStyle: { fontSize: 9 },
       axisLabel: { formatter: "{value}%", fontSize: 9 },
-      splitLine: { show: false },
+      axisTick: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed" as const,
+          color: barChartSplitLineColor,
+          width: 1,
+        },
+      },
     },
     series: [
       {
@@ -293,7 +327,7 @@ export default function ProductsPage() {
         },
       },
     ],
-    grid: { bottom: "18%", top: "14%", left: "16%", right: "5%" },
+    grid: { ...productsStandardGrid, left: "6%" },
   };
 
   // ── مخطط أفضل 10 (أشرطة أفقية تدرج) ──
@@ -333,13 +367,40 @@ export default function ProductsPage() {
       textStyle: { fontSize: 8 },
       pageIconSize: 10,
     },
-    grid: { left: "8%", right: "4%", top: "8%", bottom: "18%" },
+    grid: { ...productsStandardGrid },
     xAxis: {
       type: "category" as const,
       data: months,
+      boundaryGap: false,
       axisLabel: { fontSize: 9 },
+      splitLine: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      axisTick: {
+        show: true,
+        length: 5,
+        lineStyle: { width: 1, color: barChartSpineColor },
+      },
     },
-    yAxis: { type: "value" as const, axisLabel: { fontSize: 9 } },
+    yAxis: {
+      type: "value" as const,
+      axisLabel: { fontSize: 9 },
+      axisTick: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed" as const,
+          color: barChartSplitLineColor,
+          width: 1,
+        },
+      },
+    },
     series: top10.map((p, i) => ({
       name: p.name.length > 18 ? p.name.substring(0, 18) + "…" : p.name,
       type: "line" as const,
@@ -359,13 +420,40 @@ export default function ProductsPage() {
       textStyle: { fontSize: 8 },
       pageIconSize: 10,
     },
-    grid: { left: "8%", right: "4%", top: "8%", bottom: "18%" },
+    grid: { ...productsStandardGrid },
     xAxis: {
       type: "category" as const,
       data: months,
+      boundaryGap: false,
       axisLabel: { fontSize: 9 },
+      splitLine: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      axisTick: {
+        show: true,
+        length: 5,
+        lineStyle: { width: 1, color: barChartSpineColor },
+      },
     },
-    yAxis: { type: "value" as const, axisLabel: { fontSize: 9 } },
+    yAxis: {
+      type: "value" as const,
+      axisLabel: { fontSize: 9 },
+      axisTick: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed" as const,
+          color: barChartSplitLineColor,
+          width: 1,
+        },
+      },
+    },
     series: bottom10.map((p, i) => ({
       name: p.name.length > 18 ? p.name.substring(0, 18) + "…" : p.name,
       type: "line" as const,

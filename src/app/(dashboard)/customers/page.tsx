@@ -4,9 +4,9 @@ import '@/lib/echarts/register-bar-line-pie';
 import '@/lib/echarts/register-heatmap';
 import '@/lib/echarts/register-scatter';
 import dynamic from 'next/dynamic';
-import React, { useMemo } from 'react';
+import  { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { UserCircle, ShoppingBag, Repeat, TrendingUp, Heart, CreditCard, Clock } from 'lucide-react';
+import { UserCircle, ShoppingBag, Repeat,  CreditCard, Clock } from 'lucide-react';
 
 const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     ssr: false,

@@ -189,8 +189,12 @@ function ChartCard({
             merged.animation = false;
         }
 
-        const killSplit = (ax: Record<string, unknown> | undefined) =>
-            (ax ? { ...ax, splitLine: { show: false } } : ax);
+        const killSplit = (ax: Record<string, unknown> | undefined) => {
+            if (!ax) return ax;
+            const sl = ax.splitLine as { show?: boolean } | undefined;
+            if (sl?.show === true) return ax;
+            return { ...ax, splitLine: { show: false } };
+        };
         if (Array.isArray(merged.xAxis)) merged.xAxis = merged.xAxis.map(killSplit);
         else if (merged.xAxis) merged.xAxis = killSplit(merged.xAxis as Record<string, unknown>);
         if (Array.isArray(merged.yAxis)) merged.yAxis = merged.yAxis.map(killSplit);
