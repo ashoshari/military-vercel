@@ -582,7 +582,6 @@ export default function TransactionsPage() {
       data: years,
       axisLabel: { fontSize: 12, fontWeight: "bold" },
       axisTick: { show: false },
-      axisLine: { lineStyle: { color: "#e5e7eb" } },
     },
     yAxis: {
       type: "value" as const,

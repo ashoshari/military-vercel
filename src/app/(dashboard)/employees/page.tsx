@@ -3,7 +3,7 @@
 import '@/lib/echarts/register-bar-line-pie';
 import '@/lib/echarts/register-gauge';
 import dynamic from 'next/dynamic';
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Users, DollarSign, ShoppingCart, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { ChartTitleFlagBadge } from '@/components/ui/ChartTitleFlagBadge';
@@ -16,6 +16,7 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
 });
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
+import { useThemeStore } from '@/store/themeStore';
 
 // ── بيانات الكاشيرات ──
 const cashiersBase = [
@@ -79,6 +80,7 @@ const maxAtv = Math.max(...cashiers.map(c => c.atv));
 
 export default function EmployeesPage() {
     const palette = useResolvedAnalyticsPalette();
+    const isDark = useThemeStore((s) => s.mode === 'dark');
     const scoreColor = (s: number) => {
         if (s >= 63) return palette.primaryGreen;
         if (s >= 55) return palette.primaryAmber;
@@ -146,13 +148,22 @@ export default function EmployeesPage() {
                     `${p.name}: <b style="color:${palette.primaryGreen}">${p.value}%</b>`,
             },
             grid: { left: '4%', right: '4%', top: '2%', bottom: '15%', containLabel: true },
-            xAxis: { type: 'value' as const, max: 80, axisLabel: { formatter: '{value}%', fontSize: 9, color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+            xAxis: {
+                type: 'value' as const,
+                max: 80,
+                axisLabel: { formatter: '{value}%', fontSize: 9, color: '#64748b' },
+                axisLine: { show: true, lineStyle: { color: palette.primarySlate, width: 1.5 } },
+                splitLine: {
+                    show: true,
+                    lineStyle: { color: isDark ? '#1e293b' : 'rgba(100, 116, 139, 0.35)' },
+                },
+            },
             yAxis: {
                 type: 'category' as const,
                 data: rnk.map(c => c.short),
                 inverse: true,
                 axisLabel: { fontSize: 10, color: '#94a3b8' },
-                axisLine: { show: false },
+                axisLine: { show: true, lineStyle: { color: palette.primarySlate, width: 1.5 } },
                 axisTick: { show: false },
             },
             series: [{
@@ -164,17 +175,7 @@ export default function EmployeesPage() {
                         name: c.short,
                         value: +c.score.toFixed(2),
                         itemStyle: {
-                            color: {
-                                type: 'linear' as const,
-                                x: 0,
-                                y: 0,
-                                x2: 1,
-                                y2: 0,
-                                colorStops: [
-                                    { offset: 0, color: `rgba(${r},${g},${b},0.35)` },
-                                    { offset: 1, color: `rgba(${r},${g},${b},1)` },
-                                ],
-                            },
+                            color: solid,
                             borderRadius: [0, 6, 6, 0],
                         },
                         label: { show: true, position: 'right' as const, formatter: `${c.score.toFixed(2)}%`, fontSize: 10, fontWeight: 'bold', color: solid },
@@ -182,7 +183,7 @@ export default function EmployeesPage() {
                 }),
             }],
         };
-    }, [palette]);
+    }, [palette, isDark]);
 
     // ── اتجاه المبيعات ──
     const trendColors = useMemo(() => [
@@ -201,7 +202,16 @@ export default function EmployeesPage() {
         legend: { data: cashiers.map(c => c.short), bottom: 0, textStyle: { color: palette.primaryGreen, fontSize: 8 }, type: 'scroll' as const, pageIconColor: palette.primaryGreen, pageTextStyle: { color: palette.primaryGreen } },
         grid: { bottom: '22%', top: '5%', left: '2%', right: '2%', containLabel: true },
         xAxis: { type: 'category' as const, data: [...EMPLOYEE_TREND_MONTHS], axisLabel: { fontSize: 9, color: palette.primaryGreen, rotate: 30 }, axisLine: { lineStyle: { color: palette.primarySlate } }, splitLine: { show: false } },
-        yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => fmtK(v), fontSize: 9, color: '#64748b' }, splitLine: { lineStyle: { color: '#1e293b' } } },
+        yAxis: {
+            type: 'value' as const,
+            axisLabel: { formatter: (v: number) => fmtK(v), fontSize: 9, color: '#64748b' },
+            /** `show: true` is required or ChartCard `killSplit` strips split lines. */
+            axisLine: { show: true, lineStyle: { color: palette.primarySlate, width: 1.5 } },
+            splitLine: {
+                show: true,
+                lineStyle: { color: isDark ? '#1e293b' : 'rgba(100, 116, 139, 0.35)' },
+            },
+        },
         series: cashiers.map((c, i) => ({
             name: c.short,
             type: 'line' as const,
@@ -210,7 +220,7 @@ export default function EmployeesPage() {
             lineStyle: { color: trendColors[i % trendColors.length], width: 1.5 },
             itemStyle: { color: trendColors[i % trendColors.length] },
         })),
-    }), [palette, trendColors]);
+    }), [palette, trendColors, isDark]);
 
     const SortBtn = ({ k, label }: { k: typeof sortKey; label: string }) => {
         const active = sortKey === k;

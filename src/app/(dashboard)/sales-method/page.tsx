@@ -3,7 +3,7 @@
 import '@/lib/echarts/register-bar-line-pie';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
-import { CreditCard, ShoppingBag, DollarSign, ArrowLeftRight, Users, Shield } from 'lucide-react';
+import { CreditCard, ShoppingBag, DollarSign, ArrowLeftRight, Shield, Globe, Zap } from 'lucide-react';
 
 const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
     ssr: false,
@@ -22,8 +22,9 @@ const paymentRows = [
 
 // ── بيانات نوع البيع ──
 const salesTypeRows = [
-    { type: 'بطاقة عسكرية', typeAr: 'Army Cards', sales: 299850, volume: 3680, margin: 21.4 },
-    { type: 'مدني', typeAr: 'Casual', sales: 126000, volume: 1462, margin: 17.8 },
+    { type: 'ذمم (كتب رسمية)', typeAr: 'Receivables / official', sales: 198400, volume: 2410, margin: 20.2 },
+    { type: 'بيع الكتروني', typeAr: 'E‑commerce', sales: 156200, volume: 1895, margin: 18.6 },
+    { type: 'دفع فوري', typeAr: 'Instant payment', sales: 71250, volume: 837, margin: 16.9 },
 ];
 
 export default function SalesMethodPage() {
@@ -84,7 +85,7 @@ export default function SalesMethodPage() {
                 data: salesTypeRows.map((r, i) => ({
                     value: r.sales,
                     itemStyle: {
-                        color: [palette.primaryGreen, palette.primaryCyan][i],
+                        color: [palette.primaryGreen, palette.primaryCyan, palette.primaryBlue][i],
                         borderRadius: [4, 4, 0, 0],
                     },
                     label: {
@@ -95,7 +96,7 @@ export default function SalesMethodPage() {
                         fontSize: 10,
                     },
                 })),
-                barWidth: 60,
+                barWidth: 44,
             },
             {
                 name: 'حجم المبيعات',
@@ -191,24 +192,32 @@ export default function SalesMethodPage() {
         yAxis: { type: 'value' as const, axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` } },
         series: [
             {
-                name: 'بطاقة عسكرية',
+                name: 'ذمم (كتب رسمية)',
                 type: 'bar',
-                data: [2200000, 2150000, 2400000, 2350000, 2300000, 2600000, 2500000, 2450000, 2700000, 2600000, 2800000, 3100000].map(
+                data: [1680000, 1650000, 1720000, 1700000, 1750000, 1820000, 1780000, 1760000, 1850000, 1800000, 1880000, 1950000].map(
                     (v) => ({ value: v, itemStyle: { color: palette.primaryGreen, borderRadius: [4, 4, 0, 0] } })
                 ),
-                barWidth: 14,
-                barGap: '20%',
+                barWidth: 10,
+                barGap: '18%',
             },
             {
-                name: 'مدني',
+                name: 'بيع الكتروني',
                 type: 'bar',
-                data: [850000, 830000, 950000, 940000, 920000, 1050000, 1000000, 990000, 1100000, 1050000, 1150000, 1280000].map(
+                data: [1320000, 1380000, 1450000, 1420000, 1500000, 1580000, 1550000, 1620000, 1680000, 1720000, 1780000, 1850000].map(
                     (v) => ({ value: v, itemStyle: { color: palette.primaryCyan, borderRadius: [4, 4, 0, 0] } })
                 ),
-                barWidth: 14,
+                barWidth: 10,
+            },
+            {
+                name: 'دفع فوري',
+                type: 'bar',
+                data: [620000, 640000, 680000, 700000, 710000, 730000, 720000, 735000, 760000, 780000, 800000, 820000].map(
+                    (v) => ({ value: v, itemStyle: { color: palette.primaryBlue, borderRadius: [4, 4, 0, 0] } })
+                ),
+                barWidth: 10,
             },
         ],
-        legend: { data: ['بطاقة عسكرية', 'مدني'], bottom: 0, left: 'center' },
+        legend: { data: ['ذمم (كتب رسمية)', 'بيع الكتروني', 'دفع فوري'], bottom: 0, left: 'center' },
     };
 
     const fmt = (n: number) => new Intl.NumberFormat('en-US').format(n);
@@ -224,14 +233,15 @@ export default function SalesMethodPage() {
             </motion.div>
 
             {/* KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 {[
                     { icon: CreditCard, label: 'طرق الدفع', value: '4', color: 'var(--accent-green)' },
                     { icon: DollarSign, label: 'نقدي', value: '42%', color: 'var(--accent-green)' },
                     { icon: ShoppingBag, label: 'فيزا/بطاقة', value: '32%', color: 'var(--accent-blue)' },
                     { icon: ArrowLeftRight, label: 'كوبون/قسيمة', value: '4%', color: 'var(--accent-amber)' },
-                    { icon: Shield, label: 'بطاقة عسكرية', value: '70.4%', color: 'var(--accent-cyan)' },
-                    { icon: Users, label: 'مدني', value: '29.6%', color: 'var(--accent-purple)' },
+                    { icon: Shield, label: 'ذمم (كتب رسمية)', value: '46.5%', color: 'var(--accent-cyan)' },
+                    { icon: Globe, label: 'بيع إلكتروني', value: '36.6%', color: 'var(--accent-purple)' },
+                    { icon: Zap, label: 'دفع فوري', value: '16.9%', color: 'var(--accent-amber)' },
                 ].map((s) => (
                     <motion.div key={s.label} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-panel p-4">
                         <div className="flex items-center gap-2 mb-2"><s.icon size={14} style={{ color: s.color }} /><span className="text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>{s.label}</span></div>
@@ -303,7 +313,7 @@ export default function SalesMethodPage() {
                 >
                     <AnalyticsTable
                         headers={[
-                            { label: 'نوع الزبون', align: 'right' },
+                            { label: 'نوع البيع', align: 'right' },
                             { label: 'صافي المبيعات', align: 'center' },
                             { label: 'حجم المبيعات', align: 'center' },
                             { label: 'الهامش %', align: 'center' },
@@ -335,7 +345,7 @@ export default function SalesMethodPage() {
             {/* اتجاهات شهرية */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <ChartCard title="اتجاه طرق الدفع شهرياً" subtitle="تطور استخدام كل طريقة خلال العام" option={methodTrendOption} height="340px" delay={3} />
-                <ChartCard title="اتجاه نوع البيع شهرياً" subtitle="بطاقة عسكرية مقابل مدني" option={salesTypeTrendOption} height="340px" delay={4} />
+                <ChartCard title="اتجاه نوع البيع شهرياً" subtitle="ذمم — بيع إلكتروني — دفع فوري" option={salesTypeTrendOption} height="340px" delay={4} />
             </div>
 
             {/* الإيرادات والهامش */}

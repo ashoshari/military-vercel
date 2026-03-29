@@ -290,9 +290,10 @@ function ChartCard({
             : Array.isArray(merged.series)
                 ? (merged.series as Record<string, unknown>[])
                 : [merged.series as Record<string, unknown>];
-        const hasBarSeries = seriesList.some((s) => s.type === 'bar');
+        /** Line + bar cartesian charts need the same axis spine and Y split-line treatment. */
+        const hasCartesianLineOrBar = seriesList.some((s) => s.type === 'bar' || s.type === 'line');
 
-        if (hasBarSeries) {
+        if (hasCartesianLineOrBar) {
             const spineColor = isDark ? '#64748b' : '#94a3b8';
             const splitLineColor = isDark ? 'rgba(148,163,184,0.22)' : 'rgba(100,116,139,0.3)';
 

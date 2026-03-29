@@ -22,6 +22,7 @@ const ChartCard = dynamic(() => import("@/components/ui/ChartCard"), {
   loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
 });
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
+import { useThemeStore } from "@/store/themeStore";
 import SectionTitleWithFlag from "@/components/ui/SectionTitleWithFlag";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import {
@@ -851,6 +852,7 @@ const fmtK = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(2)}K` : fmt2(n));
 
 export default function DiscountsPage() {
   const palette = useResolvedAnalyticsPalette();
+  const isDark = useThemeStore((s) => s.mode === "dark");
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const [discountPeriod, setDiscountPeriod] = useState<
     "شهري" | "ربعي" | "سنوي"
@@ -904,15 +906,27 @@ export default function DiscountsPage() {
     },
     xAxis: {
       type: "value" as const,
-      axisLabel: { formatter: "{value}%", fontSize: 8, color: "#64748b" },
-      splitLine: { lineStyle: { color: "#1e293b" } },
       max: 100,
+      axisLabel: { formatter: "{value}%", fontSize: 8, color: "#64748b" },
+      axisLine: {
+        show: true,
+        lineStyle: { color: palette.primarySlate, width: 1.5 },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: isDark ? "#1e293b" : "rgba(100, 116, 139, 0.35)",
+        },
+      },
     },
     yAxis: {
       type: "category" as const,
       data: categories.map((c) => c.name),
       axisLabel: { fontSize: 9, color: "#94a3b8" },
-      axisLine: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { color: palette.primarySlate, width: 1.5 },
+      },
       axisTick: { show: false },
     },
     series: [
@@ -1161,7 +1175,10 @@ export default function DiscountsPage() {
       type: "category" as const,
       data: pData.labels,
       axisLabel: { fontSize: 9, color: "#64748b" },
-      axisLine: { lineStyle: { color: "#334155" } },
+      axisLine: {
+        show: true,
+        lineStyle: { color: palette.primarySlate, width: 1.5 },
+      },
       splitLine: { show: false },
     },
     yAxis: {
@@ -1171,7 +1188,16 @@ export default function DiscountsPage() {
         fontSize: 9,
         color: "#64748b",
       },
-      splitLine: { lineStyle: { color: "#1e293b" } },
+      axisLine: {
+        show: true,
+        lineStyle: { color: palette.primarySlate, width: 1.5 },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: isDark ? "#1e293b" : "rgba(100, 116, 139, 0.35)",
+        },
+      },
     },
     series: [
       {

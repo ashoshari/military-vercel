@@ -227,17 +227,7 @@ export default function ProductsPage() {
         data: categories.map((c, i) => ({
           value: c.netSales,
           itemStyle: {
-            color: {
-              type: "linear" as const,
-              x: 0,
-              y: 1,
-              x2: 0,
-              y2: 0,
-              colorStops: [
-                { offset: 0, color: `${catColors[i]}22` },
-                { offset: 1, color: catColors[i] },
-              ],
-            },
+            color: catColors[i],
             borderRadius: [6, 6, 0, 0],
           },
           label: {
@@ -484,12 +474,27 @@ export default function ProductsPage() {
     xAxis: {
       type: "value" as const,
       axisLabel: { formatter: "{value}%", fontSize: 9 },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          type: "dashed" as const,
+          color: barChartSplitLineColor,
+          width: 1,
+        },
+      },
     },
     yAxis: {
       type: "category" as const,
       data: contribSorted.map((p) => p.name),
       axisLabel: { fontSize: 10 },
-      axisLine: { show: false },
+      axisLine: {
+        show: true,
+        lineStyle: { width: 2, color: barChartSpineColor },
+      },
       axisTick: { show: false },
       splitLine: { show: false },
     },
@@ -764,7 +769,7 @@ export default function ProductsPage() {
       {/* ── أفضل 10 + أدنى 10 — حسب الشهر ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <ChartCard
-          title="أفضل 10 منتجات — اتجاه الربح الشهري"
+          title="أفضل 10 منتجات من حيث الربح"
           titleFlag="green"
           subtitle="Top 10 Products — Monthly Profit Trend"
           option={top10Option}
@@ -772,7 +777,7 @@ export default function ProductsPage() {
           delay={1}
         />
         <ChartCard
-          title="أدنى 10 منتجات — اتجاه الربح الشهري"
+          title="أدنى 10 منتجات من حيث الربح"
           titleFlag="green"
           subtitle="Bottom 10 Products — Monthly Profit Trend"
           option={bottom10Option}
