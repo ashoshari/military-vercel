@@ -275,6 +275,14 @@ function TreeItem({
         border: `1px solid ${selected ? "#2563eb" : "transparent"}`,
       }}
     >
+      <p
+        className="text-[11px] font-medium leading-tight text-right truncate max-w-[140px] mb-1.5"
+        style={{
+          color: selected ? "var(--accent-blue)" : "var(--text-secondary)",
+        }}
+      >
+        {node.label}
+      </p>
       <div
         className="mb-1.5 h-[5px] rounded-full overflow-hidden"
         style={{ background: "var(--bg-elevated)" }}
@@ -287,14 +295,6 @@ function TreeItem({
           style={{ background: selected ? "#2563eb" : "#3b82f6" }}
         />
       </div>
-      <p
-        className="text-[11px] font-medium leading-tight text-right truncate max-w-[140px]"
-        style={{
-          color: selected ? "var(--accent-blue)" : "var(--text-secondary)",
-        }}
-      >
-        {node.label}
-      </p>
       <p
         className="text-xs font-semibold mt-0.5"
         style={{ color: selected ? "var(--accent-blue)" : "var(--text-muted)" }}
@@ -404,7 +404,7 @@ export default function TreeDrillDown() {
         style={{ borderColor: "var(--border-subtle)" }}
       >
         <div className="flex items-center gap-2">
-          <ChartTitleFlagBadge flag="green" size="sm" />
+          <ChartTitleFlagBadge flag="green" flagNumber={3} size="sm" />
           <h3
             className="text-sm font-semibold"
             style={{ color: "var(--text-primary)" }}

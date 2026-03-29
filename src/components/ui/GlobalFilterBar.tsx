@@ -17,6 +17,7 @@ import {
   RotateCcw,
   FileBarChart2,
   Check,
+  Layers,
 } from "lucide-react";
 import { useFilterStore } from "@/store/filterStore";
 
@@ -29,6 +30,9 @@ const QUICK_PERIODS = [
   { value: "quarter", label: "الربع" },
   { value: "year", label: "السنة" },
 ];
+
+/** صفحة /sales: فلتر الفترة السريعة = شهر فقط. */
+const SALES_PAGE_QUICK_PERIODS = QUICK_PERIODS.filter((p) => p.value === "month");
 
 const REGIONS = [
   { value: "all", label: "كل الأقاليم" },
@@ -47,6 +51,29 @@ const BRANCHES = [
   { value: "karak", label: "الكرك" },
   { value: "mafrak", label: "المفرق" },
   { value: "salt", label: "السلط" },
+];
+
+/** فلاتر المبيعات — مجموعات هرمية (صفحة /sales فقط). */
+const SALES_GROUP_1 = [
+  { value: "all", label: "الكل" },
+  { value: "grocery", label: "بقالة عامة" },
+  { value: "fresh", label: "طازج ومبرد" },
+  { value: "frozen", label: "مجمد" },
+  { value: "dry", label: "جاف ومعلب" },
+];
+const SALES_GROUP_2 = [
+  { value: "all", label: "الكل" },
+  { value: "national", label: "علامات وطنية" },
+  { value: "import", label: "علامات مستوردة" },
+  { value: "private", label: "ماركة خاصة" },
+  { value: "organic", label: "عضوي" },
+];
+const SALES_GROUP_3 = [
+  { value: "all", label: "الكل" },
+  { value: "promo", label: "عروض وتخفيضات" },
+  { value: "regular", label: "سعر عادي" },
+  { value: "bundle", label: "عبوات مجمّعة" },
+  { value: "bulk", label: "بيع بالجملة" },
 ];
 
 const DISTRIBUTORS = [
@@ -78,6 +105,10 @@ const PRODUCTS = [
   "مياه معدنية",
   "شامبو هيد آند شولدرز",
   "معجون كولجيت",
+];
+const SALES_INSTANT_PRODUCTS = [
+  { value: "", label: "المنتج" },
+  ...PRODUCTS.map((p) => ({ value: p, label: p })),
 ];
 const DISCOUNTS = ["0%", "1-2%", "2-5%", "5-10%", "11-25%"];
 const PAYMENT_TYPES = ["نقدي", "فيزا / بطاقة", "محفظة إلكترونية", "آجل / ذمم"];
@@ -531,6 +562,7 @@ function DateFilterDropdown({
   dateTo,
   setDateFrom,
   setDateTo,
+  quickPeriodOptions = QUICK_PERIODS,
 }: {
   activePeriod: string;
   setActivePeriod: (v: string) => void;
@@ -538,6 +570,8 @@ function DateFilterDropdown({
   dateTo: string;
   setDateFrom: (v: string) => void;
   setDateTo: (v: string) => void;
+  /** صفحة المبيعات: شهر فقط. */
+  quickPeriodOptions?: { value: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"quick" | "range">("quick");
@@ -547,7 +581,7 @@ function DateFilterDropdown({
   const label =
     mode === "range" && dateFrom
       ? `${dateFrom}${dateTo ? " → " + dateTo : ""}`
-      : (QUICK_PERIODS.find((p) => p.value === activePeriod)?.label ??
+      : (quickPeriodOptions.find((p) => p.value === activePeriod)?.label ??
         "التاريخ");
 
   return (
@@ -624,7 +658,7 @@ function DateFilterDropdown({
                     gap: 4,
                   }}
                 >
-                  {QUICK_PERIODS.map((p) => (
+                  {quickPeriodOptions.map((p) => (
                     <button
                       key={p.value}
                       onClick={() => {
@@ -1025,6 +1059,7 @@ function ReportCreatingPopup({
 // ═══════════════════════════════════════════════
 export default function GlobalFilterBar() {
   const pathname = usePathname();
+  const isSalesPage = pathname === "/sales";
   const { activeBranches, activePeriod, setActiveBranches, setActivePeriod } =
     useFilterStore();
 
@@ -1032,6 +1067,18 @@ export default function GlobalFilterBar() {
   const [activeRegions, setActiveRegions] = useState<string[]>([]);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  /** فلاتر /sales — مجموعات + منتج (لحظي). */
+  const [salesG1, setSalesG1] = useState("all");
+  const [salesG2, setSalesG2] = useState("all");
+  const [salesG3, setSalesG3] = useState("all");
+  const [salesProduct, setSalesProduct] = useState("");
+
+  useEffect(() => {
+    if (isSalesPage) {
+      setActivePeriod("month");
+    }
+  }, [isSalesPage, setActivePeriod]);
 
   // فلاتر التقارير
   const [distributor, setDistributor] = useState("");
@@ -1074,6 +1121,10 @@ export default function GlobalFilterBar() {
     setActiveRegions([]);
     setDateFrom("");
     setDateTo("");
+    setSalesG1("all");
+    setSalesG2("all");
+    setSalesG3("all");
+    setSalesProduct("");
     setDistributor("");
     setCategory("");
     setProduct("");
@@ -1083,12 +1134,20 @@ export default function GlobalFilterBar() {
 
   if (pathname === "/reports") return null;
 
+  const salesInstantDirty =
+    isSalesPage &&
+    (salesG1 !== "all" ||
+      salesG2 !== "all" ||
+      salesG3 !== "all" ||
+      salesProduct !== "");
+
   const isAnyInstantChanged =
     activeBranches.length > 0 ||
     activePeriod !== "month" ||
     activeRegions.length > 0 ||
     dateFrom ||
-    dateTo;
+    dateTo ||
+    salesInstantDirty;
 
   return (
     <>
@@ -1130,6 +1189,9 @@ export default function GlobalFilterBar() {
           dateTo={dateTo}
           setDateFrom={setDateFrom}
           setDateTo={setDateTo}
+          quickPeriodOptions={
+            isSalesPage ? SALES_PAGE_QUICK_PERIODS : QUICK_PERIODS
+          }
         />
 
         <MultiSelectDropdown
@@ -1151,6 +1213,43 @@ export default function GlobalFilterBar() {
           accent="var(--accent-green)"
           manyLabel={(n) => `${n} فروع`}
         />
+
+        {isSalesPage && (
+          <>
+            <Dropdown
+              icon={Layers}
+              label="المجموعة الأولى"
+              value={salesG1}
+              options={SALES_GROUP_1}
+              onChange={setSalesG1}
+              accent="var(--accent-amber)"
+            />
+            <Dropdown
+              icon={Layers}
+              label="المجموعة الثانية"
+              value={salesG2}
+              options={SALES_GROUP_2}
+              onChange={setSalesG2}
+              accent="#f59e0b"
+            />
+            <Dropdown
+              icon={Layers}
+              label="المجموعة الثالثة"
+              value={salesG3}
+              options={SALES_GROUP_3}
+              onChange={setSalesG3}
+              accent="#ea580c"
+            />
+            <Dropdown
+              icon={Package}
+              label="المنتج"
+              value={salesProduct}
+              options={SALES_INSTANT_PRODUCTS}
+              onChange={setSalesProduct}
+              accent="#00d4ff"
+            />
+          </>
+        )}
 
         {/* Divider */}
         <div

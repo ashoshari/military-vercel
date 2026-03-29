@@ -1,7 +1,6 @@
 'use client';
 
 import '@/lib/echarts/register-bar-line-pie';
-import '@/lib/echarts/register-graph';
 import dynamic from 'next/dynamic';
 import React from 'react';
 import { motion } from 'framer-motion';
@@ -14,13 +13,6 @@ const ChartCard = dynamic(() => import('@/components/ui/ChartCard'), {
 import AIBadge from '@/components/ui/AIBadge';
 import { useResolvedAnalyticsPalette } from '@/hooks/useResolvedAnalyticsPalette';
 
-// ── أسماء المنتجات ──
-const products = [
-    'أرز عنبر', 'جبنة كرافت', 'حليب طازج', 'زيت نباتي', 'سكر أبيض',
-    'شاي ليبتون', 'عصير', 'خبز أبيض', 'بيض بلدي', 'تونة',
-    'دجاج طازج', 'شامبو', 'معجون أسنان', 'مناديل', 'صابون',
-    'مكرونة', 'طحينة', 'لبنة', 'زبدة', 'كاتشب',
-];
 const colors = [
     '#e11d48', '#dc2626', '#f59e0b', '#3b82f6', '#8b5cf6',
     '#06b6d4', '#10b981', '#f97316', '#22c55e', '#14b8a6',
@@ -48,55 +40,60 @@ const rules = [
 
 export default function AIBasketPage() {
     const palette = useResolvedAnalyticsPalette();
-    // ── شبكة ارتباط المنتجات (الرئيسية) ──
-    const networkOption = {
+
+    const topRulesByLift = [...rules].sort((a, b) => b.lift - a.lift).slice(0, 12);
+
+    /** أقوى قواعد الارتباط — أشرطة أفقية حسب الرفع (بدلاً من شبكة القوى). */
+    const associationLiftBarOption = {
         tooltip: {
-            trigger: 'item' as const,
-            formatter: (p: any) => {
-                if (p.dataType === 'edge') return `${p.data.source} ↔ ${p.data.target}<br/>قوة: ${p.data.value}%`;
-                return `<b>${p.name}</b>`;
+            trigger: 'axis' as const,
+            axisPointer: { type: 'shadow' as const },
+            formatter: (params: unknown) => {
+                const p = (Array.isArray(params) ? params[0] : params) as {
+                    name?: string;
+                    value?: number;
+                };
+                const name = p?.name ?? '';
+                const v = p?.value ?? 0;
+                return `<b>${name}</b><br/>الرفع (Lift): ${v.toFixed(2)}`;
             },
         },
-        animationDurationUpdate: 1500,
-        animationEasingUpdate: 'quinticInOut' as const,
-        series: [{
-            type: 'graph' as const,
-            layout: 'force' as const,
-            roam: true,
-            draggable: true,
-            label: { show: true, fontSize: 9, color: 'var(--text-primary)' },
-            edgeLabel: { show: false },
-            lineStyle: { color: '#94a3b8', curveness: 0.2, width: 1, opacity: 0.6 },
-            emphasis: { focus: 'adjacency' as const, lineStyle: { width: 4, opacity: 1 } },
-            force: { repulsion: 260, edgeLength: [80, 200], gravity: 0.08, friction: 0.6 },
-            data: [
-                { name: 'سلة', symbolSize: 65, itemStyle: { color: '#1e293b' }, label: { fontSize: 13, fontWeight: 'bold' } },
-                ...products.map((p, i) => ({
-                    name: p,
-                    symbolSize: 16 + Math.floor(Math.random() * 20),
-                    itemStyle: { color: colors[i] },
-                })),
-            ],
-            links: [
-                ...products.map(p => ({ source: 'سلة', target: p, value: 30 + Math.floor(Math.random() * 60), lineStyle: { width: 0.8, opacity: 0.4 } })),
-                { source: 'جبنة كرافت', target: 'عصير', value: 85, lineStyle: { width: 2.5, opacity: 0.9 } },
-                { source: 'حليب طازج', target: 'عصير', value: 80, lineStyle: { width: 2, opacity: 0.8 } },
-                { source: 'أرز عنبر', target: 'زيت نباتي', value: 82, lineStyle: { width: 2.5, opacity: 0.9 } },
-                { source: 'أرز عنبر', target: 'سكر أبيض', value: 72, lineStyle: { width: 2, opacity: 0.8 } },
-                { source: 'أرز عنبر', target: 'دجاج طازج', value: 68, lineStyle: { width: 1.8, opacity: 0.7 } },
-                { source: 'حليب طازج', target: 'خبز أبيض', value: 78, lineStyle: { width: 2, opacity: 0.8 } },
-                { source: 'حليب طازج', target: 'بيض بلدي', value: 70, lineStyle: { width: 1.8, opacity: 0.7 } },
-                { source: 'خبز أبيض', target: 'بيض بلدي', value: 60, lineStyle: { width: 1.5, opacity: 0.6 } },
-                { source: 'دجاج طازج', target: 'أرز عنبر', value: 75, lineStyle: { width: 2, opacity: 0.8 } },
-                { source: 'زيت نباتي', target: 'تونة', value: 42, lineStyle: { width: 1.2, opacity: 0.5 } },
-                { source: 'شامبو', target: 'صابون', value: 65, lineStyle: { width: 1.8, opacity: 0.7 } },
-                { source: 'شامبو', target: 'معجون أسنان', value: 58, lineStyle: { width: 1.5, opacity: 0.6 } },
-                { source: 'مكرونة', target: 'كاتشب', value: 55, lineStyle: { width: 1.4, opacity: 0.6 } },
-                { source: 'طحينة', target: 'لبنة', value: 62, lineStyle: { width: 1.6, opacity: 0.7 } },
-                { source: 'زبدة', target: 'خبز أبيض', value: 50, lineStyle: { width: 1.3, opacity: 0.5 } },
-                { source: 'جبنة كرافت', target: 'لبنة', value: 48, lineStyle: { width: 1.2, opacity: 0.5 } },
-            ],
-        }],
+        grid: { left: '4%', right: '10%', top: '10%', bottom: '6%', containLabel: true },
+        xAxis: {
+            type: 'value' as const,
+            name: 'الرفع',
+            nameLocation: 'middle' as const,
+            nameGap: 28,
+            nameTextStyle: { fontSize: 10, color: '#94a3b8' },
+            axisLabel: { fontSize: 10, color: '#94a3b8' },
+            splitLine: { lineStyle: { type: 'dashed' as const, color: 'rgba(148,163,184,0.2)' } },
+        },
+        yAxis: {
+            type: 'category' as const,
+            data: topRulesByLift.map((r) => r.basket),
+            inverse: true,
+            axisLabel: { fontSize: 9, color: '#94a3b8', width: 100, overflow: 'truncate' as const },
+            axisTick: { show: false },
+            axisLine: { show: false },
+        },
+        series: [
+            {
+                type: 'bar' as const,
+                data: topRulesByLift.map((r) => r.lift),
+                barMaxWidth: 18,
+                itemStyle: {
+                    color: palette.primaryGreen,
+                    borderRadius: [0, 4, 4, 0],
+                },
+                label: {
+                    show: true,
+                    position: 'right' as const,
+                    fontSize: 9,
+                    color: '#94a3b8',
+                    formatter: (x: { value: number }) => x.value.toFixed(2),
+                },
+            },
+        ],
     };
 
     // ── الدعم والرفع حسب السلة (Scatter) ──
@@ -132,47 +129,56 @@ export default function AIBasketPage() {
         })),
     };
 
-    // ── شبكة ارتباط ثانية (أصغر) ──
-    const network2Option = {
-        tooltip: { trigger: 'item' as const },
-        animationDurationUpdate: 1500,
-        animationEasingUpdate: 'quinticInOut' as const,
-        series: [{
-            type: 'graph' as const,
-            layout: 'force' as const,
-            roam: true,
-            draggable: true,
-            label: { show: true, fontSize: 8 },
-            lineStyle: { color: '#64748b', curveness: 0.15, width: 0.8, opacity: 0.5 },
-            emphasis: { focus: 'adjacency' as const },
-            force: { repulsion: 140, edgeLength: [50, 150], gravity: 0.1, friction: 0.6 },
-            data: [
-                { name: 'حليب', symbolSize: 24, itemStyle: { color: '#3b82f6' } },
-                { name: 'خبز', symbolSize: 22, itemStyle: { color: '#10b981' } },
-                { name: 'شامبو', symbolSize: 18, itemStyle: { color: '#ef4444' } },
-                { name: 'دجاج', symbolSize: 20, itemStyle: { color: '#f97316' } },
-                { name: 'زيت', symbolSize: 19, itemStyle: { color: '#8b5cf6' } },
-                { name: 'أرز', symbolSize: 23, itemStyle: { color: '#06b6d4' } },
-                { name: 'بيض', symbolSize: 17, itemStyle: { color: palette.primaryGreen } },
-                { name: 'صابون', symbolSize: 15, itemStyle: { color: '#ec4899' } },
-                { name: 'تونة', symbolSize: 16, itemStyle: { color: '#a855f7' } },
-                { name: 'سكر', symbolSize: 14, itemStyle: { color: '#14b8a6' } },
-                { name: 'مكرونة', symbolSize: 16, itemStyle: { color: '#f59e0b' } },
-                { name: 'معجون', symbolSize: 14, itemStyle: { color: '#dc2626' } },
-                { name: 'مناديل', symbolSize: 13, itemStyle: { color: '#6366f1' } },
-                { name: 'طحينة', symbolSize: 17, itemStyle: { color: '#84cc16' } },
-                { name: 'كاتشب', symbolSize: 15, itemStyle: { color: '#0ea5e9' } },
-            ],
-            links: [
-                { source: 'حليب', target: 'خبز' }, { source: 'حليب', target: 'بيض' },
-                { source: 'خبز', target: 'زيت' }, { source: 'شامبو', target: 'صابون' },
-                { source: 'أرز', target: 'زيت' }, { source: 'أرز', target: 'دجاج' },
-                { source: 'دجاج', target: 'أرز' }, { source: 'سكر', target: 'شامبو' },
-                { source: 'مكرونة', target: 'كاتشب' }, { source: 'تونة', target: 'أرز' },
-                { source: 'طحينة', target: 'خبز' }, { source: 'بيض', target: 'خبز' },
-                { source: 'معجون', target: 'شامبو' }, { source: 'مناديل', target: 'صابون' },
-            ],
-        }],
+    /** توزيع المنتجات في السلة — مخطط دائري (بدلاً من شبكة ثانية). */
+    const basketMixPieData = [
+        { name: 'حليب', value: 24 },
+        { name: 'خبز', value: 22 },
+        { name: 'أرز', value: 23 },
+        { name: 'دجاج', value: 20 },
+        { name: 'زيت', value: 19 },
+        { name: 'شامبو', value: 18 },
+        { name: 'بيض', value: 17 },
+        { name: 'صابون', value: 15 },
+        { name: 'تونة', value: 16 },
+        { name: 'سكر', value: 14 },
+        { name: 'مكرونة', value: 16 },
+        { name: 'معجون', value: 14 },
+    ].map((d, i) => ({
+        ...d,
+        itemStyle: { color: colors[i % colors.length] },
+    }));
+
+    const basketMixPieOption = {
+        tooltip: {
+            trigger: 'item' as const,
+            formatter: (p: { name: string; value: number; percent: number }) =>
+                `${p.name}<br/>${p.value} — ${p.percent.toFixed(1)}%`,
+        },
+        legend: {
+            type: 'scroll' as const,
+            orient: 'horizontal' as const,
+            bottom: 0,
+            left: 'center',
+            textStyle: { fontSize: 9, color: '#94a3b8' },
+            itemWidth: 10,
+            itemHeight: 8,
+            pageIconColor: '#94a3b8',
+        },
+        series: [
+            {
+                type: 'pie' as const,
+                radius: ['38%', '62%'],
+                center: ['50%', '46%'],
+                avoidLabelOverlap: true,
+                itemStyle: { borderRadius: 4, borderColor: 'var(--bg-elevated)', borderWidth: 1 },
+                label: { fontSize: 9, color: '#94a3b8' },
+                emphasis: {
+                    itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.2)' },
+                    label: { show: true, fontWeight: 'bold' as const },
+                },
+                data: basketMixPieData,
+            },
+        ],
     };
 
     const kpis = [
@@ -196,7 +202,7 @@ export default function AIBasketPage() {
                         </div>
                         <div>
                             <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>تحليل سلة السوق</h1>
-                            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>شبكة ارتباط المنتجات وقواعد الترابط — Market Basket Analysis</p>
+                            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>قواعد الارتباط والرفع والدعم — Market Basket Analysis</p>
                         </div>
                     </div>
                 </div>
@@ -215,13 +221,27 @@ export default function AIBasketPage() {
 
             {/* الشبكة + السكاتر */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="شبكة ارتباط المنتجات" subtitle="Basket Analysis Network" option={networkOption} height="420px" aiPowered delay={1} />
+                <ChartCard
+                    title="شبكة ارتباط المنتجات"
+                    subtitle="أقوى قواعد الارتباط حسب الرفع (Lift) — شريط أفقي"
+                    option={associationLiftBarOption}
+                    height="420px"
+                    aiPowered
+                    delay={1}
+                />
                 <ChartCard title="الدعم والرفع حسب السلة" subtitle="Support Basket and Lift by Basket" option={scatterOption} height="420px" aiPowered delay={2} />
             </div>
 
             {/* الشبكة الثانية + جدول القواعد */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                <ChartCard title="شبكة تحليل السلة" subtitle="Basket Analysis Network" option={network2Option} height="400px" aiPowered delay={3} />
+                <ChartCard
+                    title="شبكة تحليل السلة"
+                    subtitle="توزيع المنتجات في السلة — مخطط دائري"
+                    option={basketMixPieOption}
+                    height="400px"
+                    aiPowered
+                    delay={3}
+                />
 
                 {/* جدول قواعد الارتباط */}
                 <div className="glass-panel ai-module overflow-hidden">
