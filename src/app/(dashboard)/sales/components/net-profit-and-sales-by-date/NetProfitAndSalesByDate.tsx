@@ -1,0 +1,450 @@
+import { buildThreeYearMonthQuarterYearXAxes } from "@/components/ui/chartMonthQuarterYearXAxis";
+import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
+import { getMonthlySalesData } from "@/lib/mockData";
+import { months } from "@/utils/months";
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
+import {
+  DRILL_YEARS,
+  DrillYear,
+  YEAR_SEP_COLOR,
+  YEAR_SEP_LINE_WIDTH,
+  yearRevenueMultipliers,
+} from "./utils/constants";
+import { Skeleton } from "@/components/ui/SkeletonLoader";
+
+const ChartCard = dynamic(
+  () => import("@/components/ui/chart-card/ChartCard"),
+  {
+    ssr: false,
+    loading: () => <Skeleton variant="chart" />,
+  },
+);
+
+const salesData = getMonthlySalesData();
+
+const salesYAxis = {
+  type: "value" as const,
+  name: "المبيعات",
+  min: 0,
+  axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
+};
+const profitYAxis = {
+  type: "value" as const,
+  name: "الأرباح",
+  min: 0,
+  axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
+};
+
+const NetProfitAndSalesByDate = () => {
+  const [drillSeriesMode, setDrillSeriesMode] = useState<
+    "both" | "sales" | "profit"
+  >("both");
+  const [drillLevel, setDrillLevel] = useState<"year" | "quarter" | "month">(
+    "month",
+  );
+  /** عند «ربع»: أي سنوات تُعرض (لكل سنة الأربعة أرباع). */
+  const [selectedQuarterYears, setSelectedQuarterYears] = useState<
+    Set<DrillYear>
+  >(() => new Set([...DRILL_YEARS]));
+
+  /** عند «شهر»: أي أشهر تُعرض لكل عام (نفس الشهر من 2023 و2024 و2025). */
+  const [selectedMonthIndices, setSelectedMonthIndices] = useState<Set<number>>(
+    () => new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+  );
+  const drillMonthHierarchy = drillLevel === "month";
+  const drillLegendBottom = drillMonthHierarchy ? 2 : 0;
+  const palette = useResolvedAnalyticsPalette();
+
+  // ── Drill-down: بيانات حسب المستوى (ثلاث سنوات: 2023–2025) ──
+  const drillData = useMemo(() => {
+    const revenues = salesData.map((d) => d.revenue);
+    const monthlyForYear = (y: (typeof DRILL_YEARS)[number]) =>
+      revenues.map((v) => Math.round(v * yearRevenueMultipliers[y]));
+
+    if (drillLevel === "year") {
+      const values = DRILL_YEARS.map((y) =>
+        monthlyForYear(y).reduce((a, b) => a + b, 0),
+      );
+      return {
+        labels: [...DRILL_YEARS],
+        values,
+        profits: values.map((v, i) => Math.round(v * [0.22, 0.25, 0.28][i])),
+      };
+    }
+    if (drillLevel === "quarter") {
+      const ys = [...selectedQuarterYears].sort() as DrillYear[];
+      if (ys.length === 0) {
+        return {
+          labels: [] as string[],
+          values: [] as number[],
+          profits: [] as number[],
+        };
+      }
+      const labels: string[] = [];
+      const values: number[] = [];
+      for (const y of ys) {
+        const mv = monthlyForYear(y);
+        for (let qi = 0; qi < 4; qi++) {
+          const v = mv.slice(qi * 3, qi * 3 + 3).reduce((a, b) => a + b, 0);
+          labels.push(`الربع ${qi + 1} ${y}`);
+          values.push(v);
+        }
+      }
+      const profits = values.map((v, idx) => {
+        const qi = idx % 4;
+        return Math.round(v * (0.24 + (qi % 4) * 0.018));
+      });
+      return { labels, values, profits };
+    }
+    const ms = [...selectedMonthIndices].sort((a, b) => a - b);
+    if (ms.length === 0) {
+      return {
+        labels: [] as string[],
+        values: [] as number[],
+        profits: [] as number[],
+      };
+    }
+    if (ms.length === 12) {
+      const values = [...DRILL_YEARS].flatMap((y) => monthlyForYear(y));
+      const profits = values.map((v, i) =>
+        Math.round(v * (0.22 + (i % 12) * 0.004)),
+      );
+      const labels = [...DRILL_YEARS].flatMap((y) =>
+        months.map((m) => `${m} ${y.slice(2)}`),
+      );
+      return { labels, values, profits };
+    }
+    const labels: string[] = [];
+    const values: number[] = [];
+    for (const mi of ms) {
+      for (const y of DRILL_YEARS) {
+        const mv = monthlyForYear(y);
+        values.push(mv[mi]);
+        labels.push(`${months[mi]} ${y.slice(2)}`);
+      }
+    }
+    const profits = values.map((v, i) =>
+      Math.round(v * (0.22 + (i % 3) * 0.004)),
+    );
+    return { labels, values, profits };
+  }, [drillLevel, selectedQuarterYears, selectedMonthIndices]);
+
+  const yearSeparatorMarkLine = useMemo(() => {
+    const nYears = DRILL_YEARS.length;
+    const line = (xAxis: number) => ({ xAxis });
+    const base = {
+      silent: true,
+      z: -1,
+      symbol: "none" as const,
+      label: { show: false },
+      lineStyle: {
+        color: YEAR_SEP_COLOR,
+        width: YEAR_SEP_LINE_WIDTH,
+        type: "solid" as const,
+      },
+    };
+    if (drillLevel === "year") {
+      return { ...base, data: [line(0.5), line(1.5)] };
+    }
+    if (drillLevel === "quarter") {
+      const ny = selectedQuarterYears.size;
+      if (ny === 0) return undefined;
+      const data = [];
+      for (let b = 0; b < ny - 1; b++) {
+        data.push(line(b * 4 + 3.5));
+      }
+      return { ...base, data };
+    }
+    if (drillLevel === "month") {
+      if (selectedMonthIndices.size === 12) {
+        return { ...base, data: [line(11.5), line(23.5)] };
+      }
+      const nm = selectedMonthIndices.size;
+      if (nm === 0) return undefined;
+      const data = [];
+      for (let b = 0; b < nm; b++) {
+        for (let s = 0; s < nYears - 1; s++) {
+          data.push(line(b * nYears + s + 0.5));
+        }
+      }
+      return { ...base, data };
+    }
+    return undefined;
+  }, [drillLevel, selectedQuarterYears, selectedMonthIndices]);
+
+  const profitLineSeries = {
+    name: "الأرباح",
+    type: "line" as const,
+    yAxisIndex: drillSeriesMode === "both" ? 1 : 0,
+    data: drillData.profits,
+    lineStyle: { color: palette.primaryCyan, width: 2.5 },
+    itemStyle: { color: palette.primaryCyan, borderWidth: 2 },
+    symbol: "circle" as const,
+    symbolSize: 8,
+    smooth: true,
+    areaStyle: { color: "rgba(8,145,178,0.08)" },
+    ...(drillMonthHierarchy ? { xAxisIndex: 0 } : {}),
+    ...(yearSeparatorMarkLine && drillSeriesMode === "profit"
+      ? { markLine: yearSeparatorMarkLine }
+      : {}),
+  };
+
+  const drillGrid = drillMonthHierarchy
+    ? {
+        left: "6%" as const,
+        right: "7%" as const,
+        top: 28,
+        bottom: 94,
+        containLabel: false,
+      }
+    : {
+        left: "5%" as const,
+        right: "6%" as const,
+        top: "14%",
+        bottom: drillLevel === "quarter" ? "20%" : "18%",
+        containLabel: true,
+      };
+
+  const salesBarSeries = {
+    name: "المبيعات",
+    type: "bar" as const,
+    data: drillData.values,
+    barWidth: drillLevel === "month" ? 6 : drillLevel === "quarter" ? 14 : 40,
+    ...(drillLevel === "month" ? { barMaxWidth: 12 } : {}),
+    itemStyle: { color: palette.primaryGreen, borderRadius: [4, 4, 0, 0] },
+    ...(drillMonthHierarchy ? { xAxisIndex: 0 } : {}),
+    ...(yearSeparatorMarkLine && drillSeriesMode !== "profit"
+      ? { markLine: yearSeparatorMarkLine }
+      : {}),
+  };
+  const drillXAxis = drillMonthHierarchy
+    ? buildThreeYearMonthQuarterYearXAxes({
+        monthNames: months,
+        years: DRILL_YEARS,
+      })
+    : { type: "category" as const, data: drillData.labels };
+  const drillDownOption =
+    drillSeriesMode === "both"
+      ? {
+          xAxis: drillXAxis,
+          yAxis: [salesYAxis, profitYAxis],
+          series: [salesBarSeries, profitLineSeries],
+          legend: {
+            data: ["المبيعات", "الأرباح"],
+            bottom: drillLegendBottom,
+            left: "center",
+            itemGap: 12,
+            textStyle: { color: "#94a3b8", fontSize: 11 },
+          },
+          grid: drillGrid,
+        }
+      : drillSeriesMode === "sales"
+        ? {
+            xAxis: drillXAxis,
+            yAxis: salesYAxis,
+            series: [salesBarSeries],
+            legend: {
+              data: ["المبيعات"],
+              bottom: drillLegendBottom,
+              left: "center",
+              itemGap: 12,
+              textStyle: { color: "#94a3b8", fontSize: 11 },
+            },
+            grid: drillGrid,
+          }
+        : {
+            xAxis: drillXAxis,
+            yAxis: profitYAxis,
+            series: [profitLineSeries],
+            legend: {
+              data: ["الأرباح"],
+              bottom: drillLegendBottom,
+              left: "center",
+              itemGap: 12,
+              textStyle: { color: "#94a3b8", fontSize: 11 },
+            },
+            grid: drillGrid,
+          };
+
+  const toggleQuarterYear = (y: DrillYear) => {
+    setSelectedQuarterYears((prev) => {
+      const next = new Set(prev);
+      if (next.has(y)) {
+        if (next.size <= 1) return next;
+        next.delete(y);
+      } else {
+        next.add(y);
+      }
+      return next;
+    });
+  };
+
+  const toggleMonthIndex = (mi: number) => {
+    setSelectedMonthIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(mi)) {
+        if (next.size <= 1) return next;
+        next.delete(mi);
+      } else {
+        next.add(mi);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <ChartCard
+      title="صافي الأرباح والمبيعات حسب التاريخ"
+      subtitle="انقر على المستوى للتعمق؛ عند «ربع» اختر السنوات المعروضة (أرباع كل سنة)؛ عند «شهر» اختر الشهور المعروضة (نفس الشهر من كل عام)"
+      titleFlag="green"
+      titleFlagNumber={2}
+      headerExtra={
+        <div className="flex flex-col items-end gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
+          <div className="flex items-center gap-0.5 flex-wrap justify-end">
+            <span
+              className="text-[9px] shrink-0"
+              style={{ color: "var(--text-muted)" }}
+            >
+              المؤشر:
+            </span>
+            {(
+              [
+                ["sales", "المبيعات"],
+                ["profit", "الأرباح"],
+                ["both", "كلاهما"],
+              ] as const
+            ).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setDrillSeriesMode(mode)}
+                className="px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
+                style={{
+                  background:
+                    drillSeriesMode === mode
+                      ? "rgba(14,165,233,0.15)"
+                      : "var(--bg-elevated)",
+                  color:
+                    drillSeriesMode === mode
+                      ? palette.primaryCyan
+                      : "var(--text-muted)",
+                  border: `1px solid ${drillSeriesMode === mode ? palette.primaryCyan : "var(--border-subtle)"}`,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div
+            className="hidden sm:block h-5 w-px shrink-0"
+            style={{ background: "var(--border-subtle)" }}
+            aria-hidden
+          />
+          <div className="flex items-center gap-0.5 flex-wrap justify-end">
+            <span
+              className="text-[9px] shrink-0"
+              style={{ color: "var(--text-muted)" }}
+            >
+              المستوى:
+            </span>
+            {(
+              [
+                ["year", "سنة"],
+                ["quarter", "ربع"],
+                ["month", "شهر"],
+              ] as const
+            ).map(([level, label]) => (
+              <button
+                key={level}
+                type="button"
+                onClick={() => {
+                  setDrillLevel(level);
+                  if (level === "quarter") {
+                    setSelectedQuarterYears(new Set([...DRILL_YEARS]));
+                  }
+                  if (level === "month") {
+                    setSelectedMonthIndices(
+                      new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+                    );
+                  }
+                }}
+                className="px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
+                style={{
+                  background:
+                    drillLevel === level
+                      ? "var(--accent-green-dim)"
+                      : "var(--bg-elevated)",
+                  color:
+                    drillLevel === level
+                      ? "var(--accent-green)"
+                      : "var(--text-muted)",
+                  border: `1px solid ${drillLevel === level ? "var(--accent-green)" : "var(--border-subtle)"}`,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {drillLevel === "quarter" && (
+            <div className="flex flex-col items-end gap-1 w-full sm:max-w-md">
+              <div className="flex flex-wrap justify-end gap-1">
+                {DRILL_YEARS.map((y) => {
+                  const on = selectedQuarterYears.has(y);
+                  return (
+                    <button
+                      key={y}
+                      type="button"
+                      onClick={() => toggleQuarterYear(y)}
+                      className="px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors"
+                      style={{
+                        background: on
+                          ? "var(--accent-green-dim)"
+                          : "var(--bg-elevated)",
+                        color: on ? "var(--accent-green)" : "var(--text-muted)",
+                        border: `1px solid ${on ? "var(--accent-green)" : "var(--border-subtle)"}`,
+                      }}
+                      dir="ltr"
+                    >
+                      {y}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {drillLevel === "month" && (
+            <div className="flex flex-col items-end gap-1 w-full">
+              <div className="flex flex-wrap justify-end gap-0.5 max-w-[min(100%,520px)]">
+                {months.map((m, mi) => {
+                  const on = selectedMonthIndices.has(mi);
+                  return (
+                    <button
+                      key={mi}
+                      type="button"
+                      onClick={() => toggleMonthIndex(mi)}
+                      className="px-1.5 py-0.5 rounded text-[9px] font-medium transition-colors leading-tight"
+                      style={{
+                        background: on
+                          ? "var(--accent-green-dim)"
+                          : "var(--bg-elevated)",
+                        color: on ? "var(--accent-green)" : "var(--text-muted)",
+                        border: `1px solid ${on ? "var(--accent-green)" : "var(--border-subtle)"}`,
+                      }}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      }
+      option={drillDownOption}
+      height="300px"
+    />
+  );
+};
+
+export default NetProfitAndSalesByDate;

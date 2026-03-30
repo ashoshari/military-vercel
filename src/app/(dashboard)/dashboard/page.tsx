@@ -7,10 +7,13 @@ import { motion } from "framer-motion";
 import { Calendar, Activity, Zap, Target } from "lucide-react";
 import KPICard from "@/components/ui/KPICard";
 
-const ChartCard = dynamic(() => import("@/components/ui/ChartCard"), {
-  ssr: false,
-  loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
-});
+const ChartCard = dynamic(
+  () => import("@/components/ui/chart-card/ChartCard"),
+  {
+    ssr: false,
+    loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
+  },
+);
 import {
   getKPIData,
   getMonthlySalesData,

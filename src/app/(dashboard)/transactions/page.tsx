@@ -17,10 +17,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-const ChartCard = dynamic(() => import("@/components/ui/ChartCard"), {
-  ssr: false,
-  loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
-});
+const ChartCard = dynamic(
+  () => import("@/components/ui/chart-card/ChartCard"),
+  {
+    ssr: false,
+    loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
+  },
+);
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import SectionTitleWithFlag from "@/components/ui/SectionTitleWithFlag";
 

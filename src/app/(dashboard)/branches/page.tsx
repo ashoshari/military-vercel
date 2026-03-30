@@ -15,10 +15,13 @@ import {
 } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 
-const ChartCard = dynamic(() => import("@/components/ui/ChartCard"), {
-  ssr: false,
-  loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
-});
+const ChartCard = dynamic(
+  () => import("@/components/ui/chart-card/ChartCard"),
+  {
+    ssr: false,
+    loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
+  },
+);
 import EnterpriseTable from "@/components/ui/EnterpriseTable";
 import type { TableColumn } from "@/components/ui/EnterpriseTable";
 import {
@@ -2325,7 +2328,6 @@ export default function BranchesPage() {
       </div>
       {/* جدول التحليل التفصيلي — سوق / فئة / منتج */}
       <DrillDownTable />
-      {/* <BranchSalesTable /> */}
 
       <EnterpriseTable
         title="دليل الفروع"

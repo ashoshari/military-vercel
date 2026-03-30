@@ -4,8 +4,20 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
+import {
+  BRANCHES,
+  CATS,
+  PROD_NAMES,
+  secondarySalesMetric,
+  srand,
+  SUB_MAP,
+} from "./utils/data";
 
 // ── بنية البيانات ──
+
+// ── Build tree deterministically ──
+const TOTAL = 1847520;
+
 interface TreeNode {
   id: string;
   label: string;
@@ -13,167 +25,6 @@ interface TreeNode {
   value: number;
   children?: TreeNode[];
 }
-
-/** قيمة ثانوية للعرض (مثلاً هامش / ربح تقديري) — نسبة ثابتة تقريبية من المبيعات للعرض التوضيحي. */
-function secondarySalesMetric(node: TreeNode): number {
-  const t = node.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return Math.max(0, Math.round(node.value * (0.19 + (t % 17) * 0.004)));
-}
-
-// ── Deterministic seed-based pseudo-random ──
-let _seed = 42;
-const srand = () => {
-  _seed = (_seed * 16807 + 0) % 2147483647;
-  return (_seed & 0x7fffffff) / 2147483647;
-};
-
-// ── Product names pool ──
-const PROD_NAMES = [
-  "أرز بسمتي ممتاز",
-  "أرز حبة متوسطة",
-  "أرز مطبوخ فاخر",
-  "أرز أصفر سنوات الخير",
-  "زيت زيتون بكر",
-  "زيت عباد شمس 2ل",
-  "زيت ذرة 1ل",
-  "زيت نباتي 3ل",
-  "حليب طازج كامل",
-  "حليب قليل الدسم",
-  "لبن زبادي 1ك",
-  "لبنة طازجة 500غ",
-  "سكر أبيض 1كغ",
-  "سكر بني عضوي",
-  "ملح طعام ناعم",
-  "ملح يود مدعم",
-  "شاي أخضر فاخر",
-  "شاي أسود سيلاني",
-  "قهوة عربية 250غ",
-  "نسكافيه كلاسيك",
-  "معكرونة سباغيتي",
-  "معكرونة بيني",
-  "فتوتشيني 400غ",
-  "لازانيا جاهزة",
-  "صابون غسيل 3ك",
-  "منظف أرضيات",
-  "مبيض ملابس 2ل",
-  "معطر أقمشة",
-  "شامبو ضد القشرة",
-  "بلسم شعر مغذي",
-  "كريم مرطب يومي",
-  "واقي شمس SPF50",
-  "حفاضات مقاس 3",
-  "حفاضات مقاس 4",
-  "مناديل مبللة 80ق",
-  "زجاجة رضاعة",
-  "تونة معلبة 185غ",
-  "فول مدمس 400غ",
-  "حمص بالطحينة",
-  "ذرة حلوة معلبة",
-  "عصير برتقال 1ل",
-  "عصير تفاح طبيعي",
-  "مياه معدنية 1.5ل",
-  "مشروب غازي 330مل",
-  "دجاج مجمد 1200غ",
-  "صدور دجاج طازج",
-  "لحمة مفرومة 1ك",
-  "ستيك عجل 500غ",
-  "خبز عربي 6 أرغفة",
-  "خبز توست أبيض",
-  "كعك بالسمسم",
-  "صامولي 8 حبات",
-];
-
-const SUB_MAP: Record<string, string[]> = {
-  "منتجات غذائية": [
-    "حبوب وأرز",
-    "زيوت",
-    "حليب وألبان",
-    "سكر وملح",
-    "شاي وقهوة",
-    "معكرونة",
-    "بقوليات",
-    "معلبات",
-    "خبز ومعجنات",
-    "بهارات وتوابل",
-    "صلصات",
-    "عسل ومربى",
-  ],
-  "مستلزمات منزلية": [
-    "منظفات",
-    "أدوات مطبخ",
-    "أكياس وأغلفة",
-    "إسفنج وفرش",
-    "معطرات جو",
-    "ورق ألمنيوم",
-  ],
-  "العناية الشخصية": [
-    "شامبو وبلسم",
-    "كريمات بشرة",
-    "معجون أسنان",
-    "مزيل عرق",
-    "عطور",
-    "حلاقة رجالية",
-  ],
-  مشروبات: [
-    "عصائر طبيعية",
-    "مياه معدنية",
-    "مشروبات غازية",
-    "مشروبات طاقة",
-    "شاي مثلج",
-  ],
-  "لحوم ودواجن": [
-    "دجاج طازج",
-    "لحم عجل",
-    "لحم خروف",
-    "لحوم مجمدة",
-    "نقانق ومرتديلا",
-  ],
-  "مستلزمات الأطفال": ["حفاضات", "حليب أطفال", "طعام أطفال", "زجاجات وأدوات"],
-  "منتجات ورقية": ["مناديل", "ورق تواليت", "فوط صحية", "ورق مطبخ"],
-  "أجهزة وإلكترونيات": ["بطاريات", "إضاءة LED", "توصيلات كهرباء", "شواحن"],
-  "حلويات وسناكات": [
-    "شوكولاتة",
-    "بسكويت",
-    "شيبس",
-    "مكسرات",
-    "حلاوة طحينية",
-    "فشار",
-  ],
-  "منتجات تجميل": ["مكياج", "طلاء أظافر", "مرطبات شفاه", "كحل وماسكارا"],
-};
-
-const CATS = [
-  { label: "منتجات غذائية", pct: 0.36 },
-  { label: "مستلزمات منزلية", pct: 0.14 },
-  { label: "العناية الشخصية", pct: 0.11 },
-  { label: "مشروبات", pct: 0.09 },
-  { label: "لحوم ودواجن", pct: 0.08 },
-  { label: "حلويات وسناكات", pct: 0.07 },
-  { label: "مستلزمات الأطفال", pct: 0.05 },
-  { label: "منتجات ورقية", pct: 0.04 },
-  { label: "منتجات تجميل", pct: 0.03 },
-  { label: "أجهزة وإلكترونيات", pct: 0.02 },
-  { label: "غير مصنف", pct: 0.01 },
-];
-
-const BRANCHES = [
-  { label: "سوق المنارة المركزي", pct: 0.18 },
-  { label: "سوق سطح النجم", pct: 0.12 },
-  { label: "فرع عمّان الغربي", pct: 0.1 },
-  { label: "فرع إربد الرئيسي", pct: 0.09 },
-  { label: "فرع الزرقاء الشمالي", pct: 0.08 },
-  { label: "فرع العقبة الميناء", pct: 0.07 },
-  { label: "فرع مادبا المدينة", pct: 0.07 },
-  { label: "فرع السلط وسط البلد", pct: 0.06 },
-  { label: "فرع الكرك الجنوبي", pct: 0.06 },
-  { label: "فرع المفرق الشمالي", pct: 0.06 },
-  { label: "فرع جرش التراث", pct: 0.06 },
-  { label: "فرع الطفيلة", pct: 0.05 },
-];
-
-// ── Build tree deterministically ──
-const TOTAL = 1847520;
-_seed = 42; // reset seed for deterministic output
 
 const treeData: TreeNode = {
   id: "root",
@@ -276,7 +127,7 @@ function TreeItem({
       }}
     >
       <p
-        className="text-[11px] font-medium leading-tight text-right truncate max-w-[140px] mb-1.5"
+        className="text-[11px] font-medium leading-tight text-right truncate max-w-35 mb-1.5"
         style={{
           color: selected ? "var(--accent-blue)" : "var(--text-secondary)",
         }}
@@ -284,7 +135,7 @@ function TreeItem({
         {node.label}
       </p>
       <div
-        className="mb-1.5 h-[5px] rounded-full overflow-hidden"
+        className="mb-1.5 h-1.25 rounded-full overflow-hidden"
         style={{ background: "var(--bg-elevated)" }}
       >
         <motion.div
@@ -303,7 +154,7 @@ function TreeItem({
         {node.value.toLocaleString("en-US")}
       </p>
       <div
-        className="mt-1.5 h-[5px] rounded-full overflow-hidden"
+        className="mt-1.5 h-1.25 rounded-full overflow-hidden"
         style={{ background: "var(--bg-elevated)" }}
       >
         <motion.div
@@ -342,7 +193,7 @@ function TreeItem({
 }
 
 // ── المكوّن الرئيسي ──
-export default function TreeDrillDown() {
+export default function SalesHierarchyAnalysis() {
   // مسار الحفر: [ { label: column-title, node: selected } ]
   const [path, setPath] = useState<Level[]>([]);
 
