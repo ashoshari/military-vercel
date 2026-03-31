@@ -33,7 +33,10 @@ const RevenueTrend = () => {
 
   const revenueTrendOption = useMemo(
     () => ({
-      xAxis: { type: "category" as const, data: salesData.map((d) => d.date) },
+      xAxis: {
+        type: "category" as const,
+        data: salesData.map((_, i) => `شهر ${i + 1}`),
+      },
       yAxis: {
         type: "value" as const,
         axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },

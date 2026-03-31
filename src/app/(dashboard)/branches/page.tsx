@@ -62,20 +62,7 @@ export default function BranchesPage() {
 
   const netSalesByBranchOption = useMemo(() => {
     // ── صافي المبيعات عبر الزمن لكل فرع ──
-    const months = [
-      "يناير",
-      "فبراير",
-      "مارس",
-      "أبريل",
-      "مايو",
-      "جون",
-      "يوليو",
-      "أغسطس",
-      "سبتمبر",
-      "أكتوبر",
-      "نوفمبر",
-      "ديسمبر",
-    ];
+    const months = Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`);
     const netSalesData: Record<string, number[]> = {
       "سوق المنارة": [
         18250, 17520, 16980, 16200, 15840, 15210, 14890, 14550, 14020, 13680,

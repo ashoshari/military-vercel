@@ -147,8 +147,8 @@ function TreeItem({
         />
       </div>
       <p
-        className="text-xs font-semibold mt-0.5"
-        style={{ color: selected ? "var(--accent-blue)" : "var(--text-muted)" }}
+        className="text-[11px] font-semibold mt-0.5"
+        style={{ color: "var(--accent-blue)" }}
         dir="ltr"
       >
         {node.value.toLocaleString("en-US")}
@@ -270,6 +270,34 @@ export default function SalesHierarchyAnalysis() {
           اضغط على أي عنصر للتعمق • الشريط والرقم الأزرق: المبيعات • الأخضر
           تحتهما: ربح تقديري • الفرع ← الفئة ← الفئة الفرعية ← المنتج
         </p>
+        <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px]">
+          <div className="flex items-center gap-1">
+            <span
+              className="inline-block rounded-full"
+              style={{
+                width: 22,
+                height: 6,
+                background: "#2563eb",
+              }}
+            />
+            <span style={{ color: "var(--text-muted)" }}>
+              المبيعات (القيمة الأساسية)
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span
+              className="inline-block rounded-full"
+              style={{
+                width: 22,
+                height: 6,
+                background: "#16a34a",
+              }}
+            />
+            <span style={{ color: "var(--text-muted)" }}>
+              الربح التقديري (المقياس الثانوي)
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* شريط الفلاتر */}

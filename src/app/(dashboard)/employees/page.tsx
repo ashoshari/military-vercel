@@ -184,20 +184,10 @@ function rankGradientRgb(
   ];
 }
 
-const EMPLOYEE_TREND_MONTHS = [
-  "يناير",
-  "فبراير",
-  "مارس",
-  "أبريل",
-  "مايو",
-  "يونيو",
-  "يوليو",
-  "أغسطس",
-  "سبتمبر",
-  "أكتوبر",
-  "نوفمبر",
-  "ديسمبر",
-] as const;
+const EMPLOYEE_TREND_MONTHS = Array.from(
+  { length: 12 },
+  (_, i) => `شهر ${i + 1}`,
+);
 
 const maxSales = Math.max(...cashiers.map((c) => c.sales));
 const maxTrans = Math.max(...cashiers.map((c) => c.transactions));
