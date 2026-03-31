@@ -3,16 +3,9 @@
 import "@/lib/echarts/register-bar-line-pie";
 import "@/lib/echarts/register-gauge";
 import dynamic from "next/dynamic";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
-import {
-  Users,
-  DollarSign,
-  ShoppingCart,
-  AlertCircle,
-  ChevronUp,
-  ChevronDown,
-} from "lucide-react";
+import { Users, DollarSign, ShoppingCart, AlertCircle } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import MetricsBubblePlot, {
   type MetricsBubblePoint,
@@ -33,6 +26,7 @@ const ChartCard = dynamic(
 );
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import { useThemeStore } from "@/store/themeStore";
+import { useFilterStore } from "@/store/filterStore";
 
 // ── بيانات الكاشيرات ──
 const cashiersBase = [
@@ -128,8 +122,13 @@ const cashiersBase = [
   },
 ] as const;
 
-const cashiers = cashiersBase.map((c) => ({
+const cashiers = cashiersBase.map((c, idx) => ({
   ...c,
+  workShift: (idx % 2 === 0 ? "morning" : "evening") as "morning" | "evening",
+  /** عدد الأصناف المباعة (تقديري للعرض) */
+  soldItemsCount: Math.max(0, Math.round(c.transactions * (6 + c.atv / 6))),
+  /** الالتزام بالدوام (٪) تقديري للعرض */
+  attendancePct: Math.max(0, Math.min(100, Math.round(72 + c.score * 0.35))),
   /** تقدير تجميعي من معدل الإلغاء والمعاملات (عرض توضيحي) */
   voidedItemsCount: Math.max(
     0,
@@ -137,20 +136,6 @@ const cashiers = cashiersBase.map((c) => ({
   ),
   /** قيمة تقديرية للمواد الملغاة من المبيعات ومعدل الإلغاء */
   voidedValue: Math.max(0, Math.round(c.sales * (c.voidRate / 100) * 3.2)),
-}));
-
-/** فقاعات: أفقي = معدل الإلغاء %، عمودي = قيمة المواد الملغاة، الحجم ∝ عدد المواد الملغات */
-const voidVsValueBubblePoints: MetricsBubblePoint[] = cashiers.map((c) => ({
-  key: c.name,
-  label: c.name,
-  depth: 0,
-  xValue: c.voidRate,
-  yValue: c.voidedValue,
-  hasChildren: false,
-  vol: c.sales,
-  price: c.score,
-  basket: c.voidedItemsCount,
-  atv: c.atv,
 }));
 
 const totalTrans = cashiers.reduce((a, c) => a + c.transactions, 0);
@@ -189,34 +174,56 @@ const EMPLOYEE_TREND_MONTHS = Array.from(
   (_, i) => `شهر ${i + 1}`,
 );
 
-const maxSales = Math.max(...cashiers.map((c) => c.sales));
 const maxTrans = Math.max(...cashiers.map((c) => c.transactions));
-const maxAtv = Math.max(...cashiers.map((c) => c.atv));
+const maxSoldItems = Math.max(...cashiers.map((c) => c.soldItemsCount));
 
 export default function EmployeesPage() {
   const palette = useResolvedAnalyticsPalette();
   const isDark = useThemeStore((s) => s.mode === "dark");
+  const selectedEmployees = useFilterStore((s) => s.employee);
+  const workShift = useFilterStore((s) => s.workShift);
+  const returnRateRange = useFilterStore((s) => s.returnRateRange);
   const scoreColor = (s: number) => {
     if (s >= 63) return palette.primaryGreen;
     if (s >= 55) return palette.primaryAmber;
     if (s >= 45) return "#f97316";
     return palette.primaryRed;
   };
-  const [sortKey, setSortKey] = useState<"score" | "sales" | "transactions">(
-    "score",
+  const filteredCashiers = useMemo(
+    () =>
+      cashiers.filter((c) => {
+        const okName =
+          selectedEmployees.length === 0 || selectedEmployees.includes(c.name);
+        const okShift = workShift === "all" || c.workShift === workShift;
+        const okReturn =
+          c.voidRate >= returnRateRange[0] && c.voidRate <= returnRateRange[1];
+        return okName && okShift && okReturn;
+      }),
+    [selectedEmployees, workShift, returnRateRange],
   );
-  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
 
-  const sorted = [...cashiers].sort((a, b) =>
-    sortDir === "desc" ? b[sortKey] - a[sortKey] : a[sortKey] - b[sortKey],
+  const tableStats = useMemo(() => {
+    const base = filteredCashiers.length > 0 ? filteredCashiers : cashiers;
+    const count = base.length || 1;
+    const avgPerf = base.reduce((a, c) => a + c.score, 0) / (base.length || 1);
+    const invoices = base.reduce((a, c) => a + c.transactions, 0);
+    const soldItems = base.reduce((a, c) => a + c.soldItemsCount, 0);
+    const avgReturns = base.reduce((a, c) => a + c.voidRate, 0) / count;
+    const avgAttendance = base.reduce((a, c) => a + c.attendancePct, 0) / count;
+
+    return [
+      { label: "درجة الأداء", value: `${avgPerf.toFixed(1)}%` },
+      { label: "عدد الفواتير", value: fmtN(invoices) },
+      { label: "عدد الأصناف المباعة", value: fmtN(soldItems) },
+      { label: "نسبة المرتجعات", value: `${avgReturns.toFixed(2)}%` },
+      { label: "الالتزام بالدوام", value: `${Math.round(avgAttendance)}%` },
+    ] as const;
+  }, [filteredCashiers]);
+
+  const sorted = useMemo(
+    () => [...filteredCashiers].sort((a, b) => b.score - a.score),
+    [filteredCashiers],
   );
-  const toggleSort = (k: typeof sortKey) => {
-    if (sortKey === k) setSortDir((d) => (d === "desc" ? "asc" : "desc"));
-    else {
-      setSortKey(k);
-      setSortDir("desc");
-    }
-  };
 
   // ── Gauge الأداء الكلي ──
   const gaugeOption = useMemo(() => {
@@ -274,16 +281,16 @@ export default function EmployeesPage() {
         },
       ],
     };
-  }, [palette, avgScore]);
+  }, [palette]);
 
   // ── ترتيب الكاشيرات (أفقي): الأعلى = الأفضل (أخضر) → الأسفل = الأضعف (أحمر) ──
-  const ranked = [...cashiers].sort((a, b) => b.score - a.score);
+  const ranked = [...filteredCashiers].sort((a, b) => b.score - a.score);
   const perfBarCount = ranked.length;
   const perfRowPx = 40;
   const perfChartHeightPx = Math.max(120, 24 + perfBarCount * perfRowPx);
 
   const perfOption = useMemo(() => {
-    const rnk = [...cashiers].sort((a, b) => b.score - a.score);
+    const rnk = [...filteredCashiers].sort((a, b) => b.score - a.score);
     const n = rnk.length;
     return {
       tooltip: {
@@ -351,7 +358,7 @@ export default function EmployeesPage() {
         },
       ],
     };
-  }, [palette, isDark]);
+  }, [palette, isDark, filteredCashiers]);
 
   // ── اتجاه المبيعات ──
   const trendColors = useMemo(
@@ -377,7 +384,7 @@ export default function EmployeesPage() {
         textStyle: { color: "#e2e8f0", fontSize: 11 },
       },
       legend: {
-        data: cashiers.map((c) => c.short),
+        data: filteredCashiers.map((c) => c.short),
         bottom: 0,
         textStyle: { color: palette.primaryGreen, fontSize: 8 },
         type: "scroll" as const,
@@ -400,6 +407,14 @@ export default function EmployeesPage() {
       },
       yAxis: {
         type: "value" as const,
+        name: "عدد الفواتير",
+        nameLocation: "middle" as const,
+        nameGap: 46,
+        nameTextStyle: {
+          color: "#64748b",
+          fontSize: 10,
+          fontWeight: 700,
+        },
         axisLabel: {
           formatter: (v: number) => fmtK(v),
           fontSize: 9,
@@ -417,7 +432,7 @@ export default function EmployeesPage() {
           },
         },
       },
-      series: cashiers.map((c, i) => ({
+      series: filteredCashiers.map((c, i) => ({
         name: c.short,
         type: "line" as const,
         smooth: true,
@@ -427,36 +442,69 @@ export default function EmployeesPage() {
         itemStyle: { color: trendColors[i % trendColors.length] },
       })),
     }),
-    [palette, trendColors, isDark],
+    [palette, trendColors, isDark, filteredCashiers],
   );
 
-  const SortBtn = ({ k, label }: { k: typeof sortKey; label: string }) => {
-    const active = sortKey === k;
-    return (
-      <button
-        type="button"
-        onClick={() => toggleSort(k)}
-        className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all"
-        style={{
-          background: active ? palette.primaryGreen : "var(--bg-elevated)",
-          color: active ? "#ffffff" : "var(--text-muted)",
-          border: "1px solid",
-          borderColor: active ? palette.primaryGreen : "var(--border-subtle)",
-        }}
-      >
-        {label}
-        {active ? (
-          sortDir === "desc" ? (
-            <ChevronDown size={11} />
-          ) : (
-            <ChevronUp size={11} />
-          )
-        ) : (
-          <ChevronDown size={11} style={{ opacity: 0.3 }} />
-        )}
-      </button>
-    );
-  };
+  /** فقاعات: أفقي = معدل الإلغاء %، عمودي = قيمة المواد الملغاة، الحجم ∝ عدد المواد الملغات */
+  const voidVsValueBubblePoints: MetricsBubblePoint[] = useMemo(
+    () =>
+      (() => {
+        const raw = filteredCashiers.map((c) => ({
+          key: c.name,
+          label: c.name,
+          depth: 0 as const,
+          xValue: c.voidRate,
+          yValue: c.voidedValue,
+          hasChildren: false,
+          vol: c.sales,
+          price: c.score,
+          basket: c.voidedItemsCount,
+          atv: c.atv,
+        }));
+
+        // تجميع النقاط المتطابقة (نفس X,Y) لتفادي تراكب الدوائر والأسماء.
+        const buckets = new Map<
+          string,
+          { x: number; y: number; names: string[]; points: typeof raw }
+        >();
+        for (const p of raw) {
+          const k = `${p.xValue.toFixed(4)}|${p.yValue.toFixed(0)}`;
+          const b = buckets.get(k);
+          if (b) {
+            b.names.push(p.label);
+            b.points.push(p);
+          } else {
+            buckets.set(k, { x: p.xValue, y: p.yValue, names: [p.label], points: [p] });
+          }
+        }
+
+        return Array.from(buckets.values()).map((b) => {
+          const n = b.points.length;
+          const sortedNames = [...b.names].sort((a, z) => a.localeCompare(z, "ar"));
+          const label =
+            n <= 1 ? sortedNames[0] : `${sortedNames[0]} +${n - 1}`;
+
+          const sum = <K extends keyof (typeof raw)[number]>(
+            key: K,
+          ): number =>
+            b.points.reduce((a, p) => a + (p[key] as unknown as number), 0);
+
+          return {
+            key: n <= 1 ? sortedNames[0] : `grp_${sortedNames.join("__")}`,
+            label,
+            depth: 0 as const,
+            xValue: b.x,
+            yValue: b.y,
+            hasChildren: false,
+            vol: sum("vol"),
+            basket: sum("basket"),
+            price: sum("price") / n,
+            atv: sum("atv") / n,
+          } satisfies MetricsBubblePoint;
+        });
+      })(),
+    [filteredCashiers],
+  );
 
   return (
     <div className="space-y-6">
@@ -700,7 +748,8 @@ export default function EmployeesPage() {
                 className="text-sm font-semibold"
                 style={{ color: "var(--text-primary)" }}
               >
-                نسبة الإلغاء مقابل متوسط قيمة المعاملة
+                نسبة المرتجعات مع متوسط قيمة الفاتورة
+                {/* نسبة الإلغاء مقابل متوسط قيمة المعاملة */}
               </h3>
             </div>
             <p
@@ -755,16 +804,58 @@ export default function EmployeesPage() {
           </p>
         }
         headerExtra={
-          <div className="flex items-center justify-end gap-1.5 mt-2">
-            <span
-              className="text-[10px]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              ترتيب حسب:
-            </span>
-            <SortBtn k="score" label="الأداء" />
-            <SortBtn k="sales" label="المبيعات" />
-            <SortBtn k="transactions" label="المعاملات" />
+          <div className="mt-2 flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-3">
+              {/* left side */}
+              <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                <span
+                  className="font-semibold"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  أسماء الأسواق
+                </span>
+                {[
+                  "سوق عمّان",
+                  "سوق إربد",
+                  "سوق الزرقاء",
+                  "سوق العقبة",
+                  "سوق الكرك",
+                ].map((m) => (
+                  <span
+                    key={m}
+                    className="px-2 py-0.5 rounded-full border"
+                    style={{
+                      borderColor: "var(--border-subtle)",
+                      background: "var(--bg-elevated)",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {tableStats.map((k) => (
+                <div key={k.label} className="text-center">
+                  <p
+                    className="text-[9px] leading-tight mb-1 whitespace-pre-line"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {k.label}
+                  </p>
+                  <p
+                    className="text-xl font-bold"
+                    style={{ color: "var(--accent-blue)" }}
+                    dir="ltr"
+                  >
+                    {k.value}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         }
       >
@@ -772,11 +863,11 @@ export default function EmployeesPage() {
           headers={[
             { label: "#", align: "right", width: 32 },
             { label: "الكاشير", align: "right" },
-            { label: "درجة الأداء", align: "center" },
-            { label: "إجمالي المبيعات", align: "center" },
-            { label: "عدد المعاملات", align: "center" },
-            { label: "متوسط قيمة الحركة", align: "center" },
-            { label: "معدل الإلغاء", align: "center" },
+            { label: "درجة الاداء", align: "center" },
+            { label: "عدد الفواتير", align: "center" },
+            { label: "عدد الاصناف المباعة", align: "center" },
+            { label: "نسبة المرتجعات", align: "center" },
+            { label: "الالتزام بالدوام", align: "center" },
           ]}
         >
           {sorted.map((c, i) => {
@@ -845,22 +936,16 @@ export default function EmployeesPage() {
                   text={`${c.score.toFixed(2)}%`}
                 />
                 <AnalyticsBarCell
-                  value={c.sales}
-                  max={maxSales}
-                  color="#3b82f6"
-                  text={fmtN(c.sales)}
-                />
-                <AnalyticsBarCell
                   value={c.transactions}
                   max={maxTrans}
                   color="#3b82f6"
                   text={fmtN(c.transactions)}
                 />
                 <AnalyticsBarCell
-                  value={c.atv}
-                  max={maxAtv}
+                  value={c.soldItemsCount}
+                  max={maxSoldItems}
                   color="#3b82f6"
-                  text={c.atv.toFixed(2)}
+                  text={fmtN(c.soldItemsCount)}
                 />
 
                 <td style={analyticsTdBaseStyle("center")}>
@@ -878,6 +963,33 @@ export default function EmployeesPage() {
                     dir="ltr"
                   >
                     {c.voidRate.toFixed(2)}%
+                  </span>
+                </td>
+
+                <td style={analyticsTdBaseStyle("center")} dir="ltr">
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color:
+                        c.attendancePct >= 92
+                          ? "var(--accent-green)"
+                          : c.attendancePct >= 85
+                            ? "var(--accent-amber)"
+                            : "var(--accent-red)",
+                    }}
+                  >
+                    {c.attendancePct}%
+                  </span>
+                  <span
+                    style={{
+                      marginInlineStart: 6,
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    {c.workShift === "morning" ? "صباحي" : "مسائي"}
                   </span>
                 </td>
               </motion.tr>
@@ -920,17 +1032,6 @@ export default function EmployeesPage() {
                   color: "var(--text-secondary)",
                 }}
               >
-                {fmtN(totalSales)}
-              </span>
-            </td>
-            <td style={analyticsTdBaseStyle("center")} dir="ltr">
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "var(--text-secondary)",
-                }}
-              >
                 {fmtN(totalTrans)}
               </span>
             </td>
@@ -942,7 +1043,7 @@ export default function EmployeesPage() {
                   color: "var(--text-secondary)",
                 }}
               >
-                {fmt2(avgAtv)}
+                {fmtN(cashiers.reduce((a, c) => a + c.soldItemsCount, 0))}
               </span>
             </td>
             <td style={analyticsTdBaseStyle("center")} dir="ltr">
@@ -954,6 +1055,21 @@ export default function EmployeesPage() {
                 }}
               >
                 {avgVoidRate.toFixed(2)}%
+              </span>
+            </td>
+            <td style={analyticsTdBaseStyle("center")} dir="ltr">
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                {Math.round(
+                  cashiers.reduce((a, c) => a + c.attendancePct, 0) /
+                    cashiers.length,
+                )}
+                %
               </span>
             </td>
           </tr>

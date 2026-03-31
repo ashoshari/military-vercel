@@ -18,6 +18,8 @@ import {
   FileBarChart2,
   Check,
   Layers,
+  Users as UsersIcon,
+  Clock,
 } from "lucide-react";
 import { useFilterStore } from "@/store/filterStore";
 
@@ -32,7 +34,9 @@ const QUICK_PERIODS = [
 ];
 
 /** صفحة /sales: فلتر الفترة السريعة = شهر فقط. */
-const SALES_PAGE_QUICK_PERIODS = QUICK_PERIODS.filter((p) => p.value === "month");
+const SALES_PAGE_QUICK_PERIODS = QUICK_PERIODS.filter(
+  (p) => p.value === "month",
+);
 
 const REGIONS = [
   { value: "all", label: "كل الأقاليم" },
@@ -52,6 +56,46 @@ const BRANCHES = [
   { value: "mafrak", label: "المفرق" },
   { value: "salt", label: "السلط" },
 ];
+
+/** صفحة /customers فقط — المناسبات */
+const CUSTOMER_HOLIDAYS = [
+  { value: "", label: "كل المناسبات" },
+  { value: "eid_fitr", label: "عيد الفطر" },
+  { value: "eid_adha", label: "عيد الأضحى" },
+  { value: "ramadan", label: "رمضان" },
+  { value: "national_day", label: "اليوم الوطني" },
+  { value: "back_to_school", label: "العودة للمدارس" },
+] as const;
+
+/** صفحة /employees فقط — أسماء الموظفين (عرض توضيحي). */
+const EMPLOYEES = [
+  { value: "all", label: "كل الموظفين" },
+  { value: "محمد سالم المساعيد", label: "محمد سالم المساعيد" },
+  { value: "محمد العطامات", label: "محمد العطامات" },
+  { value: "حسين الشرفات", label: "حسين الشرفات" },
+  { value: "شادي السماعة", label: "شادي السماعة" },
+  { value: "عبدالله المناصير", label: "عبدالله المناصير" },
+  { value: "محمد علي", label: "محمد علي" },
+  { value: "حسن الشبيب", label: "حسن الشبيب" },
+  { value: "أنور غازي", label: "أنور غازي" },
+  { value: "حلود نواش", label: "حلود نواش" },
+];
+
+/** صفحة /employees فقط — فترة الدوام */
+const WORK_SHIFTS = [
+  { value: "all", label: "كل فترات الدوام" },
+  { value: "morning", label: "صباحي" },
+  { value: "evening", label: "مسائي" },
+] as const;
+
+/** صفحة /employees فقط — نسبة المرتجعات (٪) */
+const RETURN_RATE_RANGES = [
+  { value: "all", label: "كل نسب المرتجعات", range: [0, 100] as [number, number] },
+  { value: "0-1", label: "0% - 1%", range: [0, 1] as [number, number] },
+  { value: "1-3", label: "1% - 3%", range: [1, 3] as [number, number] },
+  { value: "3-6", label: "3% - 6%", range: [3, 6] as [number, number] },
+  { value: "6+", label: "6% فأكثر", range: [6, 100] as [number, number] },
+] as const;
 
 /** فلاتر المبيعات — مجموعات هرمية (صفحة /sales فقط). */
 const SALES_GROUP_1 = [
@@ -107,11 +151,27 @@ const PRODUCTS = [
   "معجون كولجيت",
 ];
 const SALES_INSTANT_PRODUCTS = [
-  { value: "", label: "المنتج" },
+  { value: "", label: "كل المنتجات" },
   ...PRODUCTS.map((p) => ({ value: p, label: p })),
 ];
 const DISCOUNTS = ["0%", "1-2%", "2-5%", "5-10%", "11-25%"];
 const PAYMENT_TYPES = ["نقدي", "فيزا / بطاقة", "محفظة إلكترونية", "آجل / ذمم"];
+
+/** صفحة /products فقط — مجموعات المنتجات (تقارير تفصيلية). */
+const PRODUCTS_GROUP_1 = [
+  "بقالة",
+  "ألبان",
+  "لحوم",
+  "مشروبات",
+  "منزلية",
+  "عناية شخصية",
+  "أجهزة إلكترونية",
+  "وجبات سريعة",
+  "ورقية",
+  "أطفال",
+];
+const PRODUCTS_GROUP_2 = ["أساسيات", "طازج", "مبرد", "مجمد", "معلب", "عناية"];
+const PRODUCTS_GROUP_3 = ["عروض", "سعر عادي", "ماركة خاصة", "مستورد", "عضوي"];
 
 // ═══════════════════════════════════════════════
 // أدوات مساعدة
@@ -691,35 +751,104 @@ function DateFilterDropdown({
                   {[
                     { label: "من", val: dateFrom, set: setDateFrom },
                     { label: "إلى", val: dateTo, set: setDateTo },
-                  ].map((f) => (
-                    <div key={f.label}>
-                      <label
-                        style={{
-                          fontSize: 9,
-                          color: "var(--text-muted)",
-                          display: "block",
-                          marginBottom: 3,
-                        }}
-                      >
-                        {f.label}
-                      </label>
-                      <input
-                        type="date"
-                        value={f.val}
-                        onChange={(e) => f.set(e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "5px 8px",
-                          borderRadius: 7,
-                          background: "var(--bg-elevated)",
-                          border: "1px solid var(--border-subtle)",
-                          color: "var(--text-primary)",
-                          fontSize: 11,
-                          outline: "none",
-                        }}
-                      />
-                    </div>
-                  ))}
+                  ].map((f, idx) => {
+                    const isSalesMonthMode =
+                      quickPeriodOptions.length === 1 &&
+                      quickPeriodOptions[0].value === "month";
+
+                    // For sales (/sales) in range mode: pick month+year only
+                    if (isSalesMonthMode) {
+                      // Derive YYYY-MM for the month input from stored ISO date (if any)
+                      const ym =
+                        f.val && f.val.length >= 7 ? f.val.slice(0, 7) : "";
+
+                      const handleMonthChange = (value: string) => {
+                        if (!value) {
+                          f.set("");
+                          return;
+                        }
+                        const [yearStr, monthStr] = value.split("-");
+                        const year = Number(yearStr);
+                        const month = Number(monthStr); // 1-12
+                        if (!year || !month) {
+                          f.set("");
+                          return;
+                        }
+                        if (idx === 0) {
+                          // from: first day of month
+                          f.set(
+                            `${yearStr}-${monthStr}-${"01"}`,
+                          );
+                        } else {
+                          // to: last day of month
+                          const lastDay = new Date(year, month, 0).getDate();
+                          const dd = String(lastDay).padStart(2, "0");
+                          f.set(`${yearStr}-${monthStr}-${dd}`);
+                        }
+                      };
+
+                      return (
+                        <div key={f.label}>
+                          <label
+                            style={{
+                              fontSize: 9,
+                              color: "var(--text-muted)",
+                              display: "block",
+                              marginBottom: 3,
+                            }}
+                          >
+                            {f.label}
+                          </label>
+                          <input
+                            type="month"
+                            value={ym}
+                            onChange={(e) => handleMonthChange(e.target.value)}
+                            style={{
+                              width: "100%",
+                              padding: "5px 8px",
+                              borderRadius: 7,
+                              background: "var(--bg-elevated)",
+                              border: "1px solid var(--border-subtle)",
+                              color: "var(--text-primary)",
+                              fontSize: 11,
+                              outline: "none",
+                            }}
+                          />
+                        </div>
+                      );
+                    }
+
+                    // Default behaviour: full date
+                    return (
+                      <div key={f.label}>
+                        <label
+                          style={{
+                            fontSize: 9,
+                            color: "var(--text-muted)",
+                            display: "block",
+                            marginBottom: 3,
+                          }}
+                        >
+                          {f.label}
+                        </label>
+                        <input
+                          type="date"
+                          value={f.val}
+                          onChange={(e) => f.set(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "5px 8px",
+                            borderRadius: 7,
+                            background: "var(--bg-elevated)",
+                            border: "1px solid var(--border-subtle)",
+                            color: "var(--text-primary)",
+                            fontSize: 11,
+                            outline: "none",
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
                   {(dateFrom || dateTo) && (
                     <button
                       onClick={() => setOpen(false)}
@@ -1060,8 +1189,20 @@ function ReportCreatingPopup({
 export default function GlobalFilterBar() {
   const pathname = usePathname();
   const isSalesPage = pathname === "/sales";
-  const { activeBranches, activePeriod, setActiveBranches, setActivePeriod } =
-    useFilterStore();
+  const isEmployeesPage = pathname === "/employees";
+  const isCustomersPage = pathname === "/customers";
+  const isProductsPage = pathname === "/products";
+  const {
+    activeBranches,
+    activePeriod,
+    employee,
+    workShift,
+    returnRateRange,
+    holiday,
+    setActiveBranches,
+    setActivePeriod,
+    setFilter,
+  } = useFilterStore();
 
   // فلاتر لحظية إضافية ([] = كل الأقاليم)
   const [activeRegions, setActiveRegions] = useState<string[]>([]);
@@ -1072,7 +1213,7 @@ export default function GlobalFilterBar() {
   const [salesG1, setSalesG1] = useState<string[]>([]);
   const [salesG2, setSalesG2] = useState<string[]>([]);
   const [salesG3, setSalesG3] = useState<string[]>([]);
-  const [salesProduct, setSalesProduct] = useState("");
+  const [salesProduct, setSalesProduct] = useState<string[]>([]);
 
   useEffect(() => {
     if (isSalesPage) {
@@ -1086,6 +1227,10 @@ export default function GlobalFilterBar() {
   const [product, setProduct] = useState("");
   const [discount, setDiscount] = useState("");
   const [paymentType, setPaymentType] = useState("");
+  const [prodG1, setProdG1] = useState("");
+  const [prodG2, setProdG2] = useState("");
+  const [prodG3, setProdG3] = useState("");
+  const [prodName, setProdName] = useState("");
 
   const [showNameDialog, setShowNameDialog] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
@@ -1096,7 +1241,8 @@ export default function GlobalFilterBar() {
     category ||
     product ||
     discount ||
-    paymentType
+    paymentType ||
+    (isProductsPage && (prodG1 || prodG2 || prodG3 || prodName))
   );
 
   const handleCreateReport = useCallback(() => {
@@ -1113,6 +1259,10 @@ export default function GlobalFilterBar() {
     setProduct("");
     setDiscount("");
     setPaymentType("");
+    setProdG1("");
+    setProdG2("");
+    setProdG3("");
+    setProdName("");
   }, []);
 
   const resetAll = useCallback(() => {
@@ -1121,16 +1271,24 @@ export default function GlobalFilterBar() {
     setActiveRegions([]);
     setDateFrom("");
     setDateTo("");
+    setFilter("employee", []);
+    setFilter("workShift", "all");
+    setFilter("returnRateRange", [0, 100]);
+    setFilter("holiday", "");
     setSalesG1([]);
     setSalesG2([]);
     setSalesG3([]);
-    setSalesProduct("");
+    setSalesProduct([]);
     setDistributor("");
     setCategory("");
     setProduct("");
     setDiscount("");
     setPaymentType("");
-  }, [setActiveBranches, setActivePeriod]);
+    setProdG1("");
+    setProdG2("");
+    setProdG3("");
+    setProdName("");
+  }, [setActiveBranches, setActivePeriod, setFilter]);
 
   if (pathname === "/reports") return null;
 
@@ -1139,7 +1297,7 @@ export default function GlobalFilterBar() {
     (salesG1.length > 0 ||
       salesG2.length > 0 ||
       salesG3.length > 0 ||
-      salesProduct !== "");
+      salesProduct.length > 0);
 
   const isAnyInstantChanged =
     activeBranches.length > 0 ||
@@ -1147,6 +1305,11 @@ export default function GlobalFilterBar() {
     activeRegions.length > 0 ||
     dateFrom ||
     dateTo ||
+    (isEmployeesPage && employee.length > 0) ||
+    (isEmployeesPage && workShift !== "all") ||
+    (isEmployeesPage &&
+      (returnRateRange[0] !== 0 || returnRateRange[1] !== 100)) ||
+    (isCustomersPage && holiday !== "") ||
     salesInstantDirty;
 
   return (
@@ -1214,6 +1377,69 @@ export default function GlobalFilterBar() {
           manyLabel={(n) => `${n} فروع`}
         />
 
+        {isCustomersPage && (
+          <Dropdown
+            icon={Calendar}
+            label="المناسبات"
+            value={holiday}
+            options={
+              CUSTOMER_HOLIDAYS as unknown as { value: string; label: string }[]
+            }
+            onChange={(v) => setFilter("holiday", v)}
+            accent="var(--accent-amber)"
+          />
+        )}
+
+        {isEmployeesPage && (
+          <MultiSelectDropdown
+            icon={UsersIcon}
+            label="اسم الموظف"
+            selectedValues={employee}
+            options={EMPLOYEES}
+            onChange={(v) => setFilter("employee", v)}
+            accent="var(--accent-amber)"
+            manyLabel={(n) => `${n} موظفين`}
+          />
+        )}
+
+        {isEmployeesPage && (
+          <Dropdown
+            icon={Clock}
+            label="فترة الدوام"
+            value={workShift}
+            options={WORK_SHIFTS as unknown as { value: string; label: string }[]}
+            onChange={(v) =>
+              setFilter(
+                "workShift",
+                (v === "morning" || v === "evening" ? v : "all") as
+                  | "all"
+                  | "morning"
+                  | "evening",
+              )
+            }
+            accent="var(--accent-cyan)"
+          />
+        )}
+
+        {isEmployeesPage && (
+          <Dropdown
+            icon={Percent}
+            label="نسبة المرتجعات"
+            value={`${returnRateRange[0]}-${returnRateRange[1]}`}
+            options={RETURN_RATE_RANGES.map((r) => ({
+              value: `${r.range[0]}-${r.range[1]}`,
+              label: r.label,
+            }))}
+            onChange={(v) => {
+              const hit = RETURN_RATE_RANGES.find(
+                (r) => `${r.range[0]}-${r.range[1]}` === v,
+              );
+              setFilter("returnRateRange", hit ? hit.range : [0, 100]);
+            }}
+            accent="var(--accent-red)"
+          />
+        )}
+
         {isSalesPage && (
           <>
             <MultiSelectDropdown
@@ -1243,91 +1469,137 @@ export default function GlobalFilterBar() {
               accent="#ea580c"
               manyLabel={(n) => `${n} مجموعات`}
             />
-            <Dropdown
+            <MultiSelectDropdown
               icon={Package}
               label="المنتج"
-              value={salesProduct}
+              selectedValues={salesProduct}
               options={SALES_INSTANT_PRODUCTS}
               onChange={setSalesProduct}
               accent="#00d4ff"
+              manyLabel={(n) => `${n} منتجات`}
             />
           </>
         )}
 
-        {/* Divider */}
-        <div
-          style={{
-            width: 1,
-            height: 20,
-            background: "#000",
-            marginInline: 4,
-          }}
-        />
+        {!isEmployeesPage && (
+          <>
+            {/* Divider */}
+            <div
+              style={{
+                width: 1,
+                height: 20,
+                background: "#000",
+                marginInline: 4,
+              }}
+            />
 
-        {/* ── فلاتر التقارير ── */}
-        <span
-          style={{
-            fontSize: 9,
-            fontWeight: 800,
-            color: "#000",
-            letterSpacing: ".5px",
-            whiteSpace: "nowrap",
-            textTransform: "uppercase",
-          }}
-        >
-          📊 تقارير تفصيلية
-        </span>
+            {/* ── فلاتر التقارير ── */}
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 800,
+                color: "#000",
+                letterSpacing: ".5px",
+                whiteSpace: "nowrap",
+                textTransform: "uppercase",
+              }}
+            >
+              📊 تقارير تفصيلية
+            </span>
 
-        <SearchDropdown
-          icon={Truck}
-          label="الموزع"
-          value={distributor}
-          options={DISTRIBUTORS}
-          onChange={setDistributor}
-          accent="#f59e0b"
-        />
+            {!isCustomersPage && (
+              <SearchDropdown
+                icon={Truck}
+                label="الموزع"
+                value={distributor}
+                options={DISTRIBUTORS}
+                onChange={setDistributor}
+                accent="#f59e0b"
+              />
+            )}
 
-        <SearchDropdown
-          icon={Package}
-          label="الفئة"
-          value={category}
-          options={CATEGORIES}
-          onChange={setCategory}
-          accent="#3b82f6"
-        />
+            <SearchDropdown
+              icon={Package}
+              label="الفئة"
+              value={category}
+              options={CATEGORIES}
+              onChange={setCategory}
+              accent="#3b82f6"
+            />
 
-        <SearchDropdown
-          icon={Search}
-          label="المنتج"
-          value={product}
-          options={PRODUCTS}
-          onChange={setProduct}
-          accent="#00d4ff"
-        />
+            {!isCustomersPage && (
+              <SearchDropdown
+                icon={Search}
+                label="المنتج"
+                value={product}
+                options={PRODUCTS}
+                onChange={setProduct}
+                accent="#00d4ff"
+              />
+            )}
 
-        <Dropdown
-          icon={Percent}
-          label="الخصم"
-          value={discount}
-          options={[
-            { value: "", label: "الخصم" },
-            ...DISCOUNTS.map((d) => ({ value: d, label: d })),
-          ]}
-          onChange={setDiscount}
-          accent="#ef4444"
-        />
+            {isProductsPage && (
+              <>
+                <SearchDropdown
+                  icon={Layers}
+                  label="المجموعة الأولى"
+                  value={prodG1}
+                  options={PRODUCTS_GROUP_1}
+                  onChange={setProdG1}
+                  accent="var(--accent-amber)"
+                />
+                <SearchDropdown
+                  icon={Layers}
+                  label="المجموعة الثانية"
+                  value={prodG2}
+                  options={PRODUCTS_GROUP_2}
+                  onChange={setProdG2}
+                  accent="#f59e0b"
+                />
+                <SearchDropdown
+                  icon={Layers}
+                  label="المجموعة الثالثة"
+                  value={prodG3}
+                  options={PRODUCTS_GROUP_3}
+                  onChange={setProdG3}
+                  accent="#ea580c"
+                />
+                <SearchDropdown
+                  icon={Package}
+                  label="المنتجات"
+                  value={prodName}
+                  options={PRODUCTS}
+                  onChange={setProdName}
+                  accent="#00d4ff"
+                />
+              </>
+            )}
 
-        <Dropdown
-          icon={CreditCard}
-          label="نوع الدفع"
-          value={paymentType}
-          options={[
-            { value: "", label: "نوع الدفع" },
-            ...PAYMENT_TYPES.map((p) => ({ value: p, label: p })),
-          ]}
-          onChange={setPaymentType}
-          accent="#a855f7"
-        />
+            <Dropdown
+              icon={Percent}
+              label="الخصم"
+              value={discount}
+              options={[
+                { value: "", label: "الخصم" },
+                ...DISCOUNTS.map((d) => ({ value: d, label: d })),
+              ]}
+              onChange={setDiscount}
+              accent="#ef4444"
+            />
+
+            <Dropdown
+              icon={CreditCard}
+              label="نوع الدفع"
+              value={paymentType}
+              options={[
+                { value: "", label: "نوع الدفع" },
+                ...PAYMENT_TYPES.map((p) => ({ value: p, label: p })),
+              ]}
+              onChange={setPaymentType}
+              accent="#a855f7"
+            />
+          </>
+        )}
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />

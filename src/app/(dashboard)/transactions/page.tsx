@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Receipt,
   DollarSign,
-  TrendingUp,
   ShoppingCart,
   Package,
   AlertTriangle,
@@ -26,6 +25,8 @@ const ChartCard = dynamic(
 );
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import SectionTitleWithFlag from "@/components/ui/SectionTitleWithFlag";
+import InvoicesTable from "@/components/ui/InvoicesTable";
+import InvoiceItemsTable from "@/components/ui/InvoiceItemsTable";
 
 // ── بيانات الفروع مع sub و sub al sub ──
 const branchData = [
@@ -487,7 +488,7 @@ export default function TransactionsPage() {
   const totalVoids = branchData.reduce((a, b) => a + b.voidCount, 0);
 
   // ── Holiday Impact on Transaction Volume ──
-  const days = Array.from({ length: 90 }, (_, i) => `Day ${i + 1}`);
+  const days = Array.from({ length: 90 }, (_, i) => `يوم ${i + 1}`);
   const holidayData = useMemo(
     () =>
       days.map((_, i) => {
@@ -721,7 +722,7 @@ export default function TransactionsPage() {
     },
     {
       icon: Hash,
-      label: "عدد المعاملات",
+      label: "عدد الفواتير",
       value: "176K",
       color: "var(--accent-blue)",
       dim: "rgba(37,99,235,0.1)",
@@ -832,7 +833,7 @@ export default function TransactionsPage() {
           delay={1}
         />
         <ChartCard
-          title="عدد المعاملات حسب السنة والفرع"
+          title="عدد الفواتير حسب السنة والفرع"
           subtitle="Count of Transactions by Year & Branch Location"
           option={waterfallOption}
           height="320px"
@@ -878,7 +879,7 @@ export default function TransactionsPage() {
                 {[
                   "الفرع / الفئة / المنتج",
                   "صافي المبيعات",
-                  "عدد المعاملات",
+                  "عدد الفواتير",
                   "عدد الفواتير",
                   "عدد Void",
                   "ATV",
@@ -1260,6 +1261,9 @@ export default function TransactionsPage() {
           </table>
         </div>
       </div>
+
+      <InvoicesTable />
+      <InvoiceItemsTable />
     </div>
   );
 }

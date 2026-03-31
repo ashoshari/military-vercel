@@ -20,15 +20,10 @@ import BranchMap from "@/components/ui/BranchMap";
 import MetricsBubblePlot, {
   type MetricsBubblePoint,
 } from "@/components/ui/MetricsBubblePlot";
-import {
-  BRANCH_PRODUCT_ANALYSIS,
-  buildProductBubbleRows,
-  type ProductBubbleRow,
-} from "@/lib/branchProductAnalysis";
+import { BRANCH_PRODUCT_ANALYSIS } from "@/lib/branchProductAnalysis";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import DrillDownTable from "@/components/ui/DrillDownTable";
 import {
-  AnalyticsBarCell,
   AnalyticsTable,
   analyticsTdBaseStyle,
 } from "@/components/ui/AnalyticsTable";
@@ -59,6 +54,97 @@ export default function BranchesPage() {
   const branches = useMemo(() => getBranchData(), []);
 
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+  const [basketPriceActiveBranches, setBasketPriceActiveBranches] = useState<
+    string[]
+  >(() => BRANCH_PRODUCT_ANALYSIS.map((b) => b.branch));
+  const [basketPriceCategory, setBasketPriceCategory] = useState<string | null>(
+    null,
+  );
+
+  // ألوان الفئات (مطابقة لصفحة /products)
+  const categoryColors = useMemo(
+    () => [
+      palette.primaryGreen,
+      palette.primaryCyan,
+      palette.primaryBlue,
+      palette.primaryIndigo,
+      palette.primaryAmber,
+      palette.primaryRed,
+      "#0d9488",
+      "#059669",
+    ],
+    [palette],
+  );
+
+  // صافي الأرباح التقريبي حسب الفئة عبر جميع الفروع
+  const profitByCategory = useMemo(() => {
+    const map = new Map<string, number>();
+    BRANCH_PRODUCT_ANALYSIS.forEach((b) => {
+      b.cats.forEach((c) => {
+        // تقدير ربح تقريبي للفئة بناءً على حجم السلة و ATv
+        const estProfit = c.atv * c.basket * c.vol * 0.12;
+        map.set(c.name, (map.get(c.name) ?? 0) + estProfit);
+      });
+    });
+    const entries = Array.from(map.entries());
+    return {
+      labels: entries.map(([name]) => name),
+      values: entries.map(([, v]) => Math.round(v)),
+    };
+  }, []);
+
+  const profitByCategoryOption = useMemo(
+    () => ({
+      tooltip: { trigger: "axis" as const },
+      grid: {
+        bottom: "0%",
+        top: "12%",
+        left: "3%",
+        right: "2%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "category" as const,
+        data: profitByCategory.labels,
+        axisLabel: {
+          rotate: 28,
+          fontSize: 9,
+          interval: 0,
+        },
+        splitLine: { show: false },
+      },
+      yAxis: {
+        type: "value" as const,
+        axisLabel: {
+          formatter: (v: number) => `${(v / 1000).toFixed(0)}K`,
+          fontSize: 9,
+        },
+      },
+      series: [
+        {
+          type: "bar" as const,
+          barMaxWidth: 44,
+          data: profitByCategory.values.map((v, i) => ({
+            value: v,
+            itemStyle: {
+              color: categoryColors[i % categoryColors.length],
+              borderRadius: [6, 6, 0, 0],
+            },
+            label: {
+              show: true,
+              position: "top" as const,
+              fontSize: 9,
+              fontWeight: "bold" as const,
+              color: categoryColors[i % categoryColors.length],
+              formatter: (p: { value: number }) =>
+                `${(p.value / 1000).toFixed(1)}K`,
+            },
+          })),
+        },
+      ],
+    }),
+    [categoryColors, profitByCategory],
+  );
 
   const netSalesByBranchOption = useMemo(() => {
     // ── صافي المبيعات عبر الزمن لكل فرع ──
@@ -799,13 +885,11 @@ export default function BranchesPage() {
 
         function renderYoyDeltaCell(delta: number) {
           const value = Math.abs(delta);
-          const color = delta >= 0 ? "#3b82f6" : "#ef4444";
+          // استخدم أخضر للفرق الإيجابي وأحمر داكن للسلبي
+          const color = delta >= 0 ? "var(--accent-green)" : "rgb(239, 68, 68)";
           const text = fmtDelta(delta);
           const isPositive = delta >= 0;
-          const widthPct = Math.max(
-            2,
-            (value / Math.max(1, maxAbsDelta)) * 50,
-          );
+          const widthPct = Math.max(2, (value / Math.max(1, maxAbsDelta)) * 50);
 
           return (
             <td
@@ -824,7 +908,6 @@ export default function BranchesPage() {
                     : "translate(-100%, -50%)",
                   height: 16,
                   background: color,
-                  opacity: 0.25,
                   borderRadius: 3,
                   width: `${widthPct}%`,
                 }}
@@ -875,8 +958,8 @@ export default function BranchesPage() {
                     align: "right",
                     width: 160,
                   },
-                  { label: "مبيعات العام السابق", align: "center", width: 88 },
                   { label: "مبيعات العام الحالي", align: "center", width: 88 },
+                  { label: "مبيعات العام السابق", align: "center", width: 88 },
                   { label: "الفرق", align: "center", width: 300 },
                   { label: "التغير%", align: "center", width: 88 },
                 ]}
@@ -918,10 +1001,10 @@ export default function BranchesPage() {
                           </div>
                         </td>
                         <td style={analyticsTdBaseStyle("center")} dir="ltr">
-                          {fmt(d.py)}
+                          {fmt(d.ac)}
                         </td>
                         <td style={analyticsTdBaseStyle("center")} dir="ltr">
-                          {fmt(d.ac)}
+                          {fmt(d.py)}
                         </td>
                         {renderYoyDeltaCell(delta)}
                         <td style={analyticsTdBaseStyle("center")}>
@@ -1246,85 +1329,333 @@ export default function BranchesPage() {
       })()}
       {/* ── تحليل المنتجات: حجم المبيعات + متوسط السعر ── */}
       {(() => {
-        const t1 = buildProductBubbleRows(
-          BRANCH_PRODUCT_ANALYSIS,
-          expandedCats,
-          setExpandedCats,
-          "pv",
-        );
-        const toBubble = (
-          r: ProductBubbleRow,
-          xValue: number,
-          yValue: number,
-        ): MetricsBubblePoint => {
-          /** قيمة تجريبية لمتوسط ربح السلة (تُشتق من ATV والسعر وحجم السلة) لتحجيم الفقاعات */
-          const basketProfit = Number(
-            (r.atv * 0.24 + r.price * r.basket * 0.42).toFixed(2),
-          );
-          return {
-            key: r.key,
-            label: r.label,
-            depth: r.depth as 0 | 1 | 2,
-            xValue,
-            yValue,
-            hasChildren: r.has,
-            open: r.open,
-            onClick: r.click,
-            vol: r.vol,
-            price: r.price,
-            basket: r.basket,
-            atv: r.atv,
-            basketProfit,
-          };
-        };
-        const bubblePoints1 = t1.map((r) => toBubble(r, r.vol, r.price));
+        // إما عرض الفئات (مجموعة) أو المنتجات حسب الفئة المختارة
+        const points: MetricsBubblePoint[] = [];
+
+        if (basketPriceCategory) {
+          // عرض المواد (المنتجات) لفئة واحدة، عبر الأسواق المحددة فقط
+          BRANCH_PRODUCT_ANALYSIS.forEach((b) => {
+            if (!basketPriceActiveBranches.includes(b.branch)) return;
+            b.cats.forEach((c) => {
+              if (c.name !== basketPriceCategory) return;
+              c.products.forEach((p) => {
+                const basketProfit = Number(
+                  (p.atv * 0.24 + p.price * p.basket * 0.42).toFixed(2),
+                );
+                points.push({
+                  key: `bp_prod_${b.branch}_${c.name}_${p.name}`,
+                  label: `${p.name} — ${b.branch}`,
+                  depth: 2,
+                  xValue: p.vol,
+                  yValue: p.price,
+                  hasChildren: false,
+                  open: false,
+                  onClick: undefined,
+                  vol: p.vol,
+                  price: p.price,
+                  basket: p.basket,
+                  atv: p.atv,
+                  basketProfit,
+                });
+              });
+            });
+          });
+        } else {
+          // عرض الفئات (مجموعة) — مع إمكانية تصفية الأسواق
+          BRANCH_PRODUCT_ANALYSIS.forEach((b) => {
+            if (!basketPriceActiveBranches.includes(b.branch)) return;
+            b.cats.forEach((c) => {
+              const basketProfit = Number(
+                (c.atv * 0.24 + c.price * c.basket * 0.42).toFixed(2),
+              );
+              points.push({
+                key: `bp_cat_${b.branch}_${c.name}`,
+                label: c.name,
+                depth: 1,
+                xValue: c.basket,
+                yValue: c.atv,
+                hasChildren: true,
+                open: false,
+                onClick: () => setBasketPriceCategory(c.name),
+                vol: c.vol,
+                price: c.price,
+                basket: c.basket,
+                atv: c.atv,
+                basketProfit,
+              });
+            });
+          });
+        }
+
         return (
           <div className="glass-panel p-0 overflow-hidden w-full">
             <div
-              className="px-5 py-3 border-b"
+              className="flex items-center justify-between px-5 py-3 border-b"
               style={{ borderColor: "var(--border-subtle)" }}
             >
-              <div className="flex items-center gap-2">
-                <ChartTitleFlagBadge flag="green" size="sm" />
-                <h3
-                  className="text-sm font-semibold"
-                  style={{ color: "var(--text-primary)" }}
+              <div>
+                <div className="flex items-center gap-2">
+                  <ChartTitleFlagBadge flag="green" size="sm" />
+                  <h3
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    تغير المبيعات حسب السعر
+                  </h3>
+                </div>
+                <p
+                  className="text-[10px] mt-0.5"
+                  style={{ color: "var(--text-muted)" }}
                 >
-                  تغير المبيعات حسب السعر
-                </h3>
+                  الفئات حسب الأسواق • انقر على فئة لعرض المواد المرتبطة بها •
+                  حجم الدائرة يمثل الربح التقديري
+                </p>
               </div>
-              <p
-                className="text-[10px] mt-0.5"
-                style={{ color: "var(--text-muted)" }}
-              >
-                انقر على دائرة الفرع أو الفئة للتوسيع • المحور الأفقي: الحجم،
-                العمودي: م. السعر • حجم الدائرة: متوسط ربح السلة
-              </p>
+
+              {/* فلاتر الأسواق */}
+              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                {basketPriceCategory && (
+                  <button
+                    type="button"
+                    className="mt-1 text-[9px] underline"
+                    style={{ color: "var(--accent-blue)" }}
+                    onClick={() => setBasketPriceCategory(null)}
+                  >
+                    الرجوع إلى عرض الفئات
+                  </button>
+                )}
+                {BRANCH_PRODUCT_ANALYSIS.map((b) => {
+                  const on = basketPriceActiveBranches.includes(b.branch);
+                  return (
+                    <button
+                      key={b.branch}
+                      type="button"
+                      onClick={() => {
+                        setBasketPriceActiveBranches((prev) => {
+                          if (prev.length === BRANCH_PRODUCT_ANALYSIS.length) {
+                            return [b.branch];
+                          }
+                          const set = new Set(prev);
+                          if (set.has(b.branch)) {
+                            if (set.size <= 1) return prev;
+                            set.delete(b.branch);
+                          } else {
+                            set.add(b.branch);
+                          }
+                          return Array.from(set);
+                        });
+                      }}
+                      className="px-2 py-0.5 rounded-full border transition-colors"
+                      style={{
+                        borderColor: on
+                          ? "var(--accent-green)"
+                          : "var(--border-subtle)",
+                        background: on
+                          ? "rgba(34,197,94,0.12)"
+                          : "var(--bg-elevated)",
+                        color: on ? "var(--accent-green)" : "var(--text-muted)",
+                      }}
+                    >
+                      {b.branch}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <MetricsBubblePlot
-              points={bubblePoints1}
-              xLabel="متوسط حجم السلة"
-              yLabel="متوسط سعر السلة"
+              points={points}
+              xLabel="عدد المنتجات المباعة"
+              yLabel="متوسط اسعار المنتجات"
               variant="blue"
               plotHeight={420}
               bubbleSizing="basketProfit"
+              detailLabels={{
+                vol: "عدد المنتجات المباعة",
+                price: "متوسط اسعار المنتجات",
+              }}
+              entitySubtitle={(d) => (d === 2 ? "منتج" : "فئة")}
             />
           </div>
         );
       })()}
 
-      {/* ── خريطة الفروع + صافي المبيعات ── */}
+      {/* ── تغير المبيعات حسب السعر + صافي الأرباح حسب الفئة ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {(() => {
+          // same bubble chart as above, but rendered inside grid column
+          const pointsLocal: MetricsBubblePoint[] = [];
+          if (basketPriceCategory) {
+            BRANCH_PRODUCT_ANALYSIS.forEach((b) => {
+              if (!basketPriceActiveBranches.includes(b.branch)) return;
+              b.cats.forEach((c) => {
+                if (c.name !== basketPriceCategory) return;
+                c.products.forEach((p) => {
+                  const basketProfit = Number(
+                    (p.atv * 0.24 + p.price * p.basket * 0.42).toFixed(2),
+                  );
+                  pointsLocal.push({
+                    key: `bp_prod_${b.branch}_${c.name}_${p.name}`,
+                    label: `${p.name} — ${b.branch}`,
+                    depth: 2,
+                    xValue: p.vol,
+                    yValue: p.price,
+                    hasChildren: false,
+                    open: false,
+                    onClick: undefined,
+                    vol: p.vol,
+                    price: p.price,
+                    basket: p.basket,
+                    atv: p.atv,
+                    basketProfit,
+                  });
+                });
+              });
+            });
+          } else {
+            BRANCH_PRODUCT_ANALYSIS.forEach((b) => {
+              if (!basketPriceActiveBranches.includes(b.branch)) return;
+              b.cats.forEach((c) => {
+                const basketProfit = Number(
+                  (c.atv * 0.24 + c.price * c.basket * 0.42).toFixed(2),
+                );
+                pointsLocal.push({
+                  key: `bp_cat_${b.branch}_${c.name}`,
+                  label: c.name,
+                  depth: 1,
+                  xValue: c.basket,
+                  yValue: c.atv,
+                  hasChildren: true,
+                  open: false,
+                  onClick: () => setBasketPriceCategory(c.name),
+                  vol: c.vol,
+                  price: c.price,
+                  basket: c.basket,
+                  atv: c.atv,
+                  basketProfit,
+                });
+              });
+            });
+          }
+
+          return (
+            <div className="glass-panel p-0 overflow-hidden w-full">
+              <div
+                className="flex items-center justify-between px-5 py-3 border-b"
+                style={{ borderColor: "var(--border-subtle)" }}
+              >
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ChartTitleFlagBadge flag="green" size="sm" />
+                    <h3
+                      className="text-sm font-semibold"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      تغير المبيعات حسب السعر
+                    </h3>
+                  </div>
+                  <p
+                    className="text-[10px] mt-0.5"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    الفئات حسب الأسواق • انقر على فئة لعرض المواد المرتبطة بها •
+                    حجم الدائرة يمثل الربح التقديري
+                  </p>
+                </div>
+
+                {/* فلاتر الأسواق */}
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                  {basketPriceCategory && (
+                    <button
+                      type="button"
+                      className="mt-1 text-[9px] underline"
+                      style={{ color: "var(--accent-blue)" }}
+                      onClick={() => setBasketPriceCategory(null)}
+                    >
+                      الرجوع إلى عرض الفئات
+                    </button>
+                  )}
+                  {BRANCH_PRODUCT_ANALYSIS.map((b) => {
+                    const on = basketPriceActiveBranches.includes(b.branch);
+                    return (
+                      <button
+                        key={b.branch}
+                        type="button"
+                        onClick={() => {
+                          setBasketPriceActiveBranches((prev) => {
+                            if (
+                              prev.length === BRANCH_PRODUCT_ANALYSIS.length
+                            ) {
+                              return [b.branch];
+                            }
+                            const set = new Set(prev);
+                            if (set.has(b.branch)) {
+                              if (set.size <= 1) return prev;
+                              set.delete(b.branch);
+                            } else {
+                              set.add(b.branch);
+                            }
+                            return Array.from(set);
+                          });
+                        }}
+                        className="px-2 py-0.5 rounded-full border transition-colors"
+                        style={{
+                          borderColor: on
+                            ? "var(--accent-green)"
+                            : "var(--border-subtle)",
+                          background: on
+                            ? "rgba(34,197,94,0.12)"
+                            : "var(--bg-elevated)",
+                          color: on
+                            ? "var(--accent-green)"
+                            : "var(--text-muted)",
+                        }}
+                      >
+                        {b.branch}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <MetricsBubblePlot
+                points={pointsLocal}
+                xLabel="عدد المنتجات المباعة"
+                yLabel="متوسط اسعار المنتجات"
+                variant="blue"
+                plotHeight={420}
+                bubbleSizing="basketProfit"
+                detailLabels={{
+                  vol: "عدد المنتجات المباعة",
+                  price: "متوسط اسعار المنتجات",
+                }}
+                entitySubtitle={(d) => (d === 2 ? "منتج" : "فئة")}
+              />
+            </div>
+          );
+        })()}
+
+        <ChartCard
+          title="صافي الأرباح حسب الفئة"
+          titleFlag="green"
+          subtitle="Net Profit by Category"
+          option={profitByCategoryOption}
+          height="500px"
+          delay={1}
+        />
+      </div>
+
+      {/* خريطة الفروع + صافي المبيعات عبر الزمن */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
         <BranchMap />
         <ChartCard
           title="صافي المبيعات عبر الزمن لكل فرع"
           titleFlag="green"
           subtitle="Net Sales Over Time by Branch"
           option={netSalesByBranchOption}
-          height="460px"
+          height="420px"
           delay={2}
         />
       </div>
+
       {/* جدول التحليل التفصيلي — سوق / فئة / منتج */}
       <DrillDownTable />
 

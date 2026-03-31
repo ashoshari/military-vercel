@@ -12,17 +12,12 @@ import {
   CheckCircle,
   BarChart3,
   Undo2,
-  ShoppingCart,
 } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import MetricsBubblePlot, {
   type MetricsBubblePoint,
 } from "@/components/ui/MetricsBubblePlot";
-import {
-  BRANCH_PRODUCT_ANALYSIS,
-  buildProductBubbleRows,
-  type ProductBubbleRow,
-} from "@/lib/branchProductAnalysis";
+import { BRANCH_PRODUCT_ANALYSIS } from "@/lib/branchProductAnalysis";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -33,78 +28,10 @@ const ChartCard = dynamic(
 );
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 
-function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace("#", "");
-  const n =
-    h.length === 3
-      ? h
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : h;
-  const r = parseInt(n.slice(0, 2), 16);
-  const g = parseInt(n.slice(2, 4), 16);
-  const b = parseInt(n.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
 export default function OperationsPage() {
   const palette = useResolvedAnalyticsPalette();
-  const [expandedBasketAtv, setExpandedBasketAtv] = useState<
-    Record<string, boolean>
-  >({});
-
-  const annualProfitOption = useMemo(
-    () => ({
-      xAxis: {
-        type: "category" as const,
-        data: [
-          "يناير",
-          "فبراير",
-          "مارس",
-          "أبريل",
-          "مايو",
-          "يونيو",
-          "يوليو",
-          "أغسطس",
-          "سبتمبر",
-          "أكتوبر",
-          "نوفمبر",
-          "ديسمبر",
-        ],
-      },
-      yAxis: {
-        type: "value" as const,
-        axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
-      },
-      series: [
-        {
-          name: "الأرباح",
-          type: "line",
-          smooth: true,
-          data: [
-            580000, 620000, 710000, 680000, 720000, 840000, 790000, 810000,
-            870000, 830000, 920000, 980000,
-          ],
-          lineStyle: { color: palette.primaryGreen, width: 3 },
-          itemStyle: { color: palette.primaryGreen },
-          areaStyle: {
-            color: {
-              type: "linear" as const,
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                { offset: 0, color: hexToRgba(palette.primaryGreen, 0.18) },
-                { offset: 1, color: hexToRgba(palette.primaryGreen, 0) },
-              ],
-            },
-          },
-        },
-      ],
-    }),
-    [palette],
+  const [activeBubbleBranches, setActiveBubbleBranches] = useState<string[]>(
+    () => BRANCH_PRODUCT_ANALYSIS.map((b) => b.branch),
   );
 
   const operationalKPIs = [
@@ -399,31 +326,29 @@ export default function OperationsPage() {
       />
 
       {(() => {
-        const t2 = buildProductBubbleRows(
-          BRANCH_PRODUCT_ANALYSIS,
-          expandedBasketAtv,
-          setExpandedBasketAtv,
-          "bs",
-        );
-        const toBubble = (
-          r: ProductBubbleRow,
-          xValue: number,
-          yValue: number,
-        ): MetricsBubblePoint => ({
-          key: r.key,
-          label: r.label,
-          depth: r.depth as 0 | 1 | 2,
-          xValue,
-          yValue,
-          hasChildren: r.has,
-          open: r.open,
-          onClick: r.click,
-          vol: r.vol,
-          price: r.price,
-          basket: r.basket,
-          atv: r.atv,
+        // استخدم أسماء الفئات، مع إمكانية تصفية الأسواق
+        const categoryPoints: MetricsBubblePoint[] = [];
+
+        BRANCH_PRODUCT_ANALYSIS.forEach((b, bi) => {
+          if (!activeBubbleBranches.includes(b.branch)) return;
+          b.cats.forEach((c, ci) => {
+            categoryPoints.push({
+              key: `bs_cat_${bi}_${ci}`,
+              label: c.name,
+              depth: 1,
+              xValue: c.basket,
+              yValue: c.atv,
+              hasChildren: false,
+              open: false,
+              onClick: undefined,
+              vol: c.vol,
+              price: c.price,
+              basket: c.basket,
+              atv: c.atv,
+            });
+          });
         });
-        const bubblePoints2 = t2.map((r) => toBubble(r, r.basket, r.atv));
+
         return (
           <div className="glass-panel p-0 overflow-hidden w-full">
             <div
@@ -443,17 +368,60 @@ export default function OperationsPage() {
                 className="text-[10px] mt-0.5"
                 style={{ color: "var(--text-muted)" }}
               >
-                انقر على دائرة الفرع أو الفئة للتوسيع • المحور الأفقي: السلة،
-                العمودي: ATV
+                الفئات الرئيسية فقط • المحور الأفقي: متوسط حجم السلة • العمودي:
+                متوسط قيمة الفاتورة (ATV)
               </p>
             </div>
             <MetricsBubblePlot
-              points={bubblePoints2}
+              points={categoryPoints}
               xLabel="متوسط السلة"
               yLabel="ATV"
               variant="green"
               plotHeight={420}
             />
+            {/* فلاتر الأسواق */}
+            <div className="px-5 pb-4 pt-0">
+              <div className="flex flex-wrap gap-1.5 text-[10px]">
+                {BRANCH_PRODUCT_ANALYSIS.map((b) => {
+                  const on = activeBubbleBranches.includes(b.branch);
+                  return (
+                    <button
+                      key={b.branch}
+                      type="button"
+                      onClick={() => {
+                        setActiveBubbleBranches((prev) => {
+                          // إذا كانت كلها مفعّلة ونقرنا على واحد → فعّل هذا فقط
+                          if (prev.length === BRANCH_PRODUCT_ANALYSIS.length) {
+                            return [b.branch];
+                          }
+                          const set = new Set(prev);
+                          if (set.has(b.branch)) {
+                            // لا تسمح بإلغاء آخر سوق لتفادي فراغ الرسم
+                            if (set.size <= 1) return prev;
+                            set.delete(b.branch);
+                          } else {
+                            set.add(b.branch);
+                          }
+                          return Array.from(set);
+                        });
+                      }}
+                      className="px-2 py-0.5 rounded-full border transition-colors"
+                      style={{
+                        borderColor: on
+                          ? "var(--accent-green)"
+                          : "var(--border-subtle)",
+                        background: on
+                          ? "rgba(34,197,94,0.12)"
+                          : "var(--bg-elevated)",
+                        color: on ? "var(--accent-green)" : "var(--text-muted)",
+                      }}
+                    >
+                      {b.branch}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         );
       })()}

@@ -179,20 +179,7 @@ export default function SalesMethodPage() {
   const methodTrendOption = {
     xAxis: {
       type: "category" as const,
-      data: [
-        "يناير",
-        "فبراير",
-        "مارس",
-        "أبريل",
-        "مايو",
-        "يونيو",
-        "يوليو",
-        "أغسطس",
-        "سبتمبر",
-        "أكتوبر",
-        "نوفمبر",
-        "ديسمبر",
-      ],
+      data: Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`),
     },
     yAxis: {
       type: "value" as const,
@@ -295,20 +282,7 @@ export default function SalesMethodPage() {
   const salesTypeTrendOption = {
     xAxis: {
       type: "category" as const,
-      data: [
-        "يناير",
-        "فبراير",
-        "مارس",
-        "أبريل",
-        "مايو",
-        "يونيو",
-        "يوليو",
-        "أغسطس",
-        "سبتمبر",
-        "أكتوبر",
-        "نوفمبر",
-        "ديسمبر",
-      ],
+      data: Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`),
     },
     yAxis: {
       type: "value" as const,

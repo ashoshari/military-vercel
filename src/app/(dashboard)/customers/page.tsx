@@ -4,7 +4,7 @@ import "@/lib/echarts/register-bar-line-pie";
 import "@/lib/echarts/register-heatmap";
 import "@/lib/echarts/register-scatter";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   UserCircle,
@@ -22,11 +22,29 @@ const ChartCard = dynamic(
   },
 );
 import CustomerInsightsTable from "@/components/ui/CustomerInsightsTable";
+import CustomerDataTable from "@/components/ui/CustomerDataTable";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 
 export default function CustomersPage() {
   const palette = useResolvedAnalyticsPalette();
-  const greenScale = useMemo(() => [...palette.greenScale], [palette]);
+  const greenToRedScale = useMemo(
+    () => [
+      "#16a34a", // green
+      "#84cc16", // lime
+      "#facc15", // yellow
+      "#fb923c", // orange
+      "#ef4444", // red
+      "#b91c1c", // dark red
+    ],
+    [],
+  );
+
+  const MARKETS = useMemo(
+    () => ["سوق عمّان", "سوق إربد", "سوق الزرقاء", "سوق العقبة", "سوق الكرك"],
+    [],
+  );
+  /** [] = كل الأسواق */
+  const [activeMarkets, setActiveMarkets] = useState<string[]>([]);
   // ── Heatmap أوقات الذروة ──
   const hours = [
     "6ص",
@@ -88,7 +106,7 @@ export default function CustomersPage() {
       orient: "horizontal" as const,
       left: "center",
       bottom: "0%",
-      inRange: { color: greenScale },
+      inRange: { color: greenToRedScale },
       textStyle: { color: "var(--text-muted)" },
     },
     series: [
@@ -105,6 +123,11 @@ export default function CustomersPage() {
 
   // ── طريقة الدفع ──
   const paymentMethodOption = {
+    tooltip: {
+      trigger: "item" as const,
+      formatter: (p: { name: string; value: number; percent: number }) =>
+        `${p.name}: <b>${p.percent.toFixed(0)}%</b>`,
+    },
     series: [
       {
         type: "pie",
@@ -112,20 +135,32 @@ export default function CustomersPage() {
         center: ["50%", "45%"],
         data: [
           {
-            name: "نقدي",
-            value: 45,
+            name: "كاش",
+            value: 38,
             itemStyle: { color: palette.primaryGreen },
           }, // green
-          { name: "فيزا", value: 25, itemStyle: { color: "#0ea5e9" } }, // cyan/blue
           {
-            name: "محفظة إلكترونية",
-            value: 18,
+            name: "ذمم",
+            value: 14,
+            itemStyle: { color: "#f59e0b" },
+          }, // amber
+          { name: "فيزا", value: 24, itemStyle: { color: "#0ea5e9" } }, // cyan/blue
+          {
+            name: "كوبون",
+            value: 10,
             itemStyle: { color: "#6366f1" },
           }, // indigo
-          { name: "دفع لاحق", value: 8, itemStyle: { color: "#f59e0b" } }, // amber
-          { name: "آخر", value: 4, itemStyle: { color: "#94a3b8" } }, // muted slate
+          {
+            name: "طلبات",
+            value: 14,
+            itemStyle: { color: "#94a3b8" },
+          }, // muted slate
         ],
-        label: { color: "#94a3b8", fontSize: 11 },
+        label: {
+          color: "#94a3b8",
+          fontSize: 11,
+          formatter: "{b}\n{d}%",
+        },
         labelLine: { lineStyle: { color: "#334155" } },
       },
     ],
@@ -135,20 +170,7 @@ export default function CustomersPage() {
   const discountUsageOption = {
     xAxis: {
       type: "category" as const,
-      data: [
-        "يناير",
-        "فبراير",
-        "مارس",
-        "أبريل",
-        "مايو",
-        "يونيو",
-        "يوليو",
-        "أغسطس",
-        "سبتمبر",
-        "أكتوبر",
-        "نوفمبر",
-        "ديسمبر",
-      ],
+      data: Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`),
     },
     yAxis: [
       {
@@ -207,7 +229,7 @@ export default function CustomersPage() {
         data: [8000, 22000, 32000, 18000, 9000, 3500].map((v, i) => ({
           value: v,
           itemStyle: {
-            color: greenScale[i],
+            color: greenToRedScale[i % greenToRedScale.length],
             borderRadius: [4, 4, 0, 0],
           },
         })),
@@ -217,25 +239,36 @@ export default function CustomersPage() {
   };
 
   // ── Transaction Frequency vs ATV ──
-  const txScatterData: number[][] = [];
-  const seedHash = (s: number) => {
-    let h = s * 2654435761;
-    h = ((h >>> 16) ^ h) * 0x45d9f3b;
-    return ((h >>> 16) ^ h) >>> 0;
-  };
-  for (let i = 0; i < 200; i++) {
-    const h = seedHash(i + 7);
-    const totalTx = (h % 650) + 1;
-    const atv =
-      totalTx > 300
-        ? 2 + (seedHash(i + 99) % 12)
-        : totalTx > 100
-          ? 3 + (seedHash(i + 55) % 30)
-          : 5 + (seedHash(i + 33) % 130);
-    const avgVal = (seedHash(i + 200) % 1880) / 1000;
-    const sz = Math.max(4, Math.min(25, (seedHash(i + 300) % 20) + 4));
-    txScatterData.push([totalTx, atv, avgVal, sz]);
-  }
+  const txScatterData = useMemo(() => {
+    const seedHash = (s: number) => {
+      let h = s * 2654435761;
+      h = ((h >>> 16) ^ h) * 0x45d9f3b;
+      return ((h >>> 16) ^ h) >>> 0;
+    };
+    const out: (number | string)[][] = [];
+    for (let i = 0; i < 200; i++) {
+      const h = seedHash(i + 7);
+      const totalTx = (h % 650) + 1;
+      const atv =
+        totalTx > 300
+          ? 2 + (seedHash(i + 99) % 12)
+          : totalTx > 100
+            ? 3 + (seedHash(i + 55) % 30)
+            : 5 + (seedHash(i + 33) % 130);
+      const avgVal = (seedHash(i + 200) % 1880) / 1000;
+      const sz = Math.max(4, Math.min(25, (seedHash(i + 300) % 20) + 4));
+      const market = MARKETS[seedHash(i + 17) % MARKETS.length];
+      out.push([totalTx, atv, avgVal, sz, market]);
+    }
+    return out;
+  }, [MARKETS]);
+
+  const filteredTxScatterData = useMemo(() => {
+    if (activeMarkets.length === 0) return txScatterData;
+    const set = new Set(activeMarkets);
+    return txScatterData.filter((d) => set.has(d[4] as unknown as string));
+  }, [activeMarkets, txScatterData]);
+
   const txFreqOption = {
     grid: { left: "3%", right: "4%", top: "12%", bottom: "15%" },
     xAxis: {
@@ -261,14 +294,14 @@ export default function CustomersPage() {
       orient: "horizontal" as const,
       left: "center",
       top: 0,
-      inRange: { color: greenScale },
+      inRange: { color: greenToRedScale },
       textStyle: { fontSize: 9, color: "var(--text-muted)" },
       formatter: (v: number) => `${v.toFixed(2)}K`,
     },
     series: [
       {
         type: "scatter",
-        data: txScatterData,
+        data: filteredTxScatterData,
         symbolSize: (d: unknown) => (Array.isArray(d) ? (d[3] as number) : 8),
         encode: { x: 0, y: 1 },
         itemStyle: { opacity: 0.75 },
@@ -353,6 +386,8 @@ export default function CustomersPage() {
         ))}
       </div>
 
+      <CustomerDataTable />
+
       <ChartCard
         title="خريطة حرارية — أوقات الذروة"
         titleFlag="green"
@@ -363,10 +398,71 @@ export default function CustomersPage() {
       />
 
       <ChartCard
-        title="متوسط حجم السلة لكل عميل"
+        title="متوسط حجم السلة لكل سوق"
         titleFlag="green"
         subtitle="Transaction Frequency vs. Average Transaction Value"
         option={txFreqOption}
+        headerExtra={
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+            <span
+              className="font-semibold"
+              style={{ color: "var(--text-muted)" }}
+            >
+              الأسواق:
+            </span>
+            <button
+              type="button"
+              onClick={() => setActiveMarkets([])}
+              className="px-2 py-0.5 rounded-full border transition-colors"
+              style={{
+                borderColor:
+                  activeMarkets.length === 0
+                    ? "var(--accent-green)"
+                    : "var(--border-subtle)",
+                background:
+                  activeMarkets.length === 0
+                    ? "rgba(34,197,94,0.12)"
+                    : "var(--bg-elevated)",
+                color:
+                  activeMarkets.length === 0
+                    ? "var(--accent-green)"
+                    : "var(--text-muted)",
+              }}
+            >
+              كل الأسواق
+            </button>
+            {MARKETS.map((m) => {
+              const on = activeMarkets.includes(m);
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    setActiveMarkets((prev) => {
+                      if (prev.length === 0) return [m];
+                      const set = new Set(prev);
+                      if (set.has(m)) set.delete(m);
+                      else set.add(m);
+                      return Array.from(set);
+                    });
+                  }}
+                  className="px-2 py-0.5 rounded-full border transition-colors"
+                  style={{
+                    borderColor: on
+                      ? "var(--accent-green)"
+                      : "var(--border-subtle)",
+                    background: on
+                      ? "rgba(34,197,94,0.12)"
+                      : "var(--bg-elevated)",
+                    color: on ? "var(--accent-green)" : "var(--text-muted)",
+                  }}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+        }
         height="400px"
         delay={2}
       />

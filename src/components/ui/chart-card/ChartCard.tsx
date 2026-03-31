@@ -29,6 +29,10 @@ interface ChartCardProps {
   titleFlag?: ChartCardTitleFlag;
   titleFlagNumber?: number;
   headerExtra?: React.ReactNode;
+  /** Allow scrolling inside the plot area only. */
+  plotOverflowY?: "hidden" | "auto" | "visible";
+  /** Override the inner ECharts canvas height (enables plot scrolling). */
+  innerChartHeight?: string;
   option: Record<string, unknown>;
   height?: string;
   width?: string;
@@ -124,19 +128,28 @@ function applyLightAxisStyle(
   const lightAxisStyle = {
     axisLine: { lineStyle: { color: "#e2e8f0" } },
     axisTick: { show: false },
-    axisLabel: { color: "#64748b", fontSize: 11 },
     splitLine: { show: false },
   };
-  const applyLightAxis = (ax: Record<string, unknown>) => ({
-    ...lightAxisStyle,
-    ...ax,
-    axisLine: { lineStyle: { color: "#e2e8f0" } },
-    axisLabel: { color: "#64748b", fontSize: 11 },
-  });
-  const applyLightYAxis = (ax: Record<string, unknown>) => ({
-    ...applyLightAxis(ax),
-    splitLine: { show: false },
-  });
+  const applyLightAxis = (ax: Record<string, unknown>) => {
+    const existingAxisLabel = (ax.axisLabel || {}) as Record<string, unknown>;
+    return {
+      ...lightAxisStyle,
+      ...ax,
+      axisLine: { lineStyle: { color: "#e2e8f0" } },
+      axisLabel: {
+        ...existingAxisLabel,
+        color: "#64748b",
+        fontSize: 11,
+      },
+    };
+  };
+  const applyLightYAxis = (ax: Record<string, unknown>) => {
+    const base = applyLightAxis(ax);
+    return {
+      ...base,
+      splitLine: { show: false },
+    };
+  };
 
   const nextXAxis = mapAxis(merged.xAxis as EChartsAxis, applyLightAxis);
   const nextYAxis = mapAxis(merged.yAxis as EChartsAxis, applyLightYAxis);
@@ -160,7 +173,9 @@ function fixLightSeriesLabels(
     }
 
     const isGraphLike =
-      seriesType === "graph" || seriesType === "pie" || seriesType === "treemap";
+      seriesType === "graph" ||
+      seriesType === "pie" ||
+      seriesType === "treemap";
     if (isGraphLike) {
       if (c === "#e2e8f0") return "#0f172a";
       return c ?? "#475569";
@@ -391,6 +406,8 @@ function ChartCard({
   titleFlag,
   titleFlagNumber,
   headerExtra,
+  plotOverflowY = "hidden",
+  innerChartHeight,
   option,
   height = "320px",
   width = "100%",
@@ -494,7 +511,10 @@ function ChartCard({
     [mergedOption],
   );
 
-  const inlineChartNode = useMemo(() => chartEl(), [chartEl]);
+  const inlineChartNode = useMemo(
+    () => chartEl(innerChartHeight),
+    [chartEl, innerChartHeight],
+  );
   const fullscreenChartNode = useMemo(() => chartEl("100%", true), [chartEl]);
 
   const showTitleBlock = Boolean(title || subtitle);
@@ -502,7 +522,7 @@ function ChartCard({
   const chartShell = (
     <>
       <div
-        className={`flex items-center px-5 pt-4 pb-2 gap-3 ${showTitleBlock ? "justify-between" : "justify-end"}`}
+        className={`flex px-5 pt-4 pb-2 gap-3 ${showTitleBlock ? "justify-between" : "justify-end"}`}
       >
         {showTitleBlock && (
           <div className="min-w-0">
@@ -558,10 +578,11 @@ function ChartCard({
         </div>
       </div>
       <div
-        className="overflow-x-auto overflow-y-hidden sm:overflow-x-hidden sm:overflow-y-visible"
+        className="overflow-x-auto sm:overflow-x-hidden"
         style={{
           height,
           width,
+          overflowY: plotOverflowY,
         }}
       >
         <div className="h-full min-w-230 sm:min-w-0">{inlineChartNode}</div>

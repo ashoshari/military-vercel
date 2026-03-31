@@ -25,6 +25,7 @@ const ChartCard = dynamic(
 import EnterpriseTable from "@/components/ui/EnterpriseTable";
 import type { TableColumn } from "@/components/ui/EnterpriseTable";
 import { getProductData, type ProductData } from "@/lib/mockData";
+import { BRANCH_PRODUCT_ANALYSIS } from "@/lib/branchProductAnalysis";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import { useThemeStore } from "@/store/themeStore";
 
@@ -38,6 +39,10 @@ const categories = [
   { name: "منتجات ورقية", netSales: 22220, volume: 18400, margin: 26.3 },
   { name: "مسطحات", netSales: 8340, volume: 5980, margin: 48.5 },
 ];
+
+const branchNamesForLegend = BRANCH_PRODUCT_ANALYSIS.map((b) => b.branch).join(
+  "، ",
+);
 
 const top10 = [
   {
@@ -167,10 +172,19 @@ const totalNetSales = categories.reduce((a, c) => a + c.netSales, 0);
 const totalProfitValue = Math.round(totalNetSales * 0.365);
 const totalCostValue = totalNetSales - totalProfitValue;
 const totalVolume = categories.reduce((a, c) => a + c.volume, 0);
-const maxBottom = Math.max(...bottom10.map((p) => p.profit));
+// const maxBottom = Math.max(...bottom10.map((p) => p.profit));
 
 const fmtK = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(2)}K` : String(n);
+
+function stableHash(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
 
 export default function ProductsPage() {
   const palette = useResolvedAnalyticsPalette();
@@ -188,6 +202,80 @@ export default function ProductsPage() {
     [palette],
   );
   const products = useMemo(() => getProductData(), []);
+  const productGroup1Options = useMemo(() => {
+    const set = new Set(products.map((p) => String(p.categoryAr)));
+    return Array.from(set);
+  }, [products]);
+  const productGroup2Options = useMemo(() => {
+    const set = new Set(products.map((p) => String(p.subcategory)));
+    return Array.from(set);
+  }, [products]);
+  const productGroup3Options = useMemo(() => ["مرتفع", "متوسط", "منخفض"], []);
+
+  const [selectedG1, setSelectedG1] = useState<string | null>(null);
+  const [selectedG2, setSelectedG2] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  /** عندما يتم اختيار منتج: يمكن تصفية المجموعة الثالثة عبر الشرائح */
+  const [selectedG3, setSelectedG3] = useState<string[]>([]);
+
+  const productRowsForScatter = useMemo(() => {
+    const toG3 = (trend: ProductData["trend"]) =>
+      trend === "up" ? "مرتفع" : trend === "stable" ? "متوسط" : "منخفض";
+
+    return products
+      .filter((p) => (selectedG1 ? p.categoryAr === selectedG1 : true))
+      .filter((p) => (selectedG2 ? p.subcategory === selectedG2 : true))
+      .filter((p) => (selectedProduct ? p.nameAr === selectedProduct : true))
+      .filter((p) => {
+        if (!selectedProduct) return true;
+        if (selectedG3.length === 0) return true;
+        return selectedG3.includes(toG3(p.trend));
+      })
+      .map((p) => ({
+        key: p.id,
+        nameAr: p.nameAr,
+        volume: p.unitsSold,
+        margin: p.margin,
+        g1: p.categoryAr,
+        g2: p.subcategory,
+        g3: toG3(p.trend),
+      }));
+  }, [products, selectedG1, selectedG2, selectedProduct, selectedG3]);
+
+  // فلاتر مخطط «حجم المبيعات و الأرباح حسب المنتج»
+  const [contribG1, setContribG1] = useState<string | null>(null);
+  const [contribG2, setContribG2] = useState<string | null>(null);
+  const [contribProduct, setContribProduct] = useState<string | null>(null);
+
+  const productMetaByName = useMemo(() => {
+    const map = new Map<string, { g1: string; g2: string }>();
+    products.forEach((p) => {
+      map.set(p.nameAr, {
+        g1: String(p.categoryAr),
+        g2: String(p.subcategory),
+      });
+    });
+    return map;
+  }, [products]);
+
+  const contribFilteredSorted = useMemo(() => {
+    const filtered = contrib.filter((r) => {
+      const meta = productMetaByName.get(r.name);
+      if (contribG1 && meta?.g1 !== contribG1) return false;
+      if (contribG2 && meta?.g2 !== contribG2) return false;
+      if (contribProduct && r.name !== contribProduct) return false;
+      return true;
+    });
+    return [...filtered].sort((a, b) => a.profit - b.profit);
+  }, [contribG1, contribG2, contribProduct, productMetaByName]);
+
+  const contribProductOptions = useMemo(() => {
+    const out = products
+      .filter((p) => (contribG1 ? p.categoryAr === contribG1 : true))
+      .filter((p) => (contribG2 ? p.subcategory === contribG2 : true))
+      .map((p) => p.nameAr);
+    return out;
+  }, [products, contribG1, contribG2]);
   const [activeKpi, setActiveKpi] = useState<number | null>(null);
   const mode = useThemeStore((s) => s.mode);
   const isDark = mode === "dark";
@@ -199,12 +287,12 @@ export default function ProductsPage() {
 
   /** Same grid as «صافي المبيعات حسب الفئة» + line charts (320px / 380px rows). */
   const productsStandardGrid = {
-    bottom: "4%",
+    bottom: "8%", // ✅ not %, use px
     top: "12%",
     left: "3%",
     right: "2%",
     containLabel: true,
-  } as const;
+  };
 
   // ── مخطط صافي المبيعات حسب الفئة ──
   const salesByCatOption = {
@@ -213,7 +301,11 @@ export default function ProductsPage() {
     xAxis: {
       type: "category" as const,
       data: categories.map((c) => c.name),
-      axisLabel: { rotate: 28, fontSize: 9 },
+      axisLabel: {
+        rotate: 28,
+        fontSize: 9,
+        interval: 0, // 🔥 force show all labels
+      },
       splitLine: { show: false },
     },
     yAxis: {
@@ -300,7 +392,7 @@ export default function ProductsPage() {
       {
         type: "scatter",
         symbolSize: (d: number[]) => Math.max(14, Math.sqrt(d[0] / 600)),
-        data: categories.map((c) => [c.volume, c.margin, c.name]),
+        data: productRowsForScatter.map((p) => [p.volume, p.margin, p.nameAr]),
         itemStyle: {
           color: (p: { dataIndex: number }) =>
             catColors[p.dataIndex % catColors.length],
@@ -324,20 +416,7 @@ export default function ProductsPage() {
   };
 
   // ── مخطط أفضل 10 (أشرطة أفقية تدرج) ──
-  const months = [
-    "يناير",
-    "فبراير",
-    "مارس",
-    "أبريل",
-    "مايو",
-    "يونيو",
-    "يوليو",
-    "أغسطس",
-    "سبتمبر",
-    "أكتوبر",
-    "نوفمبر",
-    "ديسمبر",
-  ];
+  const months = Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`);
   const greenTones = palette.greenScale;
   const redTones = [
     "#dc2626",
@@ -459,89 +538,97 @@ export default function ProductsPage() {
   };
 
   // ── مساهمة الأرباح والحجم ──
-  const contribSorted = [...contrib].sort((a, b) => a.profit - b.profit);
-  const contribOption = {
-    tooltip: { trigger: "axis" as const },
-    legend: {
-      data: ["% حجم المبيعات", "% مساهمة الربح"],
-      bottom: 0,
-      textStyle: { fontSize: 9 },
-    },
-    grid: {
-      left: "3%",
-      right: "4%",
-      top: "8%",
-      bottom: "18%",
-      containLabel: true,
-    },
-    xAxis: {
-      type: "value" as const,
-      axisLabel: { formatter: "{value}%", fontSize: 9 },
-      axisLine: {
-        show: true,
-        lineStyle: { width: 2, color: barChartSpineColor },
+  const contribOption = useMemo(
+    () => ({
+      tooltip: { trigger: "axis" as const },
+      legend: {
+        data: ["% حجم المبيعات", "% مساهمة الربح"],
+        bottom: 0,
+        textStyle: { fontSize: 9 },
       },
-      splitLine: {
-        show: true,
-        lineStyle: {
-          type: "dashed" as const,
-          color: barChartSplitLineColor,
-          width: 1,
-        },
+      grid: {
+        left: "3%",
+        right: "4%",
+        top: "8%",
+        bottom: "18%",
+        containLabel: true,
       },
-    },
-    yAxis: {
-      type: "category" as const,
-      data: contribSorted.map((p) => p.name),
-      axisLabel: { fontSize: 10 },
-      axisLine: {
-        show: true,
-        lineStyle: { width: 2, color: barChartSpineColor },
-      },
-      axisTick: { show: false },
-      splitLine: { show: false },
-    },
-    series: [
-      {
-        name: "% حجم المبيعات",
-        type: "bar" as const,
-        stack: "total",
-        barWidth: 12,
-        barCategoryGap: "40%",
-        data: contribSorted.map((p) => ({
-          value: p.vol,
-          itemStyle: { color: "#0891b2" },
-        })),
-        label: {
+      xAxis: {
+        type: "value" as const,
+        axisLabel: { formatter: "{value}%", fontSize: 9 },
+        axisLine: {
           show: true,
-          position: "inside" as const,
-          fontSize: 8,
-          fontWeight: "bold",
-          color: "#fff",
-          formatter: (p: { value: number }) => `${p.value.toFixed(2)}%`,
+          lineStyle: { width: 2, color: barChartSpineColor },
         },
-      },
-      {
-        name: "% مساهمة الربح",
-        type: "bar" as const,
-        stack: "total",
-        barWidth: 12,
-        data: contribSorted.map((p) => ({
-          value: p.profit - p.vol,
-          itemStyle: { color: "#047857", borderRadius: [0, 4, 4, 0] },
-        })),
-        label: {
+        splitLine: {
           show: true,
-          position: "right" as const,
-          fontSize: 9,
-          fontWeight: "bold",
-          color: "#047857",
-          formatter: (params: { dataIndex: number }) =>
-            `${contribSorted[params.dataIndex].profit.toFixed(2)}%`,
+          lineStyle: {
+            type: "dashed" as const,
+            color: barChartSplitLineColor,
+            width: 1,
+          },
         },
       },
-    ],
-  };
+      yAxis: {
+        type: "category" as const,
+        data: contribFilteredSorted.map((p) => p.name),
+        axisLabel: { fontSize: 10 },
+        axisLine: {
+          show: true,
+          lineStyle: { width: 2, color: barChartSpineColor },
+        },
+        axisTick: { show: false },
+        splitLine: { show: false },
+      },
+      series: [
+        {
+          name: "% حجم المبيعات",
+          type: "bar" as const,
+          stack: "total",
+          barWidth: 12,
+          barCategoryGap: "40%",
+          data: contribFilteredSorted.map((p) => ({
+            value: p.vol,
+            itemStyle: { color: "#0891b2" },
+          })),
+          label: {
+            show: true,
+            position: "inside" as const,
+            fontSize: 8,
+            fontWeight: "bold",
+            color: "#fff",
+            formatter: (p: { value: number }) => `${p.value.toFixed(2)}%`,
+          },
+        },
+        {
+          name: "% مساهمة الربح",
+          type: "bar" as const,
+          stack: "total",
+          barWidth: 12,
+          data: contribFilteredSorted.map((p) => ({
+            value: p.profit - p.vol,
+            itemStyle: { color: "#047857", borderRadius: [0, 4, 4, 0] },
+          })),
+          label: {
+            show: true,
+            position: "right" as const,
+            fontSize: 9,
+            fontWeight: "bold",
+            color: "#047857",
+            formatter: (params: { dataIndex: number }) =>
+              `${contribFilteredSorted[params.dataIndex].profit.toFixed(2)}%`,
+          },
+        },
+      ],
+    }),
+    [barChartSpineColor, barChartSplitLineColor, contribFilteredSorted],
+  );
+
+  const contribScrollableHeightPx = useMemo(() => {
+    const rowPx = 28;
+    const headerPad = 140; // legend + margins
+    return Math.max(480, headerPad + contribFilteredSorted.length * rowPx);
+  }, [contribFilteredSorted.length]);
 
   // ── جدول المرتجعات (المنتجات) ──
   const returnsOption = {
@@ -572,6 +659,22 @@ export default function ProductsPage() {
   const maxProdMargin = useMemo(
     () => Math.max(...products.map((p) => p.margin), 1),
     [products],
+  );
+
+  const wastePctById = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach((p) => {
+      // نسبة توالف تقديرية ثابتة (0%..8%) تعتمد على id + الهامش
+      const h = stableHash(String(p.id));
+      const base = (h % 800) / 100; // 0..7.99
+      const adj = Math.max(0, 4.5 - p.margin / 12); // lower margin -> slightly higher waste
+      map.set(String(p.id), Math.max(0, Math.min(9.5, base + adj)));
+    });
+    return map;
+  }, [products]);
+  const maxWastePct = useMemo(
+    () => Math.max(...products.map((p) => wastePctById.get(String(p.id)) ?? 0), 1),
+    [products, wastePctById],
   );
 
   const prodColumns: TableColumn<ProductData>[] = useMemo(
@@ -607,8 +710,25 @@ export default function ProductsPage() {
         format: "percent",
         analyticsBar: { max: maxProdMargin },
       },
+      {
+        key: "waste",
+        header: "توالف",
+        sortable: false,
+        align: "center",
+        render: (_: unknown, row: ProductData) => {
+          const v = wastePctById.get(String(row.id)) ?? 0;
+          const color =
+            v >= 6 ? "var(--accent-red)" : v >= 3 ? "var(--accent-amber)" : "var(--accent-green)";
+          return (
+            <span style={{ fontWeight: 800, color }} dir="ltr">
+              {v.toFixed(2)}%
+            </span>
+          );
+        },
+        analyticsBar: { max: maxWastePct, color: "#ef4444" },
+      },
     ],
-    [maxProdMargin],
+    [maxProdMargin, maxWastePct, wastePctById],
   );
 
   const kpis = [
@@ -683,7 +803,7 @@ export default function ProductsPage() {
             className="text-xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Product Performance Dashboard
+            أداء المنتج
           </h1>
           <div className="flex items-center gap-1.5">
             <div
@@ -754,7 +874,7 @@ export default function ProductsPage() {
         <ChartCard
           title="صافي المبيعات حسب الفئة"
           titleFlag="green"
-          subtitle="Net Sales by Category"
+          subtitle={`Net Sales by Category • الفروع: ${branchNamesForLegend}`}
           option={salesByCatOption}
           height="320px"
           delay={1}
@@ -764,6 +884,176 @@ export default function ProductsPage() {
           titleFlag="green"
           subtitle="Product Volume & % Profit Margin by Category"
           option={scatterOption}
+          headerExtra={
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                  الفلاتر:
+                </span>
+
+                {/* المجموعة الأولى */}
+                <div
+                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--bg-elevated)",
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                    المجموعة الأولى
+                  </span>
+                  <select
+                    value={selectedG1 ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      setSelectedG1(v);
+                      setSelectedProduct(null);
+                      setSelectedG3([]);
+                    }}
+                    className="bg-transparent outline-none text-[10px]"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    <option value="">الكل</option>
+                    {productGroup1Options.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* المجموعة الثانية */}
+                <div
+                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--bg-elevated)",
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                    المجموعة الثانية
+                  </span>
+                  <select
+                    value={selectedG2 ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      setSelectedG2(v);
+                      setSelectedProduct(null);
+                      setSelectedG3([]);
+                    }}
+                    className="bg-transparent outline-none text-[10px]"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    <option value="">الكل</option>
+                    {productGroup2Options.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* المنتجات */}
+                <div
+                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--bg-elevated)",
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                    المنتجات
+                  </span>
+                  <select
+                    value={selectedProduct ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      setSelectedProduct(v);
+                      setSelectedG3([]);
+                    }}
+                    className="bg-transparent outline-none text-[10px]"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    <option value="">الكل</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.nameAr}>
+                        {p.nameAr}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* شرائح المجموعة الثالثة (تظهر فقط عند اختيار منتج) */}
+              {selectedProduct && (
+                <div className="flex flex-wrap gap-1.5 text-[10px]">
+                  <span
+                    className="font-semibold"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    المجموعة الثالثة:
+                  </span>
+                  {productGroup3Options.map((g3) => {
+                    const on =
+                      selectedG3.length === 0 ? true : selectedG3.includes(g3);
+                    return (
+                      <button
+                        key={g3}
+                        type="button"
+                        onClick={() => {
+                          setSelectedG3((prev) => {
+                            if (prev.length === 0) return [g3];
+                            const set = new Set(prev);
+                            if (set.has(g3)) {
+                              set.delete(g3);
+                            } else {
+                              set.add(g3);
+                            }
+                            return Array.from(set);
+                          });
+                        }}
+                        className="px-2 py-0.5 rounded-full border transition-colors"
+                        style={{
+                          borderColor: on
+                            ? "var(--accent-green)"
+                            : "var(--border-subtle)",
+                          background: on
+                            ? "rgba(34,197,94,0.12)"
+                            : "var(--bg-elevated)",
+                          color: on
+                            ? "var(--accent-green)"
+                            : "var(--text-muted)",
+                        }}
+                      >
+                        {g3}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedG3([])}
+                    className="px-2 py-0.5 rounded-full border transition-colors"
+                    style={{
+                      borderColor:
+                        selectedG3.length === 0
+                          ? "var(--accent-green)"
+                          : "var(--border-subtle)",
+                      background:
+                        selectedG3.length === 0
+                          ? "rgba(34,197,94,0.12)"
+                          : "var(--bg-elevated)",
+                      color:
+                        selectedG3.length === 0
+                          ? "var(--accent-green)"
+                          : "var(--text-muted)",
+                    }}
+                  >
+                    الكل
+                  </button>
+                </div>
+              )}
+            </div>
+          }
           height="320px"
           delay={2}
         />
@@ -796,6 +1086,100 @@ export default function ProductsPage() {
           titleFlag="green"
           subtitle="Sales Volume Contribution & Profit Contribution by Product %"
           option={contribOption}
+          plotOverflowY="auto"
+          innerChartHeight={`${contribScrollableHeightPx}px`}
+          headerExtra={
+            <div className="mt-2 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                  الفلاتر:
+                </span>
+
+                <div
+                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--bg-elevated)",
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                    المجموعة الأولى
+                  </span>
+                  <select
+                    value={contribG1 ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      setContribG1(v);
+                      setContribProduct(null);
+                    }}
+                    className="bg-transparent outline-none text-[10px]"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    <option value="">الكل</option>
+                    {productGroup1Options.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div
+                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--bg-elevated)",
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                    المجموعة الثانية
+                  </span>
+                  <select
+                    value={contribG2 ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      setContribG2(v);
+                      setContribProduct(null);
+                    }}
+                    className="bg-transparent outline-none text-[10px]"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    <option value="">الكل</option>
+                    {productGroup2Options.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div
+                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    background: "var(--bg-elevated)",
+                  }}
+                >
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                    المنتجات
+                  </span>
+                  <select
+                    value={contribProduct ?? ""}
+                    onChange={(e) => setContribProduct(e.target.value || null)}
+                    className="bg-transparent outline-none text-[10px]"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    <option value="">الكل</option>
+                    {contribProductOptions.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          }
           height="480px"
           delay={1}
         />

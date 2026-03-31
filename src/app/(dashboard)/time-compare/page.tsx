@@ -4,14 +4,7 @@ import "@/lib/echarts/register-bar-line-pie";
 import dynamic from "next/dynamic";
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import {
-  Clock,
-  Calendar,
-  TrendingUp,
-  DollarSign,
-  BarChart3,
-  Percent,
-} from "lucide-react";
+import { Clock, Calendar, TrendingUp, DollarSign, Percent } from "lucide-react";
 import { getMonthlySalesData } from "@/lib/mockData";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 
@@ -23,10 +16,26 @@ const ChartCard = dynamic(
   },
 );
 
+const monthOrdinalAr = [
+  "الأول",
+  "الثاني",
+  "الثالث",
+  "الرابع",
+  "الخامس",
+  "السادس",
+  "السابع",
+  "الثامن",
+  "التاسع",
+  "العاشر",
+  "الحادي عشر",
+  "الثاني عشر",
+] as const;
+
 // ── بيانات الفترة 1 (Feb 2020 → Jan 2021) ──
 const p1Dates = Array.from({ length: 12 }, (_, i) => {
   const d = new Date(2020, 1 + i, 1);
-  return d.toLocaleDateString("ar-EG", { month: "short", year: "numeric" });
+  const ord = monthOrdinalAr[d.getMonth()] ?? `${d.getMonth() + 1}`;
+  return `الشهر ${ord} ${d.getFullYear()}`;
 });
 const p1Sales = [
   1200, 1400, 2800, 3400, 1800, 2200, 1600, 2000, 1900, 2600, 3000, 2100,
@@ -35,7 +44,8 @@ const p1Sales = [
 // ── بيانات الفترة 2 (Nov 2021 → Aug 2023) ──
 const p2Dates = Array.from({ length: 22 }, (_, i) => {
   const d = new Date(2021, 10 + i, 1);
-  return d.toLocaleDateString("ar-EG", { month: "short", year: "numeric" });
+  const ord = monthOrdinalAr[d.getMonth()] ?? `${d.getMonth() + 1}`;
+  return `الشهر ${ord} ${d.getFullYear()}`;
 });
 const p2Sales = [
   3200, 3800, 4200, 5400, 4800, 5200, 4000, 3600, 6200, 5800, 7200, 8400, 6800,
@@ -65,24 +75,9 @@ const categories = [
 ];
 const catNetP1 = [1400, 4200, 8500, 100, 350, 5200, 15000, 3800, 3400];
 const catNetP2 = [3200, 12500, 22000, 300, 1200, 14800, 57500, 8400, 9100];
-const catProfP1 = [400, 1200, 2800, 30, 100, 1500, 5200, 1100, 950];
-const catProfP2 = [1100, 4200, 7800, 100, 380, 5200, 22000, 3100, 3200];
 
 const selectedYear = "2025";
-const monthsAr = [
-  "يناير",
-  "فبراير",
-  "مارس",
-  "أبريل",
-  "مايو",
-  "يونيو",
-  "يوليو",
-  "أغسطس",
-  "سبتمبر",
-  "أكتوبر",
-  "نوفمبر",
-  "ديسمبر",
-];
+const monthsAr = Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`);
 
 export default function TimeComparePage() {
   const palette = useResolvedAnalyticsPalette();
@@ -381,7 +376,7 @@ export default function TimeComparePage() {
     ],
   };
 
-  // ── عدد المعاملات حسب الفترة (Pie) ──
+  // ── عدد الفواتير حسب الفترة (Pie) ──
   const txPieOption = {
     tooltip: { trigger: "item" as const, formatter: "{b}: {c} ({d}%)" },
     legend: {
@@ -745,7 +740,7 @@ export default function TimeComparePage() {
           delay={2}
         />
         <ChartCard
-          title="عدد المعاملات حسب الفترة"
+          title="عدد الفواتير حسب الفترة"
           titleFlag="green"
           subtitle="No. of Transactions by Period"
           option={txPieOption}

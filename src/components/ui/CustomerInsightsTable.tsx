@@ -15,11 +15,12 @@ interface Customer {
   name: string;
   totalSales: number;
   totalTransactions: number;
-  atv: number;
-  avgBasket: number;
-  avgLifespan: number;
-  clv: number;
-  clvSegment: "High" | "Medium" | "Low";
+  /** متوسط عدد الزيارات السنوية */
+  annualVisitsAvg: number;
+  /** متوسط قيمة السلة */
+  avgBasketValue: number;
+  /** الاستفادة من الخصومات (٪) */
+  discountUsagePct: number;
   segment: string;
 }
 
@@ -29,228 +30,189 @@ const customers: Customer[] = [
     name: "عبدالعزيز العدامات",
     totalSales: 27,
     totalTransactions: 11,
-    atv: 2.45,
-    avgBasket: 1,
-    avgLifespan: 0,
-    clv: 0.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 12,
+    avgBasketValue: 18,
+    discountUsagePct: 14,
     segment: "Low Recency, High Frequency",
   },
   {
     name: "عبدالحميد الشرفات",
     totalSales: 8,
     totalTransactions: 5,
-    atv: 1.6,
-    avgBasket: 1,
-    avgLifespan: 0,
-    clv: 0.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 7,
+    avgBasketValue: 12,
+    discountUsagePct: 9,
     segment: "Low Recency, High Frequency",
   },
   {
     name: "عبدالله البعيدة",
     totalSales: 198,
     totalTransactions: 90,
-    atv: 2.2,
-    avgBasket: 2,
-    avgLifespan: 14,
-    clv: 2772.0,
-    clvSegment: "High",
+    annualVisitsAvg: 64,
+    avgBasketValue: 46,
+    discountUsagePct: 31,
     segment: "High Recency, High Frequency",
   },
   {
     name: "عبدالله الرفاعي",
     totalSales: 34,
     totalTransactions: 4,
-    atv: 8.5,
-    avgBasket: 1,
-    avgLifespan: 1,
-    clv: 34.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 9,
+    avgBasketValue: 62,
+    discountUsagePct: 6,
     segment: "High Recency, Low Frequency",
   },
   {
     name: "عبدالله العلانزة",
     totalSales: 19,
     totalTransactions: 5,
-    atv: 3.8,
-    avgBasket: 1,
-    avgLifespan: 14,
-    clv: 266.0,
-    clvSegment: "Medium",
+    annualVisitsAvg: 22,
+    avgBasketValue: 25,
+    discountUsagePct: 18,
     segment: "Low Recency, High Frequency",
   },
   {
     name: "عبدالله البنيان",
     totalSales: 13,
     totalTransactions: 4,
-    atv: 3.25,
-    avgBasket: 2,
-    avgLifespan: 0,
-    clv: 0.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 10,
+    avgBasketValue: 19,
+    discountUsagePct: 11,
     segment: "Low Recency, Low Frequency",
   },
   {
     name: "عبدالله المساعيد",
     totalSales: 62,
     totalTransactions: 16,
-    atv: 3.88,
-    avgBasket: 1,
-    avgLifespan: 12,
-    clv: 744.0,
-    clvSegment: "High",
+    annualVisitsAvg: 35,
+    avgBasketValue: 28,
+    discountUsagePct: 24,
     segment: "High Recency, High Frequency",
   },
   {
     name: "عبدالله المسارحة",
     totalSales: 69,
     totalTransactions: 22,
-    atv: 3.14,
-    avgBasket: 2,
-    avgLifespan: 13,
-    clv: 897.0,
-    clvSegment: "High",
+    annualVisitsAvg: 41,
+    avgBasketValue: 33,
+    discountUsagePct: 27,
     segment: "High Recency, Low Frequency",
   },
   {
     name: "عبدالله النمر",
     totalSales: 3,
     totalTransactions: 1,
-    atv: 3.0,
-    avgBasket: 1,
-    avgLifespan: 0,
-    clv: 0.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 2,
+    avgBasketValue: 9,
+    discountUsagePct: 2,
     segment: "Low Recency, Low Frequency",
   },
   {
     name: "عبدالله العمري",
     totalSales: 310,
     totalTransactions: 115,
-    atv: 2.7,
-    avgBasket: 2,
-    avgLifespan: 12,
-    clv: 3720.0,
-    clvSegment: "High",
+    annualVisitsAvg: 78,
+    avgBasketValue: 52,
+    discountUsagePct: 33,
     segment: "High Recency, High Frequency",
   },
   {
     name: "عبدالله الرمثان",
     totalSales: 17,
     totalTransactions: 11,
-    atv: 1.55,
-    avgBasket: 1,
-    avgLifespan: 0,
-    clv: 0.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 14,
+    avgBasketValue: 13,
+    discountUsagePct: 10,
     segment: "High Recency, High Frequency",
   },
   {
     name: "عبدالله الشرفات",
     totalSales: 1195,
     totalTransactions: 446,
-    atv: 2.68,
-    avgBasket: 2,
-    avgLifespan: 14,
-    clv: 3346.0,
-    clvSegment: "High",
+    annualVisitsAvg: 104,
+    avgBasketValue: 61,
+    discountUsagePct: 37,
     segment: "High Recency, High Frequency",
   },
   {
     name: "أحمد العواودة",
     totalSales: 540,
     totalTransactions: 210,
-    atv: 2.57,
-    avgBasket: 3,
-    avgLifespan: 13,
-    clv: 7020.0,
-    clvSegment: "High",
+    annualVisitsAvg: 92,
+    avgBasketValue: 58,
+    discountUsagePct: 35,
     segment: "High Recency, High Frequency",
   },
   {
     name: "سامي الخليل",
     totalSales: 85,
     totalTransactions: 30,
-    atv: 2.83,
-    avgBasket: 1,
-    avgLifespan: 8,
-    clv: 680.0,
-    clvSegment: "Medium",
+    annualVisitsAvg: 44,
+    avgBasketValue: 31,
+    discountUsagePct: 22,
     segment: "High Recency, Low Frequency",
   },
   {
     name: "رنا المومني",
     totalSales: 420,
     totalTransactions: 160,
-    atv: 2.63,
-    avgBasket: 2,
-    avgLifespan: 14,
-    clv: 5880.0,
-    clvSegment: "High",
+    annualVisitsAvg: 88,
+    avgBasketValue: 56,
+    discountUsagePct: 34,
     segment: "High Recency, High Frequency",
   },
   {
     name: "خالد الزعبي",
     totalSales: 22,
     totalTransactions: 8,
-    atv: 2.75,
-    avgBasket: 1,
-    avgLifespan: 2,
-    clv: 44.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 16,
+    avgBasketValue: 17,
+    discountUsagePct: 12,
     segment: "Low Recency, Low Frequency",
   },
   {
     name: "نور السلطي",
     totalSales: 148,
     totalTransactions: 55,
-    atv: 2.69,
-    avgBasket: 2,
-    avgLifespan: 11,
-    clv: 1628.0,
-    clvSegment: "High",
+    annualVisitsAvg: 56,
+    avgBasketValue: 41,
+    discountUsagePct: 29,
     segment: "High Recency, High Frequency",
   },
   {
     name: "ليلى حداد",
     totalSales: 55,
     totalTransactions: 20,
-    atv: 2.75,
-    avgBasket: 1,
-    avgLifespan: 5,
-    clv: 275.0,
-    clvSegment: "Medium",
+    annualVisitsAvg: 28,
+    avgBasketValue: 24,
+    discountUsagePct: 19,
     segment: "Low Recency, High Frequency",
   },
   {
     name: "محمود الطراونة",
     totalSales: 780,
     totalTransactions: 290,
-    atv: 2.69,
-    avgBasket: 3,
-    avgLifespan: 14,
-    clv: 10920.0,
-    clvSegment: "High",
+    annualVisitsAvg: 98,
+    avgBasketValue: 63,
+    discountUsagePct: 39,
     segment: "High Recency, High Frequency",
   },
   {
     name: "دينا العزام",
     totalSales: 11,
     totalTransactions: 4,
-    atv: 2.75,
-    avgBasket: 1,
-    avgLifespan: 0,
-    clv: 0.0,
-    clvSegment: "Low",
+    annualVisitsAvg: 6,
+    avgBasketValue: 11,
+    discountUsagePct: 7,
     segment: "Low Recency, Low Frequency",
   },
 ];
 
 const maxSales = Math.max(...customers.map((c) => c.totalSales));
 const maxTrans = Math.max(...customers.map((c) => c.totalTransactions));
-const maxLife = Math.max(...customers.map((c) => c.avgLifespan));
-const maxClv = Math.max(...customers.map((c) => c.clv));
+const maxVisits = Math.max(...customers.map((c) => c.annualVisitsAvg));
+const maxBasketValue = Math.max(...customers.map((c) => c.avgBasketValue));
+const maxDiscountUsage = Math.max(...customers.map((c) => c.discountUsagePct));
 
 const fmt2 = (n: number) =>
   new Intl.NumberFormat("en-US", {
@@ -258,14 +220,6 @@ const fmt2 = (n: number) =>
     maximumFractionDigits: 1,
   }).format(n);
 const fmtN = (n: number) => new Intl.NumberFormat("en-US").format(n);
-
-function clvColor(seg: Customer["clvSegment"]) {
-  if (seg === "High")
-    return { text: "var(--accent-green)", bg: "var(--accent-green-dim)" };
-  if (seg === "Medium")
-    return { text: "var(--accent-amber)", bg: "rgba(245,158,11,0.1)" };
-  return { text: "var(--text-muted)", bg: "var(--bg-elevated)" };
-}
 
 function segmentColor(seg: string) {
   const high = seg.includes("High Recency");
@@ -276,13 +230,27 @@ function segmentColor(seg: string) {
   return "var(--text-muted)";
 }
 
+type ClvSegment = "High" | "Medium" | "Low";
+function clvSegmentFor(c: Customer): ClvSegment {
+  if (c.totalSales >= 300) return "High";
+  if (c.totalSales >= 60) return "Medium";
+  return "Low";
+}
+function clvColor(seg: ClvSegment) {
+  if (seg === "High")
+    return { text: "var(--accent-green)", bg: "var(--accent-green-dim)" };
+  if (seg === "Medium")
+    return { text: "var(--accent-amber)", bg: "rgba(245,158,11,0.1)" };
+  return { text: "var(--text-muted)", bg: "var(--bg-elevated)" };
+}
+
 type SortKey =
   | "name"
   | "totalSales"
   | "totalTransactions"
-  | "atv"
-  | "avgLifespan"
-  | "clv";
+  | "annualVisitsAvg"
+  | "avgBasketValue"
+  | "discountUsagePct";
 
 export default function CustomerInsightsTable() {
   const [search, setSearch] = useState("");
@@ -372,25 +340,28 @@ export default function CustomerInsightsTable() {
             align: "center",
           },
           {
-            label: sortHeaderLabel("عدد المعاملات", "totalTransactions"),
-            align: "center",
-          },
-          { label: sortHeaderLabel("متوسط ATV", "atv"), align: "center" },
-          { label: "متوسط حجم السلة", align: "center" },
-          {
-            label: sortHeaderLabel("متوسط عمر العميل", "avgLifespan"),
+            label: sortHeaderLabel("عدد الفواتير", "totalTransactions"),
             align: "center",
           },
           {
-            label: sortHeaderLabel("قيمة عمر العميل (CLV)", "clv"),
+            label: sortHeaderLabel("متوسط عدد الزيارات السنوية", "annualVisitsAvg"),
             align: "center",
           },
-          { label: "شريحة CLV", align: "center" },
+          {
+            label: sortHeaderLabel("متوسط قيمة السلة", "avgBasketValue"),
+            align: "center",
+          },
+          {
+            label: sortHeaderLabel("الاستفادة من الخصومات", "discountUsagePct"),
+            align: "center",
+          },
+          { label: "شريحة", align: "center" },
           { label: "شريحة العميل", align: "center" },
         ]}
       >
         {pageData.map((c, i) => {
-          const clvStyle = clvColor(c.clvSegment);
+          const clvSeg = clvSegmentFor(c);
+          const clvStyle = clvColor(clvSeg);
           return (
             <motion.tr
               key={c.name}
@@ -423,50 +394,41 @@ export default function CustomerInsightsTable() {
                 color="#3b82f6"
                 text={fmtN(c.totalTransactions)}
               />
-              <td style={analyticsTdBaseStyle("center")} dir="ltr">
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  {fmt2(c.atv)}
-                </span>
-              </td>
-              <td style={analyticsTdBaseStyle("center")} dir="ltr">
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  {c.avgBasket}
-                </span>
-              </td>
               <AnalyticsBarCell
-                value={c.avgLifespan}
-                max={maxLife}
+                value={c.annualVisitsAvg}
+                max={maxVisits}
                 color="#3b82f6"
-                text={String(c.avgLifespan)}
+                text={fmtN(c.annualVisitsAvg)}
               />
               <AnalyticsBarCell
-                value={c.clv}
-                max={maxClv}
+                value={c.avgBasketValue}
+                max={maxBasketValue}
                 color="#3b82f6"
-                text={fmt2(c.clv)}
+                text={fmtN(c.avgBasketValue)}
+              />
+              <AnalyticsBarCell
+                value={c.discountUsagePct}
+                max={maxDiscountUsage}
+                color="var(--accent-green)"
+                text={`${c.discountUsagePct.toFixed(0)}%`}
               />
 
               <td style={analyticsTdBaseStyle("center")}>
                 <span
                   style={{
                     fontSize: 10,
-                    fontWeight: 700,
+                    fontWeight: 800,
                     color: clvStyle.text,
+                    background: clvStyle.bg,
+                    padding: "2px 8px",
+                    borderRadius: 9999,
+                    border: "1px solid var(--border-subtle)",
+                    display: "inline-block",
+                    minWidth: 52,
+                    textAlign: "center",
                   }}
                 >
-                  {c.clvSegment}
+                  {clvSeg}
                 </span>
               </td>
 

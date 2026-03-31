@@ -22,6 +22,10 @@ export interface FilterState {
     paymentType: string;
     discountRange: [number, number];
     employee: string[];
+    /** /employees only */
+    workShift: "all" | "morning" | "evening";
+    /** /employees only (percent) */
+    returnRateRange: [number, number];
     agreement: string[];
     season: string;
     holiday: string;
@@ -55,6 +59,8 @@ const defaultFilters: FilterState = {
     paymentType: '',
     discountRange: [0, 100],
     employee: [],
+    workShift: "all",
+    returnRateRange: [0, 100],
     agreement: [],
     season: '',
     holiday: '',
