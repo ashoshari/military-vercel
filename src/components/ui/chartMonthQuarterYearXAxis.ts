@@ -49,12 +49,13 @@ export type BuildThreeYearMonthQuarterYearXAxesParams = {
 export function buildThreeYearMonthQuarterYearXAxes(params: BuildThreeYearMonthQuarterYearXAxesParams): Record<string, unknown>[] {
     const [y0, y1, y2] = params.years;
     const monthRow = [y0, y1, y2].flatMap((y) => params.monthNames.map((m) => `${m} ${y.slice(2)}`));
-    const quarterRow = [y0, y1, y2].flatMap((y) => [
-        `الربع 1 ${y}`,
-        `الربع 2 ${y}`,
-        `الربع 3 ${y}`,
-        `الربع 4 ${y}`,
-    ]);
+    const quarterNames: [string, string, string, string] = [
+        "الربع الأول",
+        "الربع الثاني",
+        "الربع الثالث",
+        "الربع الرابع",
+    ];
+    const quarterRow = [y0, y1, y2].flatMap(() => quarterNames);
     return [
         {
             type: 'category',

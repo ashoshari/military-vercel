@@ -55,21 +55,21 @@ const BRANCHES = [
 
 /** فلاتر المبيعات — مجموعات هرمية (صفحة /sales فقط). */
 const SALES_GROUP_1 = [
-  { value: "all", label: "الكل" },
+  { value: "all", label: "كل المجموعة الأولى" },
   { value: "grocery", label: "بقالة عامة" },
   { value: "fresh", label: "طازج ومبرد" },
   { value: "frozen", label: "مجمد" },
   { value: "dry", label: "جاف ومعلب" },
 ];
 const SALES_GROUP_2 = [
-  { value: "all", label: "الكل" },
+  { value: "all", label: "كل المجموعة الثانية" },
   { value: "national", label: "علامات وطنية" },
   { value: "import", label: "علامات مستوردة" },
   { value: "private", label: "ماركة خاصة" },
   { value: "organic", label: "عضوي" },
 ];
 const SALES_GROUP_3 = [
-  { value: "all", label: "الكل" },
+  { value: "all", label: "كل المجموعة الثالثة" },
   { value: "promo", label: "عروض وتخفيضات" },
   { value: "regular", label: "سعر عادي" },
   { value: "bundle", label: "عبوات مجمّعة" },
@@ -1069,9 +1069,9 @@ export default function GlobalFilterBar() {
   const [dateTo, setDateTo] = useState("");
 
   /** فلاتر /sales — مجموعات + منتج (لحظي). */
-  const [salesG1, setSalesG1] = useState("all");
-  const [salesG2, setSalesG2] = useState("all");
-  const [salesG3, setSalesG3] = useState("all");
+  const [salesG1, setSalesG1] = useState<string[]>([]);
+  const [salesG2, setSalesG2] = useState<string[]>([]);
+  const [salesG3, setSalesG3] = useState<string[]>([]);
   const [salesProduct, setSalesProduct] = useState("");
 
   useEffect(() => {
@@ -1121,9 +1121,9 @@ export default function GlobalFilterBar() {
     setActiveRegions([]);
     setDateFrom("");
     setDateTo("");
-    setSalesG1("all");
-    setSalesG2("all");
-    setSalesG3("all");
+    setSalesG1([]);
+    setSalesG2([]);
+    setSalesG3([]);
     setSalesProduct("");
     setDistributor("");
     setCategory("");
@@ -1136,9 +1136,9 @@ export default function GlobalFilterBar() {
 
   const salesInstantDirty =
     isSalesPage &&
-    (salesG1 !== "all" ||
-      salesG2 !== "all" ||
-      salesG3 !== "all" ||
+    (salesG1.length > 0 ||
+      salesG2.length > 0 ||
+      salesG3.length > 0 ||
       salesProduct !== "");
 
   const isAnyInstantChanged =
@@ -1216,29 +1216,32 @@ export default function GlobalFilterBar() {
 
         {isSalesPage && (
           <>
-            <Dropdown
+            <MultiSelectDropdown
               icon={Layers}
               label="المجموعة الأولى"
-              value={salesG1}
+              selectedValues={salesG1}
               options={SALES_GROUP_1}
               onChange={setSalesG1}
               accent="var(--accent-amber)"
+              manyLabel={(n) => `${n} مجموعات`}
             />
-            <Dropdown
+            <MultiSelectDropdown
               icon={Layers}
               label="المجموعة الثانية"
-              value={salesG2}
+              selectedValues={salesG2}
               options={SALES_GROUP_2}
               onChange={setSalesG2}
               accent="#f59e0b"
+              manyLabel={(n) => `${n} مجموعات`}
             />
-            <Dropdown
+            <MultiSelectDropdown
               icon={Layers}
               label="المجموعة الثالثة"
-              value={salesG3}
+              selectedValues={salesG3}
               options={SALES_GROUP_3}
               onChange={setSalesG3}
               accent="#ea580c"
+              manyLabel={(n) => `${n} مجموعات`}
             />
             <Dropdown
               icon={Package}

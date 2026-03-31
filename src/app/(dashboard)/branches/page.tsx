@@ -3,16 +3,7 @@
 import "@/lib/echarts/register-bar-line-pie";
 import dynamic from "next/dynamic";
 import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Building2,
-  MapPin,
-  Award,
-  Scale,
-  BarChart3,
-  ChevronDown,
-  ChevronLeft,
-} from "lucide-react";
+import { ChevronDown, ChevronLeft } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 
 const ChartCard = dynamic(
@@ -24,11 +15,7 @@ const ChartCard = dynamic(
 );
 import EnterpriseTable from "@/components/ui/EnterpriseTable";
 import type { TableColumn } from "@/components/ui/EnterpriseTable";
-import {
-  getBranchData,
-  getRegionalData,
-  type BranchData,
-} from "@/lib/mockData";
+import { getBranchData, type BranchData } from "@/lib/mockData";
 import BranchMap from "@/components/ui/BranchMap";
 import MetricsBubblePlot, {
   type MetricsBubblePoint,
@@ -45,573 +32,13 @@ import {
   AnalyticsTable,
   analyticsTdBaseStyle,
 } from "@/components/ui/AnalyticsTable";
-
-// ── بيانات الأداء المرجّح لكل فرع (جدول + رسوم) ──
-const branchScores = [
-  {
-    id: "b1",
-    name: "سوق المنارة",
-    score: 59,
-    profit: 428_500,
-    sales: 2_412_000,
-    costs: 1_820_000,
-    employees: 142,
-    returns: 2.8,
-    growth: 6.2,
-    discount: 4.1,
-  },
-  {
-    id: "b2",
-    name: "سوق سطح النجم",
-    score: 38,
-    profit: 118_200,
-    sales: 892_400,
-    costs: 685_000,
-    employees: 68,
-    returns: 1.1,
-    growth: -1.4,
-    discount: 5.8,
-  },
-  {
-    id: "b3",
-    name: "سوق القويسمة",
-    score: 72,
-    profit: 512_800,
-    sales: 2_105_000,
-    costs: 1_520_000,
-    employees: 128,
-    returns: 1.9,
-    growth: 11.3,
-    discount: 3.2,
-  },
-  {
-    id: "b4",
-    name: "سوق راس العين",
-    score: 55,
-    profit: 95_400,
-    sales: 618_000,
-    costs: 465_000,
-    employees: 52,
-    returns: 2.4,
-    growth: 3.1,
-    discount: 6.4,
-  },
-  {
-    id: "b5",
-    name: "سوق البقعة",
-    score: 81,
-    profit: 601_200,
-    sales: 2_890_000,
-    costs: 2_180_000,
-    employees: 165,
-    returns: 1.4,
-    growth: 8.7,
-    discount: 2.9,
-  },
-  {
-    id: "b6",
-    name: "سوق الدمام",
-    score: 46,
-    profit: 156_700,
-    sales: 1_024_500,
-    costs: 775_000,
-    employees: 79,
-    returns: 3.2,
-    growth: 0.8,
-    discount: 5.1,
-  },
-  {
-    id: "b7",
-    name: "سوق الخبر",
-    score: 75,
-    profit: 489_000,
-    sales: 2_198_000,
-    costs: 1_620_000,
-    employees: 121,
-    returns: 1.6,
-    growth: 9.5,
-    discount: 3.6,
-  },
-  {
-    id: "b8",
-    name: "سوق جدة",
-    score: 35,
-    profit: 72_300,
-    sales: 541_200,
-    costs: 410_000,
-    employees: 45,
-    returns: 4.8,
-    growth: -2.6,
-    discount: 7.2,
-  },
-];
-
-// ── أداء فئات المنتجات لكل فرع ──
-const categoryScores = [
-  {
-    cat: "أجهزة وإلكترونيات",
-    b1: 60,
-    b2: 20,
-    b3: 85,
-    b4: 55,
-    b5: 90,
-    b6: 40,
-    b7: 78,
-    b8: 25,
-    subs: [
-      {
-        name: "بطاريات",
-        b1: 65,
-        b2: 22,
-        b3: 80,
-        b4: 50,
-        b5: 88,
-        b6: 38,
-        b7: 75,
-        b8: 20,
-      },
-      {
-        name: "إضاءة LED",
-        b1: 58,
-        b2: 18,
-        b3: 88,
-        b4: 58,
-        b5: 92,
-        b6: 42,
-        b7: 80,
-        b8: 28,
-      },
-      {
-        name: "شواحن",
-        b1: 55,
-        b2: 20,
-        b3: 82,
-        b4: 52,
-        b5: 85,
-        b6: 35,
-        b7: 72,
-        b8: 22,
-      },
-    ],
-  },
-  {
-    cat: "العناية الشخصية",
-    b1: 78,
-    b2: 41,
-    b3: 72,
-    b4: 60,
-    b5: 88,
-    b6: 50,
-    b7: 82,
-    b8: 38,
-    subs: [
-      {
-        name: "شامبو وبلسم",
-        b1: 80,
-        b2: 45,
-        b3: 70,
-        b4: 62,
-        b5: 90,
-        b6: 52,
-        b7: 85,
-        b8: 40,
-      },
-      {
-        name: "معجون أسنان",
-        b1: 75,
-        b2: 38,
-        b3: 75,
-        b4: 58,
-        b5: 86,
-        b6: 48,
-        b7: 78,
-        b8: 35,
-      },
-      {
-        name: "مزيل عرق",
-        b1: 82,
-        b2: 42,
-        b3: 68,
-        b4: 55,
-        b5: 85,
-        b6: 45,
-        b7: 80,
-        b8: 36,
-      },
-      {
-        name: "عطور",
-        b1: 72,
-        b2: 35,
-        b3: 78,
-        b4: 65,
-        b5: 92,
-        b6: 55,
-        b7: 88,
-        b8: 42,
-      },
-    ],
-  },
-  {
-    cat: "غير مصنف",
-    b1: 91,
-    b2: 28,
-    b3: 65,
-    b4: 35,
-    b5: 76,
-    b6: 45,
-    b7: 70,
-    b8: 22,
-    subs: [
-      {
-        name: "متفرقات",
-        b1: 90,
-        b2: 25,
-        b3: 60,
-        b4: 30,
-        b5: 72,
-        b6: 40,
-        b7: 65,
-        b8: 18,
-      },
-      {
-        name: "عام",
-        b1: 92,
-        b2: 30,
-        b3: 68,
-        b4: 38,
-        b5: 78,
-        b6: 48,
-        b7: 74,
-        b8: 25,
-      },
-    ],
-  },
-  {
-    cat: "فرفاشية",
-    b1: 30,
-    b2: 20,
-    b3: 45,
-    b4: 28,
-    b5: 55,
-    b6: 22,
-    b7: 48,
-    b8: 18,
-    subs: [
-      {
-        name: "مفارش",
-        b1: 32,
-        b2: 22,
-        b3: 48,
-        b4: 30,
-        b5: 58,
-        b6: 25,
-        b7: 50,
-        b8: 20,
-      },
-      {
-        name: "وسائد",
-        b1: 28,
-        b2: 18,
-        b3: 42,
-        b4: 25,
-        b5: 52,
-        b6: 20,
-        b7: 45,
-        b8: 15,
-      },
-    ],
-  },
-  {
-    cat: "مستلزمات الأطفال",
-    b1: 79,
-    b2: 42,
-    b3: 80,
-    b4: 58,
-    b5: 85,
-    b6: 48,
-    b7: 75,
-    b8: 35,
-    subs: [
-      {
-        name: "حفاضات",
-        b1: 82,
-        b2: 45,
-        b3: 82,
-        b4: 60,
-        b5: 88,
-        b6: 50,
-        b7: 78,
-        b8: 38,
-      },
-      {
-        name: "حليب أطفال",
-        b1: 78,
-        b2: 40,
-        b3: 78,
-        b4: 55,
-        b5: 82,
-        b6: 45,
-        b7: 72,
-        b8: 32,
-      },
-      {
-        name: "طعام أطفال",
-        b1: 75,
-        b2: 38,
-        b3: 80,
-        b4: 58,
-        b5: 85,
-        b6: 48,
-        b7: 74,
-        b8: 34,
-      },
-    ],
-  },
-  {
-    cat: "مستلزمات منزلية",
-    b1: 78,
-    b2: 43,
-    b3: 74,
-    b4: 62,
-    b5: 89,
-    b6: 52,
-    b7: 80,
-    b8: 40,
-    subs: [
-      {
-        name: "منظفات",
-        b1: 80,
-        b2: 45,
-        b3: 76,
-        b4: 65,
-        b5: 90,
-        b6: 55,
-        b7: 82,
-        b8: 42,
-      },
-      {
-        name: "أدوات مطبخ",
-        b1: 75,
-        b2: 40,
-        b3: 72,
-        b4: 58,
-        b5: 88,
-        b6: 48,
-        b7: 78,
-        b8: 38,
-      },
-      {
-        name: "معطرات جو",
-        b1: 82,
-        b2: 46,
-        b3: 78,
-        b4: 65,
-        b5: 92,
-        b6: 55,
-        b7: 84,
-        b8: 44,
-      },
-      {
-        name: "أكياس وأغلفة",
-        b1: 72,
-        b2: 38,
-        b3: 68,
-        b4: 55,
-        b5: 85,
-        b6: 45,
-        b7: 74,
-        b8: 35,
-      },
-    ],
-  },
-  {
-    cat: "منتجات غذائية",
-    b1: 78,
-    b2: 42,
-    b3: 82,
-    b4: 65,
-    b5: 92,
-    b6: 55,
-    b7: 84,
-    b8: 38,
-    subs: [
-      {
-        name: "حبوب وأرز",
-        b1: 80,
-        b2: 44,
-        b3: 85,
-        b4: 68,
-        b5: 94,
-        b6: 58,
-        b7: 86,
-        b8: 40,
-      },
-      {
-        name: "زيوت",
-        b1: 76,
-        b2: 40,
-        b3: 80,
-        b4: 62,
-        b5: 90,
-        b6: 52,
-        b7: 82,
-        b8: 36,
-      },
-      {
-        name: "حليب وألبان",
-        b1: 82,
-        b2: 45,
-        b3: 84,
-        b4: 70,
-        b5: 95,
-        b6: 58,
-        b7: 88,
-        b8: 42,
-      },
-      {
-        name: "معلبات",
-        b1: 72,
-        b2: 38,
-        b3: 78,
-        b4: 58,
-        b5: 88,
-        b6: 50,
-        b7: 78,
-        b8: 32,
-      },
-      {
-        name: "خبز ومعجنات",
-        b1: 78,
-        b2: 42,
-        b3: 80,
-        b4: 64,
-        b5: 90,
-        b6: 54,
-        b7: 84,
-        b8: 38,
-      },
-    ],
-  },
-  {
-    cat: "منتجات ورقية",
-    b1: 78,
-    b2: 42,
-    b3: 70,
-    b4: 50,
-    b5: 83,
-    b6: 45,
-    b7: 72,
-    b8: 30,
-    subs: [
-      {
-        name: "مناديل",
-        b1: 80,
-        b2: 44,
-        b3: 72,
-        b4: 52,
-        b5: 85,
-        b6: 48,
-        b7: 74,
-        b8: 32,
-      },
-      {
-        name: "ورق تواليت",
-        b1: 76,
-        b2: 40,
-        b3: 68,
-        b4: 48,
-        b5: 80,
-        b6: 42,
-        b7: 70,
-        b8: 28,
-      },
-      {
-        name: "ورق مطبخ",
-        b1: 78,
-        b2: 42,
-        b3: 70,
-        b4: 50,
-        b5: 84,
-        b6: 45,
-        b7: 72,
-        b8: 30,
-      },
-    ],
-  },
-  {
-    cat: "مسطحات",
-    b1: 78,
-    b2: 42,
-    b3: 75,
-    b4: 55,
-    b5: 86,
-    b6: 48,
-    b7: 76,
-    b8: 32,
-    subs: [
-      {
-        name: "مسطحات ساخنة",
-        b1: 80,
-        b2: 44,
-        b3: 78,
-        b4: 58,
-        b5: 88,
-        b6: 50,
-        b7: 78,
-        b8: 34,
-      },
-      {
-        name: "مسطحات باردة",
-        b1: 76,
-        b2: 40,
-        b3: 72,
-        b4: 52,
-        b5: 84,
-        b6: 46,
-        b7: 74,
-        b8: 30,
-      },
-    ],
-  },
-];
-
-function getBarColor(score: number) {
-  if (score >= 70) return "var(--accent-green)";
-  if (score >= 50) return "var(--accent-amber)";
-  if (score >= 30) return "#f97316";
-  return "var(--accent-red)";
-}
-
-const BRANCH_KEYS = ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"] as const;
-
-const BRANCH_PERF_QUARTER_LABELS = [
-  "الربع الأول",
-  "الربع الثاني",
-  "الربع الثالث",
-  "الربع الرابع",
-] as const;
-const BRANCH_PERF_BIMONTH_LABELS = [
-  "يناير–فبراير",
-  "مارس–أبريل",
-  "مايو–جون",
-  "يوليو–أغسطس",
-  "سبتمبر–أكتوبر",
-  "نوفمبر–ديسمبر",
-] as const;
+import Heading from "./components/heading/Heading";
+import BranchesStats from "./components/branches-stats/BranchesStats";
+import BranchPerformanceEvaluation from "./components/branch-performance-evaluation/BranchPerformanceEvaluation";
+import OverallBranchesPerformance from "./components/overall-branches-performance/OverallBranchesPerformance";
+import ProductCategoryPerformanceByBranch from "./components/product-category-performance-by-branch/ProductCategoryPerformanceByBranch";
 
 /** Mock period scores around each branch’s annual score (demo data). */
-function branchPerfPeriodScore(
-  baseScore: number,
-  branchIndex: number,
-  periodIndex: number,
-  periodCount: number,
-): number {
-  const wave =
-    Math.sin((periodIndex / periodCount) * Math.PI * 2 + branchIndex * 0.65) *
-    7;
-  const noise = ((branchIndex * 17 + periodIndex * 11) % 9) - 4;
-  return Math.max(18, Math.min(98, Math.round(baseScore + wave + noise)));
-}
 
 export default function BranchesPage() {
   const palette = useResolvedAnalyticsPalette();
@@ -630,292 +57,385 @@ export default function BranchesPage() {
     [palette],
   );
   const branches = useMemo(() => getBranchData(), []);
-  const regions = useMemo(() => getRegionalData(), []);
-  const topBranch = [...branches].sort((a, b) => b.revenue - a.revenue)[0];
-  const avgScore = Math.round(
-    branchScores.reduce((a, b) => a + b.score, 0) / branchScores.length,
-  );
+
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
-  const [branchPerfGranularity, setBranchPerfGranularity] = useState<
-    "year" | "quarter" | "bimonth"
-  >("year");
 
-  // ── Simple donut gauge (200×200, r=77 — scaled up from 140×140 / r=54) ──
-  const gColor =
-    avgScore >= 70
-      ? "var(--accent-green)"
-      : avgScore >= 50
-        ? "var(--accent-amber)"
-        : "var(--accent-red)";
-  const donutR = 77;
-  const donutC = 100;
-  const circumference = 2 * Math.PI * donutR;
-  const dashOffset = circumference - (avgScore / 100) * circumference;
+  const netSalesByBranchOption = useMemo(() => {
+    // ── صافي المبيعات عبر الزمن لكل فرع ──
+    const months = [
+      "يناير",
+      "فبراير",
+      "مارس",
+      "أبريل",
+      "مايو",
+      "جون",
+      "يوليو",
+      "أغسطس",
+      "سبتمبر",
+      "أكتوبر",
+      "نوفمبر",
+      "ديسمبر",
+    ];
+    const netSalesData: Record<string, number[]> = {
+      "سوق المنارة": [
+        18250, 17520, 16980, 16200, 15840, 15210, 14890, 14550, 14020, 13680,
+        13230, 12800,
+      ],
+      "سوق العليا": [
+        20500, 21050, 21600, 22100, 22850, 23400, 24050, 24700, 25300, 25950,
+        26600, 27250,
+      ],
+      "مول التحلية": [
+        17600, 18100, 18750, 19300, 19850, 20300, 20950, 21500, 22050, 22600,
+        23150, 23800,
+      ],
+      "مول الشاطئ": [
+        14200, 13800, 13350, 12900, 12550, 12100, 11800, 11450, 11000, 10650,
+        10300, 9950,
+      ],
+      "سوق المدينة": [
+        16400, 16850, 17200, 17650, 18100, 18550, 19000, 19450, 19900, 20350,
+        20800, 21250,
+      ],
+      "سوق الرياض": [
+        21500, 22000, 22600, 23200, 23800, 24400, 25000, 25600, 26200, 26800,
+        27400, 28000,
+      ],
+      "سوق الدمام": [
+        19800, 19200, 18600, 18000, 17400, 16800, 16200, 15600, 15000, 14400,
+        13800, 13200,
+      ],
+      "سوق الطائف": [
+        15200, 14800, 14400, 14000, 13600, 13200, 12800, 12400, 12000, 11600,
+        11200, 10800,
+      ],
+      "سوق القصيم": [
+        17500, 18000, 18600, 19200, 19800, 20400, 21000, 21600, 22200, 22800,
+        23400, 24000,
+      ],
+      "سوق أبها": [
+        18600, 18200, 17800, 17400, 17000, 16600, 16200, 15800, 15400, 15000,
+        14600, 14200,
+      ],
+      "سوق نجران": [
+        13200, 12800, 12400, 12000, 11600, 11200, 10800, 10400, 10000, 9600,
+        9200, 8800,
+      ],
+      "سوق حائل": [
+        14500, 14200, 13900, 13600, 13300, 13000, 12700, 12400, 12100, 11800,
+        11500, 11200,
+      ],
+      "سوق الجوف": [
+        13800, 13500, 13200, 12900, 12600, 12300, 12000, 11700, 11400, 11100,
+        10800, 10500,
+      ],
+      "سوق تبوك": [
+        16000, 15600, 15200, 14800, 14400, 14000, 13600, 13200, 12800, 12400,
+        12000, 11600,
+      ],
+      "سوق ينبع": [
+        14900, 14500, 14100, 13700, 13300, 12900, 12500, 12100, 11700, 11300,
+        10900, 10500,
+      ],
+      "سوق بيشة": [
+        12000, 11800, 11600, 11400, 11200, 11000, 10800, 10600, 10400, 10200,
+        10000, 9800,
+      ],
+      "سوق عرعر": [
+        11000, 10800, 10600, 10400, 10200, 10000, 9800, 9600, 9400, 9200, 9000,
+        8800,
+      ],
+      "سوق الباحة": [
+        13000, 12800, 12600, 12400, 12200, 12000, 11800, 11600, 11400, 11200,
+        11000, 10800,
+      ],
+      "سوق سكاكا": [
+        12500, 12300, 12100, 11900, 11700, 11500, 11300, 11100, 10900, 10700,
+        10500, 10300,
+      ],
+      "سوق الخرج": [
+        14000, 13800, 13600, 13400, 13200, 13000, 12800, 12600, 12400, 12200,
+        12000, 11800,
+      ],
+      "سوق الجبيل": [
+        15500, 15200, 14900, 14600, 14300, 14000, 13700, 13400, 13100, 12800,
+        12500, 12200,
+      ],
+      "سوق القطيف": [
+        14800, 14500, 14200, 13900, 13600, 13300, 13000, 12700, 12400, 12100,
+        11800, 11500,
+      ],
+      "سوق الهفوف": [
+        17000, 16800, 16600, 16400, 16200, 16000, 15800, 15600, 15400, 15200,
+        15000, 14800,
+      ],
+      "سوق خميس مشيط": [
+        16200, 16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400,
+        14200, 14000,
+      ],
+      "سوق جازان": [
+        13500, 13300, 13100, 12900, 12700, 12500, 12300, 12100, 11900, 11700,
+        11500, 11300,
+      ],
+      "سوق بريدة": [
+        17800, 17600, 17400, 17200, 17000, 16800, 16600, 16400, 16200, 16000,
+        15800, 15600,
+      ],
+      "سوق عنيزة": [
+        15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400, 13200,
+        13000, 12800,
+      ],
+      "سوق الزلفي": [
+        14200, 14000, 13800, 13600, 13400, 13200, 13000, 12800, 12600, 12400,
+        12200, 12000,
+      ],
+      "سوق الرس": [
+        13900, 13700, 13500, 13300, 13100, 12900, 12700, 12500, 12300, 12100,
+        11900, 11700,
+      ],
+      "سوق المجمعة": [
+        14600, 14400, 14200, 14000, 13800, 13600, 13400, 13200, 13000, 12800,
+        12600, 12400,
+      ],
+      "سوق الخفجي": [
+        12800, 12600, 12400, 12200, 12000, 11800, 11600, 11400, 11200, 11000,
+        10800, 10600,
+      ],
+      "سوق رأس تنورة": [
+        13400, 13200, 13000, 12800, 12600, 12400, 12200, 12000, 11800, 11600,
+        11400, 11200,
+      ],
+      "سوق حفر الباطن": [
+        16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400, 14200,
+        14000, 13800,
+      ],
+      "سوق البطنية": [
+        12400, 12200, 12000, 11800, 11600, 11400, 11200, 11000, 10800, 10600,
+        10400, 10200,
+      ],
+      "سوق الروضة": [
+        15200, 15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400,
+        13200, 13000,
+      ],
+      "سوق العزيزية": [
+        16800, 16600, 16400, 16200, 16000, 15800, 15600, 15400, 15200, 15000,
+        14800, 14600,
+      ],
+      "سوق المنفوحة": [
+        14900, 14700, 14500, 14300, 14100, 13900, 13700, 13500, 13300, 13100,
+        12900, 12700,
+      ],
+      "سوق السويدي": [
+        17100, 16900, 16700, 16500, 16300, 16100, 15900, 15700, 15500, 15300,
+        15100, 14900,
+      ],
+      "سوق الروابي": [
+        15300, 15100, 14900, 14700, 14500, 14300, 14100, 13900, 13700, 13500,
+        13300, 13100,
+      ],
+      "سوق الشفا": [
+        16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400, 14200,
+        14000, 13800,
+      ],
+      "سوق البديعة": [
+        14500, 14300, 14100, 13900, 13700, 13500, 13300, 13100, 12900, 12700,
+        12500, 12300,
+      ],
+      "سوق النزهة": [
+        15200, 15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400,
+        13200, 13000,
+      ],
+      "سوق الحمراء": [
+        16700, 16500, 16300, 16100, 15900, 15700, 15500, 15300, 15100, 14900,
+        14700, 14500,
+      ],
+      "سوق الملك فهد": [
+        18200, 18000, 17800, 17600, 17400, 17200, 17000, 16800, 16600, 16400,
+        16200, 16000,
+      ],
+      "سوق الفاروق": [
+        13900, 13700, 13500, 13300, 13100, 12900, 12700, 12500, 12300, 12100,
+        11900, 11700,
+      ],
+      "سوق الشفاء": [
+        14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400, 13200, 13000,
+        12800, 12600,
+      ],
+      "سوق الأندلس": [
+        17300, 17100, 16900, 16700, 16500, 16300, 16100, 15900, 15700, 15500,
+        15300, 15100,
+      ],
+      "سوق الخليج": [
+        16200, 16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400,
+        14200, 14000,
+      ],
+      "سوق النهضة": [
+        15400, 15200, 15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600,
+        13400, 13200,
+      ],
+      "سوق التعاون": [
+        16900, 16700, 16500, 16300, 16100, 15900, 15700, 15500, 15300, 15100,
+        14900, 14700,
+      ],
+      "سوق النرجس": [
+        17800, 17600, 17400, 17200, 17000, 16800, 16600, 16400, 16200, 16000,
+        15800, 15600,
+      ],
+      "سوق الملقا": [
+        18300, 18100, 17900, 17700, 17500, 17300, 17100, 16900, 16700, 16500,
+        16300, 16100,
+      ],
+      "سوق الياسمين": [
+        17600, 17400, 17200, 17000, 16800, 16600, 16400, 16200, 16000, 15800,
+        15600, 15400,
+      ],
+      "سوق النرجس الشمالي": [
+        16900, 16700, 16500, 16300, 16100, 15900, 15700, 15500, 15300, 15100,
+        14900, 14700,
+      ],
+      "سوق الحزم": [
+        15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400, 14200, 14000,
+        13800, 13600,
+      ],
+      "سوق السويدي الغربي": [
+        14700, 14500, 14300, 14100, 13900, 13700, 13500, 13300, 13100, 12900,
+        12700, 12500,
+      ],
+      "سوق اليرموك": [
+        16500, 16300, 16100, 15900, 15700, 15500, 15300, 15100, 14900, 14700,
+        14500, 14300,
+      ],
+      "سوق الربيع": [
+        15200, 15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400,
+        13200, 13000,
+      ],
+      "سوق الشروق": [
+        16100, 15900, 15700, 15500, 15300, 15100, 14900, 14700, 14500, 14300,
+        14100, 13900,
+      ],
+      "سوق المشرق": [
+        17000, 16800, 16600, 16400, 16200, 16000, 15800, 15600, 15400, 15200,
+        15000, 14800,
+      ],
+      "سوق المنارة الشمالية": [
+        18250, 18050, 17850, 17650, 17450, 17250, 17050, 16850, 16650, 16450,
+        16250, 16050,
+      ],
+      "سوق العليا الشمالية": [
+        20500, 20300, 20100, 19900, 19700, 19500, 19300, 19100, 18900, 18700,
+        18500, 18300,
+      ],
+      "مول التحلية الجديدة": [
+        17600, 17400, 17200, 17000, 16800, 16600, 16400, 16200, 16000, 15800,
+        15600, 15400,
+      ],
+      "مول الشاطئ الجديد": [
+        14200, 14000, 13800, 13600, 13400, 13200, 13000, 12800, 12600, 12400,
+        12200, 12000,
+      ],
+      "سوق المدينة الجديدة": [
+        16400, 16200, 16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600,
+        14400, 14200,
+      ],
+      "سوق الرياض الجديدة": [
+        21500, 21300, 21100, 20900, 20700, 20500, 20300, 20100, 19900, 19700,
+        19500, 19300,
+      ],
+      "سوق الدمام الجديدة": [
+        19800, 19600, 19400, 19200, 19000, 18800, 18600, 18400, 18200, 18000,
+        17800, 17600,
+      ],
+      "سوق الطائف الجديدة": [
+        15200, 15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400,
+        13200, 13000,
+      ],
+      "سوق القصيم الجديدة": [
+        17500, 17300, 17100, 16900, 16700, 16500, 16300, 16100, 15900, 15700,
+        15500, 15300,
+      ],
+      "سوق أبها الجديدة": [
+        18600, 18400, 18200, 18000, 17800, 17600, 17400, 17200, 17000, 16800,
+        16600, 16400,
+      ],
+      "سوق نجران الجديدة": [
+        13200, 13000, 12800, 12600, 12400, 12200, 12000, 11800, 11600, 11400,
+        11200, 11000,
+      ],
+      "سوق حائل الجديدة": [
+        14500, 14300, 14100, 13900, 13700, 13500, 13300, 13100, 12900, 12700,
+        12500, 12300,
+      ],
+      "سوق الجوف الجديدة": [
+        13800, 13600, 13400, 13200, 13000, 12800, 12600, 12400, 12200, 12000,
+        11800, 11600,
+      ],
+      "سوق تبوك الجديدة": [
+        16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400, 14200,
+        14000, 13800,
+      ],
+      "سوق ينبع الجديدة": [
+        14900, 14700, 14500, 14300, 14100, 13900, 13700, 13500, 13300, 13100,
+        12900, 12700,
+      ],
+      "سوق بيشة الجديدة": [
+        12000, 11800, 11600, 11400, 11200, 11000, 10800, 10600, 10400, 10200,
+        10000, 9800,
+      ],
+      "سوق عرعر الجديدة": [
+        11000, 10800, 10600, 10400, 10200, 10000, 9800, 9600, 9400, 9200, 9000,
+        8800,
+      ],
+      "سوق الباحة الجديدة": [
+        13000, 12800, 12600, 12400, 12200, 12000, 11800, 11600, 11400, 11200,
+        11000, 10800,
+      ],
+      "سوق سكاكا الجديدة": [
+        12500, 12300, 12100, 11900, 11700, 11500, 11300, 11100, 10900, 10700,
+        10500, 10300,
+      ],
+      "سوق الخرج الجديدة": [
+        14000, 13800, 13600, 13400, 13200, 13000, 12800, 12600, 12400, 12200,
+        12000, 11800,
+      ],
+      "سوق الجبيل الجديدة": [
+        15500, 15300, 15100, 14900, 14700, 14500, 14300, 14100, 13900, 13700,
+        13500, 13300,
+      ],
+      "سوق القطيف الجديدة": [
+        14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400, 13200, 13000,
+        12800, 12600,
+      ],
+      "سوق الهفوف الجديدة": [
+        17000, 16800, 16600, 16400, 16200, 16000, 15800, 15600, 15400, 15200,
+        15000, 14800,
+      ],
+      "سوق خميس مشيط الجديدة": [
+        16200, 16000, 15800, 15600, 15400, 15200, 15000, 14800, 14600, 14400,
+        14200, 14000,
+      ],
+      "سوق جازان الجديدة": [
+        13500, 13300, 13100, 12900, 12700, 12500, 12300, 12100, 11900, 11700,
+        11500, 11300,
+      ],
+      "سوق بريدة الجديدة": [
+        17800, 17600, 17400, 17200, 17000, 16800, 16600, 16400, 16200, 16000,
+        15800, 15600,
+      ],
+      "سوق عنيزة الجديدة": [
+        15000, 14800, 14600, 14400, 14200, 14000, 13800, 13600, 13400, 13200,
+        13000, 12800,
+      ],
+      "سوق الزلفي الجديدة": [
+        14200, 14000, 13800, 13600, 13400, 13200, 13000, 12800, 12600, 12400,
+        12200, 12000,
+      ],
+      "سوق الرس الجديدة": [
+        13900, 13700, 13500, 13300, 13100, 12900, 12700, 12500, 12300, 12100,
+        11900, 11700,
+      ],
+    };
 
-  // ── أداء الفروع (شريط ملون): سنوي / ربع سنوي / كل شهرين ──
-  // استخدم ألوان hex من لوحة التحليلات — ECharts (كانفس) لا يطبّق var(--…) في itemStyle/التسميات.
-  const branchPerfOption = useMemo(() => {
-    const perfGreen = palette.primaryGreen;
-    const perfRed = palette.primaryRed;
-    const byScore = (score: number) => (score >= 55 ? perfGreen : perfRed);
-    const byBranch = (bi: number) => (bi % 2 === 0 ? perfGreen : perfRed);
-
-    const shortName = (b: (typeof branchScores)[0]) =>
-      b.name.split(" ").slice(0, 2).join(" ");
-    if (branchPerfGranularity === "year") {
-      const rotate = branchScores.length > 4 ? 30 : 0;
-      return {
-        tooltip: { trigger: "item" as const, formatter: "{b}: {c}%" },
-        xAxis: {
-          type: "category" as const,
-          data: branchScores.map(shortName),
-          boundaryGap: true,
-          axisTick: { alignWithLabel: true },
-          axisLabel: {
-            rotate,
-            fontSize: 10,
-            align: "center",
-            verticalAlign: "middle",
-            margin: rotate ? 14 : 10,
-            interval: 0,
-          },
-        },
-        yAxis: {
-          type: "value" as const,
-          max: 100,
-          axisLabel: { formatter: "{value}%" },
-        },
-        series: [
-          {
-            type: "bar" as const,
-            data: branchScores.map((b) => ({
-              value: b.score,
-              itemStyle: {
-                color: byScore(b.score),
-                borderRadius: [4, 4, 0, 0],
-              },
-              label: {
-                show: true,
-                position: "top",
-                formatter: `${b.score}%`,
-                color: byScore(b.score),
-                fontSize: 11,
-                fontWeight: "bold",
-              },
-            })),
-            barWidth: Math.max(16, Math.min(36, 200 / branchScores.length)),
-          },
-        ],
-        grid: {
-          top: rotate ? "2%" : "16%",
-          bottom: rotate ? "2%" : "16%",
-          left: "3%",
-          right: "3%",
-          containLabel: true,
-        },
-      };
-    }
-    const multiGrid = {
-      bottom: "24%",
-      top: "8%",
-      left: "3%",
-      right: "3%",
-      containLabel: true,
-    };
-    const multiTooltip = {
-      trigger: "axis" as const,
-      formatter: (params: { seriesName: string; value: number }[]) =>
-        params.map((p) => `${p.seriesName}: <b>${p.value}%</b>`).join("<br/>"),
-    };
-    const multiLegend = {
-      data: branchScores.map((b) => b.name),
-      bottom: 0,
-      textStyle: { fontSize: 8 },
-      type: "scroll" as const,
-    };
-    const multiY = {
-      type: "value" as const,
-      max: 100,
-      axisLabel: { formatter: "{value}%", fontSize: 9 },
-    };
-    if (branchPerfGranularity === "quarter") {
-      const n = BRANCH_PERF_QUARTER_LABELS.length;
-      return {
-        tooltip: multiTooltip,
-        legend: multiLegend,
-        grid: multiGrid,
-        xAxis: {
-          type: "category" as const,
-          data: [...BRANCH_PERF_QUARTER_LABELS],
-          axisLabel: { fontSize: 9 },
-        },
-        yAxis: multiY,
-        series: branchScores.map((b, bi) => ({
-          name: b.name,
-          type: "bar" as const,
-          itemStyle: { color: byBranch(bi) },
-          barMaxWidth: 8,
-          data: Array.from({ length: n }, (_, qi) => {
-            const v = branchPerfPeriodScore(b.score, bi, qi, n);
-            return {
-              value: v,
-              itemStyle: {
-                color: byBranch(bi),
-                borderRadius: [2, 2, 0, 0],
-              },
-            };
-          }),
-        })),
-        dataZoom: [{ type: "inside" as const }],
-      };
-    }
-    const n = BRANCH_PERF_BIMONTH_LABELS.length;
     return {
-      tooltip: multiTooltip,
-      legend: multiLegend,
-      grid: { ...multiGrid, bottom: "26%" },
-      xAxis: {
-        type: "category" as const,
-        data: [...BRANCH_PERF_BIMONTH_LABELS],
-        boundaryGap: true,
-        axisTick: { alignWithLabel: true },
-        axisLabel: {
-          rotate: 28,
-          fontSize: 8,
-          align: "center",
-          verticalAlign: "middle",
-          margin: 16,
-          interval: 0,
-        },
-      },
-      yAxis: multiY,
-      series: branchScores.map((b, bi) => ({
-        name: b.name,
-        type: "bar" as const,
-        itemStyle: { color: byBranch(bi) },
-        barMaxWidth: 6,
-        data: Array.from({ length: n }, (_, mi) => {
-          const v = branchPerfPeriodScore(b.score, bi, mi, n);
-          return {
-            value: v,
-            itemStyle: {
-              color: byBranch(bi),
-              borderRadius: [2, 2, 0, 0],
-            },
-          };
-        }),
-      })),
-      dataZoom: [{ type: "inside" as const }],
-    };
-  }, [branchPerfGranularity, palette.primaryGreen, palette.primaryRed]);
-
-  // ── أداء فئات المنتجات (مجمّع لكل الفروع) ──
-  const categoryPerfOption = useMemo(
-    () => ({
-      tooltip: {
-        trigger: "axis" as const,
-        formatter: (params: { seriesName: string; value: number }[]) =>
-          params
-            .map((p) => `${p.seriesName}: <b>${p.value}%</b>`)
-            .join("<br/>"),
-      },
-      legend: {
-        data: branchScores.map((b) => b.name),
-        bottom: 0,
-        textStyle: { fontSize: 9 },
-        type: "scroll" as const,
-      },
-      dataZoom: [{ type: "inside" as const }],
-      grid: {
-        bottom: "22%",
-        top: "8%",
-        left: "3%",
-        right: "3%",
-        containLabel: true,
-      },
-      xAxis: {
-        type: "category" as const,
-        data: categoryScores.map((c) => c.cat),
-        axisLabel: { rotate: 25, fontSize: 9 },
-      },
-      yAxis: {
-        type: "value" as const,
-        max: 100,
-        axisLabel: { formatter: "{value}%", fontSize: 9 },
-      },
-      series: branchScores.map((b, bi) => ({
-        name: b.name,
-        type: "bar",
-        barMaxWidth: 12,
-        data: categoryScores.map((c) => {
-          const val =
-            (c as unknown as Record<string, number>)[BRANCH_KEYS[bi]] ?? 0;
-          return {
-            value: val,
-            itemStyle: {
-              color: branchChartColors[bi],
-              borderRadius: [3, 3, 0, 0],
-              opacity:
-                val >= 70 ? 1 : val >= 50 ? 0.85 : val >= 30 ? 0.7 : 0.55,
-            },
-          };
-        }),
-      })),
-    }),
-    [branchChartColors],
-  );
-
-  // ── صافي المبيعات عبر الزمن لكل فرع ──
-  const months = [
-    "يناير",
-    "فبراير",
-    "مارس",
-    "أبريل",
-    "مايو",
-    "جون",
-    "يوليو",
-    "أغسطس",
-    "سبتمبر",
-    "أكتوبر",
-    "نوفمبر",
-    "ديسمبر",
-  ];
-  const netSalesData: Record<string, number[]> = {
-    "سوق المنارة": [
-      45140, 43200, 41800, 39600, 38100, 36500, 35200, 33800, 31500, 29700,
-      27920, 24380,
-    ],
-    "سوق سطح النجم": [
-      32100, 31400, 30800, 29500, 28200, 27600, 26800, 25900, 24300, 23100,
-      22400, 21800,
-    ],
-    "سوق القويسمة": [
-      28500, 29200, 30100, 31500, 32800, 33400, 34200, 35100, 36500, 37800,
-      38400, 39200,
-    ],
-    "سوق راس العين": [
-      18200, 17800, 17200, 16800, 16500, 16100, 15800, 15200, 14800, 14200,
-      13800, 13500,
-    ],
-    "سوق البقعة": [
-      38400, 39100, 40200, 41800, 43200, 44500, 45800, 46200, 47100, 48300,
-      49500, 50200,
-    ],
-    "سوق الدمام": [
-      22300, 21800, 21200, 20800, 20100, 19500, 18800, 18200, 17600, 17100,
-      16800, 16200,
-    ],
-    "سوق الخبر": [
-      35200, 35800, 36500, 37200, 38100, 38800, 39500, 40200, 41100, 41800,
-      42500, 43200,
-    ],
-    "سوق جدة": [
-      15200, 14800, 14200, 13800, 13500, 13100, 12800, 12200, 11800, 11500,
-      11200, 10800,
-    ],
-  };
-  const netSalesByBranchOption = useMemo(
-    () => ({
       tooltip: { trigger: "axis" as const },
       legend: {
         data: Object.keys(netSalesData),
@@ -961,9 +481,8 @@ export default function BranchesPage() {
           color: branchChartColors[i],
         },
       })),
-    }),
-    [branchChartColors],
-  );
+    };
+  }, [branchChartColors]);
 
   const branchColumns: TableColumn<BranchData>[] = useMemo(() => {
     const maxRev = Math.max(...branches.map((b) => b.revenue), 1);
@@ -1041,565 +560,23 @@ export default function BranchesPage() {
     ];
   }, [branches]);
 
-  const scoreColor = (v: number) =>
-    v >= 70
-      ? "var(--accent-green)"
-      : v >= 50
-        ? "var(--accent-amber)"
-        : "var(--accent-red)";
-
   return (
     <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <Building2 size={24} style={{ color: "var(--accent-green)" }} />
-          <h1
-            className="text-xl font-bold"
-            style={{ color: "var(--text-primary)" }}
-          >
-            أداء الفروع
-          </h1>
-        </div>
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          Branches & Product Category Performance Scores — التقرير الثاني
-        </p>
-      </motion.div>
+      <Heading />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          {
-            icon: Building2,
-            label: "إجمالي الفروع",
-            value: branches.length,
-            color: "var(--accent-green)",
-          },
-          {
-            icon: MapPin,
-            label: "المناطق",
-            value: regions.length,
-            color: "var(--accent-blue)",
-          },
-          {
-            icon: Award,
-            label: "الأفضل أداءً",
-            value: topBranch?.nameAr?.split(" ")[0] || "",
-            color: "var(--accent-amber)",
-          },
-          {
-            icon: Scale,
-            label: "متوسط الأداء",
-            value: `${avgScore}%`,
-            color:
-              avgScore >= 70 ? "var(--accent-green)" : "var(--accent-amber)",
-          },
-        ].map((s) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="glass-panel p-4"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <s.icon size={14} style={{ color: s.color }} />
-              <span
-                className="text-[11px] font-semibold"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {s.label}
-              </span>
-            </div>
-            <p className="text-lg font-bold" style={{ color: s.color }}>
-              {s.value}
-            </p>
-          </motion.div>
-        ))}
-      </div>
+      <BranchesStats />
 
       {/* ── القسم الأول: Gauge + الأوزان المعيارية + أداء الفروع ── */}
-      <div className="glass-panel p-0 overflow-hidden">
-        <div
-          className="px-5 py-3 border-b"
-          style={{ borderColor: "var(--border-subtle)" }}
-        >
-          <div className="flex items-center gap-2">
-            <ChartTitleFlagBadge flag="green" size="sm" />
-            <div className="flex items-center gap-2">
-              <BarChart3 size={16} style={{ color: "var(--accent-blue)" }} />
-              <h3
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                تقييم أداء الفروع
-              </h3>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-0">
-          {/* Simple Donut Gauge */}
-          <div
-            className="p-5 border-b xl:border-b-0 xl:border-l flex flex-col items-center justify-center"
-            style={{ borderColor: "var(--border-subtle)" }}
-          >
-            <p
-              className="text-[11px] font-semibold mb-4"
-              style={{ color: "var(--text-muted)" }}
-            >
-              متوسط درجة أداء الفروع الكلية
-            </p>
-            <div className="relative" style={{ width: 200, height: 200 }}>
-              <svg width="200" height="200" viewBox="0 0 200 200">
-                <circle
-                  cx={donutC}
-                  cy={donutC}
-                  r={donutR}
-                  fill="none"
-                  stroke="var(--bg-elevated)"
-                  strokeWidth="16"
-                />
-                <circle
-                  cx={donutC}
-                  cy={donutC}
-                  r={donutR}
-                  fill="none"
-                  stroke={gColor}
-                  strokeWidth="16"
-                  strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={dashOffset}
-                  transform={`rotate(-90 ${donutC} ${donutC})`}
-                  style={{ transition: "stroke-dashoffset 0.8s ease" }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-3xl font-bold" style={{ color: gColor }}>
-                  {avgScore}%
-                </span>
-                <span
-                  className="text-[10px]"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  الأداء العام
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* الأوزان المعيارية */}
-          <div className="xl:col-span-2 p-5">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
-              {[
-                {
-                  label: `إجمالي المبيعات المعيارية\n(الوزن 30%)`,
-                  value: "10%",
-                },
-                { label: `نمو المبيعات المعياري\n(الوزن 20%)`, value: "7%" },
-                { label: `هامش الربح المعياري\n(الوزن 20%)`, value: "11%" },
-                { label: `متوسط السلة المعياري\n(الوزن 20%)`, value: "7%" },
-                { label: `معدل الحذف المعياري\n(الوزن 10%)`, value: "7%" },
-              ].map((k) => (
-                <div key={k.label} className="text-center">
-                  <p
-                    className="text-[9px] leading-tight mb-1 whitespace-pre-line"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {k.label}
-                  </p>
-                  <p
-                    className="text-xl font-bold"
-                    style={{ color: "var(--accent-blue)" }}
-                  >
-                    {k.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* جدول الفروع المرجّح */}
-            <div className="overflow-x-auto">
-              <AnalyticsTable
-                headers={[
-                  { label: "الفرع", align: "right" },
-                  { label: "الربح", align: "center" },
-                  { label: "عدد الموظفين مقارنة بالمبيعات", align: "center" },
-                  { label: "المرتجعات", align: "center" },
-                  { label: "النمو", align: "center" },
-                  { label: "الخصم", align: "center" },
-                  { label: "المبيعات", align: "center" },
-                  { label: "التكاليف", align: "center" },
-                ]}
-              >
-                {(() => {
-                  const maxProfit = Math.max(
-                    ...branchScores.map((b) => b.profit),
-                    1,
-                  );
-                  const maxSales = Math.max(
-                    ...branchScores.map((b) => b.sales),
-                    1,
-                  );
-                  const maxCosts = Math.max(
-                    ...branchScores.map((b) => b.costs),
-                    1,
-                  );
-                  const maxEmpPerM = Math.max(
-                    ...branchScores.map((b) =>
-                      b.sales > 0 ? (b.employees / b.sales) * 1_000_000 : 0,
-                    ),
-                    1,
-                  );
-                  return branchScores.map((b) => {
-                    const empPerM =
-                      b.sales > 0 ? (b.employees / b.sales) * 1_000_000 : 0;
-                    return (
-                      <tr key={b.id}>
-                        <td
-                          style={{
-                            ...analyticsTdBaseStyle("right"),
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {b.name}
-                        </td>
-                        <AnalyticsBarCell
-                          value={b.profit}
-                          max={maxProfit}
-                          color="#3b82f6"
-                          text={b.profit.toLocaleString("en-US")}
-                        />
-                        <AnalyticsBarCell
-                          value={empPerM}
-                          max={maxEmpPerM}
-                          color="#3b82f6"
-                          text={`${b.employees} · ${empPerM.toFixed(1)}`}
-                        />
-                        <AnalyticsBarCell
-                          value={b.returns}
-                          max={10}
-                          color="#3b82f6"
-                          text={`${b.returns.toFixed(1)}%`}
-                        />
-                        <td style={analyticsTdBaseStyle("center")}>
-                          <span
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              color:
-                                b.growth >= 0
-                                  ? "var(--accent-green)"
-                                  : "var(--accent-amber)",
-                            }}
-                            dir="ltr"
-                          >
-                            {b.growth >= 0 ? "+" : ""}
-                            {b.growth.toFixed(1)}%
-                          </span>
-                        </td>
-                        <AnalyticsBarCell
-                          value={b.discount}
-                          max={10}
-                          color="#3b82f6"
-                          text={`${b.discount.toFixed(1)}%`}
-                        />
-                        <AnalyticsBarCell
-                          value={b.sales}
-                          max={maxSales}
-                          color="#3b82f6"
-                          text={b.sales.toLocaleString("en-US")}
-                        />
-                        <AnalyticsBarCell
-                          value={b.costs}
-                          max={maxCosts}
-                          color="#3b82f6"
-                          text={b.costs.toLocaleString("en-US")}
-                        />
-                      </tr>
-                    );
-                  });
-                })()}
-              </AnalyticsTable>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BranchPerformanceEvaluation />
 
       {/* ── Overall Branch Performance Score (bar chart) ── */}
-      <div className="glass-panel overflow-hidden">
-        <div
-          className="px-5 py-3 border-b"
-          style={{ borderColor: "var(--border-subtle)" }}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <ChartTitleFlagBadge flag="green" size="sm" />
-              <h3
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                أداء الفروع الكلية
-              </h3>
-            </div>
-            <div
-              className="flex flex-wrap items-center gap-1 shrink-0"
-              role="group"
-              aria-label="دقة عرض الرسم"
-            >
-              {[
-                { id: "year" as const, label: "سنوي" },
-                { id: "quarter" as const, label: "ربع سنوي" },
-                { id: "bimonth" as const, label: "شهري" },
-              ].map((t) => {
-                const active = branchPerfGranularity === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => setBranchPerfGranularity(t.id)}
-                    className="text-[10px] font-medium px-2.5 py-1 rounded-md border transition-colors"
-                    style={{
-                      borderColor: "var(--border-subtle)",
-                      background: active
-                        ? "rgba(37, 99, 235, 0.12)"
-                        : "transparent",
-                      color: active
-                        ? "var(--accent-blue)"
-                        : "var(--text-muted)",
-                    }}
-                  >
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div
-            className="flex flex-wrap items-center gap-3 mt-1 text-[10px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <span>درجة أداء الفروع</span>
-            {branchScores.map((b) => (
-              <span
-                key={b.id}
-                className="font-semibold"
-                style={{
-                  color:
-                    b.score >= 55 ? palette.primaryGreen : palette.primaryRed,
-                }}
-              >
-                {b.score}%
-              </span>
-            ))}
-            <div className="flex items-center gap-1">
-              <div
-                style={{
-                  background:
-                    "linear-gradient(to right, var(--accent-red), var(--accent-green))",
-                }}
-                className="w-12 h-2 rounded-full"
-              />
-              <span>&lt;55% → ≥55%</span>
-            </div>
-            {branchPerfGranularity === "quarter" && (
-              <span className="text-[9px] opacity-90">
-                المحور: الأرباع — مفتاح الألوان: الفروع
-              </span>
-            )}
-            {branchPerfGranularity === "bimonth" && (
-              <span className="text-[9px] opacity-90">
-                المحور: أزواج أشهر — مفتاح الألوان: الفروع
-              </span>
-            )}
-          </div>
-        </div>
-        <ChartCard
-          key={branchPerfGranularity}
-          title=""
-          option={branchPerfOption as Record<string, unknown>}
-          height={branchPerfGranularity === "year" ? "280px" : "320px"}
-        />
-      </div>
-
+      <OverallBranchesPerformance />
       {/* ── درجة أداء فئات المنتجات ── */}
-      <div className="glass-panel overflow-hidden">
-        <div
-          className="px-5 py-3 border-b"
-          style={{ borderColor: "var(--border-subtle)" }}
-        >
-          <div className="flex items-center gap-2">
-            <ChartTitleFlagBadge flag="green" size="sm" />
-            <h3
-              className="text-sm font-semibold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              أداء فئات المنتجات حسب الفروع
-            </h3>
-          </div>
-          <div className="flex items-center gap-4 mt-1 text-[10px]">
-            <span style={{ color: "var(--text-muted)" }}>
-              درجة أداء فئات المنتجات
-            </span>
-            <span
-              className="font-semibold"
-              style={{ color: "var(--accent-red)" }}
-            >
-              20%
-            </span>
-            <div
-              className="w-16 h-2 rounded-full"
-              style={{
-                background: `linear-gradient(to right, var(--accent-red), var(--accent-amber), var(--accent-green))`,
-              }}
-            />
-            <span
-              className="font-semibold"
-              style={{ color: "var(--accent-green)" }}
-            >
-              90%
-            </span>
-            <span style={{ color: "var(--text-muted)" }}>55%</span>
-          </div>
-        </div>
-        <ChartCard title="" option={categoryPerfOption} height="320px" />
-
-        {/* جدول تفصيلي للفئات */}
-        <div className="px-5 pb-4 overflow-x-auto">
-          <AnalyticsTable
-            headers={[
-              { label: "الفئة", align: "right", width: "120px" },
-              ...branchScores.map((b) => ({
-                label: b.name.split(" ").slice(0, 2).join(" "),
-                align: "center" as const,
-                width: "88px" as const,
-              })),
-            ]}
-            minWidth={Math.max(560, 120 + branchScores.length * 88)}
-          >
-            {categoryScores.map((c) => {
-              const row = c as unknown as Record<string, number | string>;
-              const isOpen = expandedCats[c.cat];
-              const hasSubs = c.subs && c.subs.length > 0;
-              return (
-                <React.Fragment key={c.cat}>
-                  <tr
-                    className={
-                      hasSubs
-                        ? "cursor-pointer hover:bg-white/[0.015] transition-colors"
-                        : undefined
-                    }
-                    style={{ borderBottom: "1px solid var(--border-subtle)" }}
-                    onClick={() =>
-                      hasSubs &&
-                      setExpandedCats((p) => ({ ...p, [c.cat]: !p[c.cat] }))
-                    }
-                  >
-                    <td
-                      style={{
-                        ...analyticsTdBaseStyle("right"),
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        {hasSubs && (
-                          <span
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              width: 14,
-                              height: 14,
-                              borderRadius: 3,
-                              background: isOpen
-                                ? "rgba(37,99,235,0.12)"
-                                : "var(--bg-elevated)",
-                            }}
-                          >
-                            {isOpen ? (
-                              <ChevronDown
-                                size={10}
-                                style={{ color: "var(--accent-blue)" }}
-                              />
-                            ) : (
-                              <ChevronLeft
-                                size={10}
-                                style={{ color: "var(--text-muted)" }}
-                              />
-                            )}
-                          </span>
-                        )}
-                        {c.cat}
-                      </div>
-                    </td>
-                    {branchScores.map((b, bi) => {
-                      const val = Number(row[`b${bi + 1}`]) || 0;
-                      return (
-                        <AnalyticsBarCell
-                          key={b.id}
-                          value={val}
-                          max={100}
-                          color={getBarColor(val)}
-                          text={`${val}%`}
-                        />
-                      );
-                    })}
-                  </tr>
-                  {isOpen &&
-                    c.subs?.map((sub) => (
-                      <tr
-                        key={sub.name}
-                        style={{
-                          background: "rgba(8,145,178,0.02)",
-                          borderBottom: "1px solid var(--border-subtle)",
-                        }}
-                      >
-                        <td
-                          style={{
-                            ...analyticsTdBaseStyle("right"),
-                            paddingRight: "28px",
-                            fontSize: 10,
-                            color: "var(--text-secondary)",
-                          }}
-                        >
-                          <span
-                            style={{
-                              color: "var(--text-muted)",
-                              marginLeft: 4,
-                            }}
-                          >
-                            └
-                          </span>{" "}
-                          {sub.name}
-                        </td>
-                        {branchScores.map((b, bi) => {
-                          const val =
-                            Number(
-                              (sub as unknown as Record<string, number>)[
-                                `b${bi + 1}`
-                              ],
-                            ) || 0;
-                          return (
-                            <AnalyticsBarCell
-                              key={b.id}
-                              value={val}
-                              max={100}
-                              color={getBarColor(val)}
-                              text={`${val}%`}
-                            />
-                          );
-                        })}
-                      </tr>
-                    ))}
-                </React.Fragment>
-              );
-            })}
-          </AnalyticsTable>
-        </div>
-      </div>
+      <ProductCategoryPerformanceByBranch
+        expandedCats={expandedCats}
+        setExpandedCats={setExpandedCats}
+      />
 
       {/* ── مقارنة المبيعات: السنة الحالية مقابل السنة السابقة ── */}
       {(() => {
@@ -1834,13 +811,49 @@ export default function BranchesPage() {
         }
 
         function renderYoyDeltaCell(delta: number) {
+          const value = Math.abs(delta);
+          const color = delta >= 0 ? "#3b82f6" : "#ef4444";
+          const text = fmtDelta(delta);
+          const isPositive = delta >= 0;
+          const widthPct = Math.max(
+            2,
+            (value / Math.max(1, maxAbsDelta)) * 50,
+          );
+
           return (
-            <AnalyticsBarCell
-              value={Math.abs(delta)}
-              max={maxAbsDelta}
-              color={delta >= 0 ? "#3b82f6" : "#ef4444"}
-              text={fmtDelta(delta)}
-            />
+            <td
+              style={{
+                ...analyticsTdBaseStyle("center"),
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: isPositive
+                    ? "translateY(-50%)"
+                    : "translate(-100%, -50%)",
+                  height: 16,
+                  background: color,
+                  opacity: 0.25,
+                  borderRadius: 3,
+                  width: `${widthPct}%`,
+                }}
+              />
+              <div
+                style={{
+                  position: "relative",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: "var(--text-secondary)",
+                }}
+                dir="ltr"
+              >
+                {text}
+              </div>
+            </td>
           );
         }
 
@@ -1883,7 +896,6 @@ export default function BranchesPage() {
               >
                 {yoyData.map((d) => {
                   const delta = d.ac - d.py;
-                  const deltaPct = pct(d.ac, d.py);
                   const branchOpen = !!expandedCats[yoyKey.branch(d.branch)];
                   return (
                     <React.Fragment key={d.branch}>

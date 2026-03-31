@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import {
   DRILL_YEARS,
-  DrillYear,
   YEAR_SEP_COLOR,
   YEAR_SEP_LINE_WIDTH,
   yearRevenueMultipliers,
@@ -43,10 +42,10 @@ const NetProfitAndSalesByDate = () => {
   const [drillLevel, setDrillLevel] = useState<"year" | "quarter" | "month">(
     "month",
   );
-  /** عند «ربع»: أي سنوات تُعرض (لكل سنة الأربعة أرباع). */
-  const [selectedQuarterYears, setSelectedQuarterYears] = useState<
-    Set<DrillYear>
-  >(() => new Set([...DRILL_YEARS]));
+  /** عند «ربع»: أي أرباع تُعرض (عبر كل السنوات). 0 → الربع الأول ... 3 → الربع الرابع */
+  const [selectedQuarters, setSelectedQuarters] = useState<Set<number>>(
+    () => new Set([0, 1, 2, 3]),
+  );
 
   /** عند «شهر»: أي أشهر تُعرض لكل عام (نفس الشهر من 2023 و2024 و2025). */
   const [selectedMonthIndices, setSelectedMonthIndices] = useState<Set<number>>(
@@ -73,8 +72,8 @@ const NetProfitAndSalesByDate = () => {
       };
     }
     if (drillLevel === "quarter") {
-      const ys = [...selectedQuarterYears].sort() as DrillYear[];
-      if (ys.length === 0) {
+      const qs = [...selectedQuarters].sort((a, b) => a - b);
+      if (qs.length === 0) {
         return {
           labels: [] as string[],
           values: [] as number[],
@@ -83,11 +82,17 @@ const NetProfitAndSalesByDate = () => {
       }
       const labels: string[] = [];
       const values: number[] = [];
-      for (const y of ys) {
+      const quarterNames: [string, string, string, string] = [
+        "الربع الأول",
+        "الربع الثاني",
+        "الربع الثالث",
+        "الربع الرابع",
+      ];
+      for (const y of DRILL_YEARS) {
         const mv = monthlyForYear(y);
-        for (let qi = 0; qi < 4; qi++) {
+        for (const qi of qs) {
           const v = mv.slice(qi * 3, qi * 3 + 3).reduce((a, b) => a + b, 0);
-          labels.push(`الربع ${qi + 1} ${y}`);
+          labels.push(quarterNames[qi]);
           values.push(v);
         }
       }
@@ -128,11 +133,14 @@ const NetProfitAndSalesByDate = () => {
       Math.round(v * (0.22 + (i % 3) * 0.004)),
     );
     return { labels, values, profits };
-  }, [drillLevel, selectedQuarterYears, selectedMonthIndices]);
+  }, [drillLevel, selectedQuarters, selectedMonthIndices]);
 
   const yearSeparatorMarkLine = useMemo(() => {
     const nYears = DRILL_YEARS.length;
-    const line = (xAxis: number) => ({ xAxis });
+    const line = (xAxis: number) => [
+      { coord: [xAxis, "min"] as const },
+      { coord: [xAxis, "max"] as const },
+    ];
     const base = {
       silent: true,
       z: -1,
@@ -148,13 +156,9 @@ const NetProfitAndSalesByDate = () => {
       return { ...base, data: [line(0.5), line(1.5)] };
     }
     if (drillLevel === "quarter") {
-      const ny = selectedQuarterYears.size;
-      if (ny === 0) return undefined;
-      const data = [];
-      for (let b = 0; b < ny - 1; b++) {
-        data.push(line(b * 4 + 3.5));
-      }
-      return { ...base, data };
+      // عند مستوى «ربع» مع إمكانية إخفاء بعض الأرباع، تصبح فواصل السنوات أقل وضوحًا،
+      // لذا نتخلى عن خطوط الفصل لتجنب إرباك بصري.
+      return undefined;
     }
     if (drillLevel === "month") {
       if (selectedMonthIndices.size === 12) {
@@ -162,7 +166,7 @@ const NetProfitAndSalesByDate = () => {
       }
       const nm = selectedMonthIndices.size;
       if (nm === 0) return undefined;
-      const data = [];
+      const data: ReturnType<typeof line>[] = [];
       for (let b = 0; b < nm; b++) {
         for (let s = 0; s < nYears - 1; s++) {
           data.push(line(b * nYears + s + 0.5));
@@ -171,7 +175,7 @@ const NetProfitAndSalesByDate = () => {
       return { ...base, data };
     }
     return undefined;
-  }, [drillLevel, selectedQuarterYears, selectedMonthIndices]);
+  }, [drillLevel, selectedMonthIndices]);
 
   const profitLineSeries = {
     name: "الأرباح",
@@ -223,7 +227,26 @@ const NetProfitAndSalesByDate = () => {
         monthNames: months,
         years: DRILL_YEARS,
       })
-    : { type: "category" as const, data: drillData.labels };
+    : drillLevel === "quarter"
+      ? [
+          {
+            type: "category" as const,
+            position: "bottom" as const,
+            data: drillData.labels,
+            axisLabel: { interval: 0, fontSize: 10 },
+            axisTick: { alignWithLabel: true },
+          },
+          {
+            type: "category" as const,
+            position: "bottom" as const,
+            offset: 28,
+            data: [...DRILL_YEARS],
+            axisLine: { show: false },
+            axisTick: { show: false },
+            axisLabel: { interval: 0, fontSize: 10, fontWeight: 600 },
+          },
+        ]
+      : { type: "category" as const, data: drillData.labels };
   const drillDownOption =
     drillSeriesMode === "both"
       ? {
@@ -266,19 +289,6 @@ const NetProfitAndSalesByDate = () => {
             },
             grid: drillGrid,
           };
-
-  const toggleQuarterYear = (y: DrillYear) => {
-    setSelectedQuarterYears((prev) => {
-      const next = new Set(prev);
-      if (next.has(y)) {
-        if (next.size <= 1) return next;
-        next.delete(y);
-      } else {
-        next.add(y);
-      }
-      return next;
-    });
-  };
 
   const toggleMonthIndex = (mi: number) => {
     setSelectedMonthIndices((prev) => {
@@ -360,13 +370,13 @@ const NetProfitAndSalesByDate = () => {
                 type="button"
                 onClick={() => {
                   setDrillLevel(level);
-                  if (level === "quarter") {
-                    setSelectedQuarterYears(new Set([...DRILL_YEARS]));
-                  }
                   if (level === "month") {
                     setSelectedMonthIndices(
                       new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
                     );
+                  }
+                  if (level === "quarter") {
+                    setSelectedQuarters(new Set([0, 1, 2, 3]));
                   }
                 }}
                 className="px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
@@ -389,13 +399,29 @@ const NetProfitAndSalesByDate = () => {
           {drillLevel === "quarter" && (
             <div className="flex flex-col items-end gap-1 w-full sm:max-w-md">
               <div className="flex flex-wrap justify-end gap-1">
-                {DRILL_YEARS.map((y) => {
-                  const on = selectedQuarterYears.has(y);
+                {( [
+                  ["الربع الأول", 0],
+                  ["الربع الثاني", 1],
+                  ["الربع الثالث", 2],
+                  ["الربع الرابع", 3],
+                ] as const ).map(([label, qi]) => {
+                  const on = selectedQuarters.has(qi);
                   return (
                     <button
-                      key={y}
+                      key={qi}
                       type="button"
-                      onClick={() => toggleQuarterYear(y)}
+                      onClick={() => {
+                        setSelectedQuarters((prev: Set<number>) => {
+                          const next = new Set(prev);
+                          if (next.has(qi)) {
+                            if (next.size <= 1) return next;
+                            next.delete(qi);
+                          } else {
+                            next.add(qi);
+                          }
+                          return next;
+                        });
+                      }}
                       className="px-2 py-0.5 rounded-md text-[10px] font-semibold transition-colors"
                       style={{
                         background: on
@@ -404,9 +430,8 @@ const NetProfitAndSalesByDate = () => {
                         color: on ? "var(--accent-green)" : "var(--text-muted)",
                         border: `1px solid ${on ? "var(--accent-green)" : "var(--border-subtle)"}`,
                       }}
-                      dir="ltr"
                     >
-                      {y}
+                      {label}
                     </button>
                   );
                 })}
