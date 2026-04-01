@@ -138,19 +138,24 @@ export default function AgreementsPage() {
           type: "value" as const,
           name: "عدد المواد",
           nameLocation: "middle" as const,
-          nameGap: 40,
+          nameGap: 30,
         },
         {
           type: "value" as const,
-          name: "الهامش / الخصم %",
+          name: "الربح",
           nameLocation: "middle" as const,
-          nameGap: 40,
+          nameGap: 50,
+          axisLabel: {
+            formatter: (v: number) => `${(v / 1000).toFixed(0)}K`,
+            fontSize: 9,
+          },
         },
       ],
       series: [
         {
-          name: "المواد",
+          name: "عدد المواد",
           type: "bar",
+          barGap: "25%",
           data: agreements
             .filter((a) => a.materials > 0)
             .map((a) => ({
@@ -160,41 +165,33 @@ export default function AgreementsPage() {
                 borderRadius: [4, 4, 0, 0],
               },
             })),
-          barWidth: 24,
+          barWidth: 18,
         },
         {
-          name: "هامش الربح",
-          type: "line",
+          name: "الربح",
+          type: "bar",
           yAxisIndex: 1,
+          barGap: "25%",
           data: agreements
             .filter((a) => a.materials > 0)
-            .map((a) => a.profitMargin),
-          lineStyle: { color: palette.primaryGreen, width: 2 },
-          itemStyle: { color: palette.primaryGreen },
-        },
-        {
-          name: "نسبة الخصم",
-          type: "line",
-          yAxisIndex: 1,
-          data: agreements
-            .filter((a) => a.materials > 0)
-            .map((a) => a.discountRate),
-          lineStyle: {
-            color: palette.primaryAmber,
-            width: 2,
-            type: "dashed" as const,
-          },
-          itemStyle: { color: palette.primaryAmber },
+            .map((a) => ({
+              value: Math.round(a.value * (a.profitMargin / 100)),
+              itemStyle: {
+                color: palette.primaryGreen,
+                borderRadius: [4, 4, 0, 0],
+              },
+            })),
+          barWidth: 18,
         },
       ],
       legend: {
-        data: ["المواد", "هامش الربح", "نسبة الخصم"],
+        data: ["عدد المواد", "الربح"],
         bottom: 0,
         left: "center",
       },
       grid: {
-        left: "14%",
-        right: "14%",
+        left: "12%",
+        right: "12%",
         top: "12%",
         bottom: "22%",
         containLabel: true,

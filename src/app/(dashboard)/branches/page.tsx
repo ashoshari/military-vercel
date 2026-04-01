@@ -2,9 +2,10 @@
 
 import "@/lib/echarts/register-bar-line-pie";
 import dynamic from "next/dynamic";
-import React, { useMemo, useState } from "react";
-import { ChevronDown, ChevronLeft } from "lucide-react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import { ChevronDown, ChevronLeft, Check, MapPin } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -34,6 +35,176 @@ import OverallBranchesPerformance from "./components/overall-branches-performanc
 import ProductCategoryPerformanceByBranch from "./components/product-category-performance-by-branch/ProductCategoryPerformanceByBranch";
 
 /** Mock period scores around each branch’s annual score (demo data). */
+
+function useClickOutside(
+  ref: React.RefObject<HTMLDivElement | null>,
+  cb: () => void,
+) {
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) cb();
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [ref, cb]);
+}
+
+/** Multi-select dropdown styled like `GlobalFilterBar` (empty = "all"). */
+function InlineMultiSelectDropdown({
+  icon: Icon,
+  label,
+  selectedValues,
+  options,
+  onChange,
+  accent = "var(--accent-green)",
+  manyLabel,
+}: {
+  icon: React.ElementType;
+  label: string;
+  selectedValues: string[];
+  options: { value: string; label: string }[];
+  onChange: (values: string[]) => void;
+  accent?: string;
+  manyLabel: (count: number) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
+
+  const allOption = options[0];
+  const rest = options.slice(1);
+  const isDefault = selectedValues.length === 0;
+
+  const display = (() => {
+    if (isDefault) return allOption.label;
+    if (selectedValues.length === 1) {
+      return rest.find((o) => o.value === selectedValues[0])?.label ?? label;
+    }
+    return manyLabel(selectedValues.length);
+  })();
+
+  const isChanged = !isDefault;
+
+  const toggle = (value: string) => {
+    if (value === allOption.value) {
+      onChange([]);
+      return;
+    }
+    const set = new Set(selectedValues);
+    if (set.has(value)) set.delete(value);
+    else set.add(value);
+    onChange([...set]);
+  };
+
+  const rowSelected = (value: string) =>
+    value === allOption.value ? isDefault : selectedValues.includes(value);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:scale-[1.02]"
+        style={{
+          background: isChanged
+            ? `color-mix(in srgb, ${accent} 15%, transparent)`
+            : "var(--bg-elevated)",
+          border: `1px solid ${isChanged ? accent : "var(--border-subtle)"}`,
+          color: isChanged ? accent : "var(--text-secondary)",
+          whiteSpace: "nowrap",
+          maxWidth: 240,
+        }}
+      >
+        <Icon size={12} style={{ color: accent, flexShrink: 0 }} />
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+          }}
+        >
+          {display}
+        </span>
+        <ChevronDown
+          size={10}
+          style={{
+            opacity: 0.6,
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform .2s",
+          }}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            className="z-1050"
+            transition={{ duration: 0.13 }}
+            style={{
+              position: "absolute",
+              top: "calc(100% + 5px)",
+              right: 0,
+              zIndex: 2050,
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: 10,
+              boxShadow: "0 8px 30px rgba(0,0,0,.4)",
+              minWidth: 200,
+              maxHeight: 280,
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            {options.map((o) => {
+              const sel = rowSelected(o.value);
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => toggle(o.value)}
+                  className="w-full text-right px-3 py-2 text-[11px] transition-colors hover:bg-white/5 flex items-center justify-between gap-2"
+                  style={{
+                    color: sel ? accent : "var(--text-secondary)",
+                    fontWeight: sel ? 700 : 400,
+                  }}
+                >
+                  <span className="min-w-0 flex-1">{o.label}</span>
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: `1.5px solid ${sel ? accent : "var(--border-subtle)"}`,
+                      background: sel
+                        ? `color-mix(in srgb, ${accent} 22%, transparent)`
+                        : "transparent",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {sel && (
+                      <Check
+                        size={12}
+                        strokeWidth={3}
+                        style={{ color: accent }}
+                      />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function BranchesPage() {
   const palette = useResolvedAnalyticsPalette();
@@ -910,6 +1081,7 @@ export default function BranchesPage() {
                   background: color,
                   borderRadius: 3,
                   width: `${widthPct}%`,
+                  opacity: 0.22,
                 }}
               />
               <div
@@ -1538,9 +1710,9 @@ export default function BranchesPage() {
           }
 
           return (
-            <div className="glass-panel p-0 overflow-hidden w-full">
+            <div className="glass-panel p-0 w-full">
               <div
-                className="flex items-center justify-between px-5 py-3 border-b"
+                className="flex items-center gap-4 px-5 py-3 border-b"
                 style={{ borderColor: "var(--border-subtle)" }}
               >
                 <div>
@@ -1563,7 +1735,7 @@ export default function BranchesPage() {
                 </div>
 
                 {/* فلاتر الأسواق */}
-                <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
                   {basketPriceCategory && (
                     <button
                       type="button"
@@ -1574,61 +1746,51 @@ export default function BranchesPage() {
                       الرجوع إلى عرض الفئات
                     </button>
                   )}
-                  {BRANCH_PRODUCT_ANALYSIS.map((b) => {
-                    const on = basketPriceActiveBranches.includes(b.branch);
-                    return (
-                      <button
-                        key={b.branch}
-                        type="button"
-                        onClick={() => {
-                          setBasketPriceActiveBranches((prev) => {
-                            if (
-                              prev.length === BRANCH_PRODUCT_ANALYSIS.length
-                            ) {
-                              return [b.branch];
-                            }
-                            const set = new Set(prev);
-                            if (set.has(b.branch)) {
-                              if (set.size <= 1) return prev;
-                              set.delete(b.branch);
-                            } else {
-                              set.add(b.branch);
-                            }
-                            return Array.from(set);
-                          });
-                        }}
-                        className="px-2 py-0.5 rounded-full border transition-colors"
-                        style={{
-                          borderColor: on
-                            ? "var(--accent-green)"
-                            : "var(--border-subtle)",
-                          background: on
-                            ? "rgba(34,197,94,0.12)"
-                            : "var(--bg-elevated)",
-                          color: on
-                            ? "var(--accent-green)"
-                            : "var(--text-muted)",
-                        }}
-                      >
-                        {b.branch}
-                      </button>
-                    );
-                  })}
+                  <InlineMultiSelectDropdown
+                    icon={MapPin}
+                    label="الأسواق"
+                    selectedValues={
+                      basketPriceActiveBranches.length ===
+                      BRANCH_PRODUCT_ANALYSIS.length
+                        ? []
+                        : basketPriceActiveBranches
+                    }
+                    options={[
+                      { value: "all", label: "كل الأسواق" },
+                      ...BRANCH_PRODUCT_ANALYSIS.map((b) => ({
+                        value: b.branch,
+                        label: b.branch,
+                      })),
+                    ]}
+                    onChange={(values) => {
+                      if (values.length === 0) {
+                        setBasketPriceActiveBranches(
+                          BRANCH_PRODUCT_ANALYSIS.map((b) => b.branch),
+                        );
+                      } else {
+                        setBasketPriceActiveBranches(values);
+                      }
+                    }}
+                    accent="var(--accent-green)"
+                    manyLabel={(n) => `${n} أسواق`}
+                  />
                 </div>
               </div>
-              <MetricsBubblePlot
-                points={pointsLocal}
-                xLabel="عدد المنتجات المباعة"
-                yLabel="متوسط اسعار المنتجات"
-                variant="blue"
-                plotHeight={420}
-                bubbleSizing="basketProfit"
-                detailLabels={{
-                  vol: "عدد المنتجات المباعة",
-                  price: "متوسط اسعار المنتجات",
-                }}
-                entitySubtitle={(d) => (d === 2 ? "منتج" : "فئة")}
-              />
+              <div style={{ overflow: "hidden" }}>
+                <MetricsBubblePlot
+                  points={pointsLocal}
+                  xLabel="عدد المنتجات المباعة"
+                  yLabel="متوسط اسعار المنتجات"
+                  variant="blue"
+                  plotHeight={420}
+                  bubbleSizing="basketProfit"
+                  detailLabels={{
+                    vol: "عدد المنتجات المباعة",
+                    price: "متوسط اسعار المنتجات",
+                  }}
+                  entitySubtitle={(d) => (d === 2 ? "منتج" : "فئة")}
+                />
+              </div>
             </div>
           );
         })()}

@@ -8,6 +8,7 @@ import NetProfitAndSalesByClassification from "./components/net-profit-and-sales
 import RevenueWaterfall from "./components/revenue-waterfall/RevenueWaterfall";
 import SalesHierarchyAnalysis from "./components/sales-hierarchy-analysis/SalesHierarchyAnalysis";
 import DetailedTimeBasedSalesAnalysis from "./components/detailed-time-based-sales-analysis/DetailedTimeBasedSalesAnalysis";
+import TransactionsCountWaterfall from "./components/transactions-count-waterfall/TransactionsCountWaterfall";
 
 export default function SalesPage() {
   return (
@@ -19,7 +20,10 @@ export default function SalesPage() {
         <RevenueWaterfall />
       </div>
       <SalesHierarchyAnalysis />
-      <DetailedTimeBasedSalesAnalysis />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <TransactionsCountWaterfall />
+        <DetailedTimeBasedSalesAnalysis />
+      </div>
       <DrillDownTable />
     </div>
   );

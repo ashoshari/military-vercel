@@ -1056,7 +1056,7 @@ const fmt2 = (n: number) =>
   }).format(n);
 const fmtK = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(2)}K` : fmt2(n));
 
-export default function DiscountsPage() {
+export default function OffersPage() {
   const palette = useResolvedAnalyticsPalette();
   const isDark = useThemeStore((s) => s.mode === "dark");
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());

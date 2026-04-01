@@ -158,9 +158,20 @@ export default function InvoicesTable() {
           </thead>
           <tbody>
             {(() => {
-              const maxValue = Math.max(...filtered.map((r) => r.invoiceValue), 1);
-              const maxItems = Math.max(...filtered.map((r) => r.itemsCount), 1);
-              const barCell = (val: number, max: number, color: string, text: string) => (
+              const maxValue = Math.max(
+                ...filtered.map((r) => r.invoiceValue),
+                1,
+              );
+              const maxItems = Math.max(
+                ...filtered.map((r) => r.itemsCount),
+                1,
+              );
+              const barCell = (
+                val: number,
+                max: number,
+                color: string,
+                text: string,
+              ) => (
                 <td
                   style={{
                     padding: "7px 12px",
@@ -217,28 +228,68 @@ export default function InvoicesTable() {
                   >
                     {r.invoiceNo}
                   </td>
-                  <td style={{ padding: "7px 12px", textAlign: "center", fontSize: 10, color: "var(--text-secondary)" }} dir="ltr">
+                  <td
+                    style={{
+                      padding: "7px 12px",
+                      textAlign: "center",
+                      fontSize: 10,
+                      color: "var(--text-secondary)",
+                    }}
+                    dir="ltr"
+                  >
                     {r.invoiceDateTime}
                   </td>
-                  {barCell(r.invoiceValue, maxValue, "#3b82f6", fmtN(r.invoiceValue))}
-                  <td style={{ padding: "7px 12px", textAlign: "center", fontSize: 10, fontWeight: 700, color: "var(--text-secondary)" }}>
+                  {barCell(
+                    r.invoiceValue,
+                    maxValue,
+                    "#3b82f6",
+                    fmtN(r.invoiceValue),
+                  )}
+                  <td
+                    style={{
+                      padding: "7px 12px",
+                      textAlign: "center",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "var(--text-secondary)",
+                    }}
+                  >
                     {r.market}
                   </td>
-                  <td style={{ padding: "7px 12px", textAlign: "center" }} dir="ltr">
+                  <td
+                    style={{ padding: "7px 12px", textAlign: "center" }}
+                    dir="ltr"
+                  >
                     <span
                       style={{
                         fontSize: 10,
                         fontWeight: 800,
-                        color: r.discountPct > 0 ? "var(--accent-red)" : "var(--text-muted)",
+                        color:
+                          r.discountPct > 0
+                            ? "var(--accent-red)"
+                            : "var(--text-muted)",
                       }}
                     >
                       {r.discountPct.toFixed(0)}%
                     </span>
                   </td>
-                  <td style={{ padding: "7px 12px", textAlign: "center", fontSize: 10, fontWeight: 700, color: "var(--accent-blue)" }}>
+                  <td
+                    style={{
+                      padding: "7px 12px",
+                      textAlign: "center",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: "var(--accent-blue)",
+                    }}
+                  >
                     {r.paymentMethod}
                   </td>
-                  {barCell(r.itemsCount, maxItems, "#3b82f6", fmtN(r.itemsCount))}
+                  {barCell(
+                    r.itemsCount,
+                    maxItems,
+                    "#3b82f6",
+                    fmtN(r.itemsCount),
+                  )}
                 </motion.tr>
               ));
             })()}
@@ -267,8 +318,11 @@ export default function InvoicesTable() {
               className="w-6 h-6 rounded text-[10px] font-semibold transition-all"
               style={{
                 background:
-                  pi === page ? "var(--accent-green-dim)" : "var(--bg-elevated)",
-                color: pi === page ? "var(--accent-green)" : "var(--text-muted)",
+                  pi === page
+                    ? "var(--accent-green-dim)"
+                    : "var(--bg-elevated)",
+                color:
+                  pi === page ? "var(--accent-green)" : "var(--text-muted)",
                 border: "1px solid",
                 borderColor:
                   pi === page ? "rgba(0,229,160,0.25)" : "var(--border-subtle)",
@@ -282,4 +336,3 @@ export default function InvoicesTable() {
     </div>
   );
 }
-

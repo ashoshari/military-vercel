@@ -587,7 +587,12 @@ function ChartCard({
           overflowY: plotOverflowY,
         }}
       >
-        <div className="h-full min-w-230 sm:min-w-0">{inlineChartNode}</div>
+        <div
+          className="h-full min-w-230 sm:min-w-0"
+          style={{ overflow: "hidden" }}
+        >
+          {inlineChartNode}
+        </div>
       </div>
     </>
   );
@@ -598,7 +603,7 @@ function ChartCard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: delay * 0.1 }}
-        className={`glass-panel overflow-hidden ${aiPowered ? "ai-module glow-cyan" : ""}`}
+        className={`glass-panel overflow-visible ${aiPowered ? "ai-module glow-cyan" : ""}`}
       >
         {chartShell}
       </motion.div>

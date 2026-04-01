@@ -3,7 +3,7 @@
 import "@/lib/echarts/register-bar-line-pie";
 import "@/lib/echarts/register-scatter";
 import dynamic from "next/dynamic";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Package,
@@ -15,7 +15,10 @@ import {
   Layers,
   ChevronDown,
   ChevronLeft,
+  Check,
+  Search,
 } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -34,6 +37,451 @@ import { getProductData, type ProductData } from "@/lib/mockData";
 import { BRANCH_PRODUCT_ANALYSIS } from "@/lib/branchProductAnalysis";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import { useThemeStore } from "@/store/themeStore";
+
+function useClickOutside(
+  ref: React.RefObject<HTMLDivElement | null>,
+  cb: () => void,
+) {
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) cb();
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [ref, cb]);
+}
+
+function InlineDropdown({
+  icon: Icon,
+  label,
+  value,
+  options,
+  onChange,
+  accent = "var(--accent-green)",
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+  accent?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
+  const display = options.find((o) => o.value === value)?.label ?? label;
+  const isChanged = value !== options[0].value;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:scale-[1.02]"
+        style={{
+          background: isChanged
+            ? `color-mix(in srgb, ${accent} 15%, transparent)`
+            : "var(--bg-elevated)",
+          border: `1px solid ${isChanged ? accent : "var(--border-subtle)"}`,
+          color: isChanged ? accent : "var(--text-secondary)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        <Icon size={12} style={{ color: accent }} />
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: 160,
+          }}
+        >
+          {display}
+        </span>
+        <ChevronDown
+          size={10}
+          style={{
+            opacity: 0.6,
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform .2s",
+          }}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.13 }}
+            style={{
+              position: "absolute",
+              top: "calc(100% + 5px)",
+              right: 0,
+              zIndex: 1050,
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: 10,
+              boxShadow: "0 8px 30px rgba(0,0,0,.4)",
+              minWidth: 180,
+              overflow: "hidden",
+              maxHeight: 280,
+              overflowY: "auto",
+            }}
+          >
+            {options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+                className="w-full text-right px-3 py-2 text-[11px] transition-colors hover:bg-white/5 block"
+                style={{
+                  color: o.value === value ? accent : "var(--text-secondary)",
+                  fontWeight: o.value === value ? 700 : 400,
+                }}
+              >
+                {o.label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function InlineMultiSelectDropdown({
+  icon: Icon,
+  label,
+  selectedValues,
+  options,
+  onChange,
+  accent = "var(--accent-green)",
+  manyLabel,
+}: {
+  icon: React.ElementType;
+  label: string;
+  selectedValues: string[];
+  options: { value: string; label: string }[];
+  onChange: (values: string[]) => void;
+  accent?: string;
+  manyLabel: (count: number) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
+
+  const allOption = options[0];
+  const rest = options.slice(1);
+  const isDefault = selectedValues.length === 0;
+
+  const display = (() => {
+    if (isDefault) return allOption.label;
+    if (selectedValues.length === 1) {
+      return rest.find((o) => o.value === selectedValues[0])?.label ?? label;
+    }
+    return manyLabel(selectedValues.length);
+  })();
+
+  const isChanged = !isDefault;
+
+  const toggle = (value: string) => {
+    if (value === allOption.value) {
+      onChange([]);
+      return;
+    }
+    const set = new Set(selectedValues);
+    if (set.has(value)) set.delete(value);
+    else set.add(value);
+    onChange([...set]);
+  };
+
+  const rowSelected = (value: string) =>
+    value === allOption.value ? isDefault : selectedValues.includes(value);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:scale-[1.02]"
+        style={{
+          background: isChanged
+            ? `color-mix(in srgb, ${accent} 15%, transparent)`
+            : "var(--bg-elevated)",
+          border: `1px solid ${isChanged ? accent : "var(--border-subtle)"}`,
+          color: isChanged ? accent : "var(--text-secondary)",
+          whiteSpace: "nowrap",
+          maxWidth: 220,
+        }}
+      >
+        <Icon size={12} style={{ color: accent, flexShrink: 0 }} />
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            minWidth: 0,
+          }}
+        >
+          {display}
+        </span>
+        <ChevronDown
+          size={10}
+          style={{
+            opacity: 0.6,
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform .2s",
+          }}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            className="z-1050"
+            transition={{ duration: 0.13 }}
+            style={{
+              position: "absolute",
+              top: "calc(100% + 5px)",
+              right: 0,
+              zIndex: 1050,
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: 10,
+              boxShadow: "0 8px 30px rgba(0,0,0,.4)",
+              minWidth: 180,
+              maxHeight: 280,
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            {options.map((o) => {
+              const sel = rowSelected(o.value);
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => toggle(o.value)}
+                  className="w-full text-right px-3 py-2 text-[11px] transition-colors hover:bg-white/5 flex items-center justify-between gap-2"
+                  style={{
+                    color: sel ? accent : "var(--text-secondary)",
+                    fontWeight: sel ? 700 : 400,
+                  }}
+                >
+                  <span className="min-w-0 flex-1">{o.label}</span>
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 4,
+                      border: `1.5px solid ${sel ? accent : "var(--border-subtle)"}`,
+                      background: sel
+                        ? `color-mix(in srgb, ${accent} 22%, transparent)`
+                        : "transparent",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {sel && (
+                      <Check
+                        size={12}
+                        strokeWidth={3}
+                        style={{ color: accent }}
+                      />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function InlineSearchDropdown({
+  icon: Icon,
+  label,
+  value,
+  options,
+  onChange,
+  accent = "#00d4ff",
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  accent?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => {
+    setOpen(false);
+    setQ("");
+  });
+
+  const filtered = options.filter((o) => o.includes(q));
+  const isSet = !!value;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all hover:scale-[1.02]"
+        style={{
+          background: isSet
+            ? `color-mix(in srgb, ${accent} 15%, transparent)`
+            : "var(--bg-elevated)",
+          border: `1px solid ${isSet ? accent : "var(--border-subtle)"}`,
+          color: isSet ? accent : "var(--text-secondary)",
+          whiteSpace: "nowrap",
+          maxWidth: 180,
+        }}
+      >
+        <Icon size={12} style={{ color: accent }} />
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: 120,
+          }}
+        >
+          {value || label}
+        </span>
+        <ChevronDown
+          size={10}
+          style={{
+            opacity: 0.6,
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform .2s",
+          }}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.13 }}
+            style={{
+              position: "absolute",
+              top: "calc(100% + 5px)",
+              right: 0,
+              zIndex: 1050,
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: 10,
+              boxShadow: "0 8px 30px rgba(0,0,0,.4)",
+              width: 220,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "8px 8px 4px",
+                borderBottom: "1px solid var(--border-subtle)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "4px 8px",
+                  borderRadius: 7,
+                  background: "var(--bg-elevated)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                <Search
+                  size={10}
+                  style={{ color: "var(--text-muted)", flexShrink: 0 }}
+                />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="بحث..."
+                  autoFocus
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    fontSize: 11,
+                    color: "var(--text-primary)",
+                    width: "100%",
+                    direction: "rtl",
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ maxHeight: 180, overflowY: "auto" }}>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange("");
+                    setOpen(false);
+                    setQ("");
+                  }}
+                  className="w-full text-right px-3 py-1.5 text-[10px] transition-colors hover:bg-white/5 block"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  ✕ إلغاء الاختيار
+                </button>
+              )}
+              {filtered.map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => {
+                    onChange(o);
+                    setOpen(false);
+                    setQ("");
+                  }}
+                  className="w-full text-right px-3 py-1.5 text-[11px] transition-colors hover:bg-white/5 block"
+                  style={{
+                    color: o === value ? accent : "var(--text-secondary)",
+                    fontWeight: o === value ? 700 : 400,
+                  }}
+                >
+                  {o}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <p
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: 10,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  لا توجد نتائج
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 const categories = [
   { name: "منتجات غذائية", netSales: 248170, volume: 150240, margin: 38.2 },
@@ -208,6 +656,28 @@ export default function ProductsPage() {
     return Array.from(set);
   }, [products]);
   const productGroup3Options = useMemo(() => ["مرتفع", "متوسط", "منخفض"], []);
+  const productGroup3MultiOptions = useMemo(
+    () => [
+      { value: "all", label: "كل المجموعة الثالثة" },
+      ...productGroup3Options.map((o) => ({ value: o, label: o })),
+    ],
+    [productGroup3Options],
+  );
+
+  const g1Options = useMemo(
+    () => [
+      { value: "all", label: "كل المجموعة الأولى" },
+      ...productGroup1Options.map((o) => ({ value: o, label: o })),
+    ],
+    [productGroup1Options],
+  );
+  const g2Options = useMemo(
+    () => [
+      { value: "all", label: "كل المجموعة الثانية" },
+      ...productGroup2Options.map((o) => ({ value: o, label: o })),
+    ],
+    [productGroup2Options],
+  );
 
   const [selectedG1, setSelectedG1] = useState<string | null>(null);
   const [selectedG2, setSelectedG2] = useState<string | null>(null);
@@ -1161,169 +1631,63 @@ export default function ProductsPage() {
                   الفلاتر:
                 </span>
 
-                {/* المجموعة الأولى */}
-                <div
-                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--bg-elevated)",
+                <InlineDropdown
+                  icon={Layers}
+                  label="المجموعة الأولى"
+                  value={selectedG1 ?? "all"}
+                  options={g1Options}
+                  onChange={(v) => {
+                    const next = v === "all" ? null : v;
+                    setSelectedG1(next);
+                    setSelectedProduct(null);
+                    setSelectedG3([]);
                   }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-                    المجموعة الأولى
-                  </span>
-                  <select
-                    value={selectedG1 ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value || null;
-                      setSelectedG1(v);
-                      setSelectedProduct(null);
-                      setSelectedG3([]);
-                    }}
-                    className="bg-transparent outline-none text-[10px]"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    <option value="">الكل</option>
-                    {productGroup1Options.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  accent="var(--accent-amber)"
+                />
 
-                {/* المجموعة الثانية */}
-                <div
-                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--bg-elevated)",
+                <InlineDropdown
+                  icon={Layers}
+                  label="المجموعة الثانية"
+                  value={selectedG2 ?? "all"}
+                  options={g2Options}
+                  onChange={(v) => {
+                    const next = v === "all" ? null : v;
+                    setSelectedG2(next);
+                    setSelectedProduct(null);
+                    setSelectedG3([]);
                   }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-                    المجموعة الثانية
-                  </span>
-                  <select
-                    value={selectedG2 ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value || null;
-                      setSelectedG2(v);
-                      setSelectedProduct(null);
-                      setSelectedG3([]);
-                    }}
-                    className="bg-transparent outline-none text-[10px]"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    <option value="">الكل</option>
-                    {productGroup2Options.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  accent="#f59e0b"
+                />
 
-                {/* المنتجات */}
-                <div
-                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--bg-elevated)",
+                <InlineSearchDropdown
+                  icon={Package}
+                  label="المنتجات"
+                  value={selectedProduct ?? ""}
+                  options={products.map((p) => p.nameAr)}
+                  onChange={(v) => {
+                    setSelectedProduct(v || null);
+                    setSelectedG3([]);
                   }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-                    المنتجات
-                  </span>
-                  <select
-                    value={selectedProduct ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value || null;
-                      setSelectedProduct(v);
-                      setSelectedG3([]);
-                    }}
-                    className="bg-transparent outline-none text-[10px]"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    <option value="">الكل</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.nameAr}>
-                        {p.nameAr}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  accent="#00d4ff"
+                />
               </div>
 
-              {/* شرائح المجموعة الثالثة (تظهر فقط عند اختيار منتج) */}
               {selectedProduct && (
-                <div className="flex flex-wrap gap-1.5 text-[10px]">
-                  <span
-                    className="font-semibold"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    المجموعة الثالثة:
-                  </span>
-                  {productGroup3Options.map((g3) => {
-                    const on =
-                      selectedG3.length === 0 ? true : selectedG3.includes(g3);
-                    return (
-                      <button
-                        key={g3}
-                        type="button"
-                        onClick={() => {
-                          setSelectedG3((prev) => {
-                            if (prev.length === 0) return [g3];
-                            const set = new Set(prev);
-                            if (set.has(g3)) {
-                              set.delete(g3);
-                            } else {
-                              set.add(g3);
-                            }
-                            return Array.from(set);
-                          });
-                        }}
-                        className="px-2 py-0.5 rounded-full border transition-colors"
-                        style={{
-                          borderColor: on
-                            ? "var(--accent-green)"
-                            : "var(--border-subtle)",
-                          background: on
-                            ? "rgba(34,197,94,0.12)"
-                            : "var(--bg-elevated)",
-                          color: on
-                            ? "var(--accent-green)"
-                            : "var(--text-muted)",
-                        }}
-                      >
-                        {g3}
-                      </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedG3([])}
-                    className="px-2 py-0.5 rounded-full border transition-colors"
-                    style={{
-                      borderColor:
-                        selectedG3.length === 0
-                          ? "var(--accent-green)"
-                          : "var(--border-subtle)",
-                      background:
-                        selectedG3.length === 0
-                          ? "rgba(34,197,94,0.12)"
-                          : "var(--bg-elevated)",
-                      color:
-                        selectedG3.length === 0
-                          ? "var(--accent-green)"
-                          : "var(--text-muted)",
-                    }}
-                  >
-                    الكل
-                  </button>
+                <div className="flex flex-wrap items-center gap-2 text-[10px]">
+                  <InlineMultiSelectDropdown
+                    icon={Layers}
+                    label="المجموعة الثالثة"
+                    selectedValues={selectedG3}
+                    options={productGroup3MultiOptions}
+                    onChange={setSelectedG3}
+                    accent="#ea580c"
+                    manyLabel={(n) => `${n} اختيارات`}
+                  />
                 </div>
               )}
             </div>
           }
+          className=""
           height="320px"
           delay={2}
         />
@@ -1365,88 +1729,38 @@ export default function ProductsPage() {
                   الفلاتر:
                 </span>
 
-                <div
-                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--bg-elevated)",
+                <InlineDropdown
+                  icon={Layers}
+                  label="المجموعة الأولى"
+                  value={contribG1 ?? "all"}
+                  options={g1Options}
+                  onChange={(v) => {
+                    setContribG1(v === "all" ? null : v);
+                    setContribProduct(null);
                   }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-                    المجموعة الأولى
-                  </span>
-                  <select
-                    value={contribG1 ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value || null;
-                      setContribG1(v);
-                      setContribProduct(null);
-                    }}
-                    className="bg-transparent outline-none text-[10px]"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    <option value="">الكل</option>
-                    {productGroup1Options.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  accent="var(--accent-amber)"
+                />
 
-                <div
-                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--bg-elevated)",
+                <InlineDropdown
+                  icon={Layers}
+                  label="المجموعة الثانية"
+                  value={contribG2 ?? "all"}
+                  options={g2Options}
+                  onChange={(v) => {
+                    setContribG2(v === "all" ? null : v);
+                    setContribProduct(null);
                   }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-                    المجموعة الثانية
-                  </span>
-                  <select
-                    value={contribG2 ?? ""}
-                    onChange={(e) => {
-                      const v = e.target.value || null;
-                      setContribG2(v);
-                      setContribProduct(null);
-                    }}
-                    className="bg-transparent outline-none text-[10px]"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    <option value="">الكل</option>
-                    {productGroup2Options.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  accent="#f59e0b"
+                />
 
-                <div
-                  className="px-2 py-1 rounded-lg border flex items-center gap-2"
-                  style={{
-                    borderColor: "var(--border-subtle)",
-                    background: "var(--bg-elevated)",
-                  }}
-                >
-                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-                    المنتجات
-                  </span>
-                  <select
-                    value={contribProduct ?? ""}
-                    onChange={(e) => setContribProduct(e.target.value || null)}
-                    className="bg-transparent outline-none text-[10px]"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    <option value="">الكل</option>
-                    {contribProductOptions.map((o) => (
-                      <option key={o} value={o}>
-                        {o}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <InlineSearchDropdown
+                  icon={Package}
+                  label="المنتجات"
+                  value={contribProduct ?? ""}
+                  options={contribProductOptions}
+                  onChange={(v) => setContribProduct(v || null)}
+                  accent="#00d4ff"
+                />
               </div>
             </div>
           }

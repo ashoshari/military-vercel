@@ -489,6 +489,19 @@ export default function TransactionsPage() {
 
   // ── Holiday Impact on Transaction Volume ──
   const days = Array.from({ length: 90 }, (_, i) => `يوم ${i + 1}`);
+  // Use real dates for the X axis labels (90 days)
+  const holidayDates = useMemo(() => {
+    const start = new Date(2025, 0, 1); // 2025-01-01
+    const pad2 = (n: number) => String(n).padStart(2, "0");
+    return Array.from({ length: 90 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const yyyy = d.getFullYear();
+      const mm = pad2(d.getMonth() + 1);
+      const dd = pad2(d.getDate());
+      return `${yyyy}-${mm}-${dd}`;
+    });
+  }, []);
   const holidayData = useMemo(
     () =>
       days.map((_, i) => {
@@ -506,8 +519,13 @@ export default function TransactionsPage() {
     grid: { left: "8%", right: "4%", top: "8%", bottom: "10%" },
     xAxis: {
       type: "category" as const,
-      data: days,
-      axisLabel: { show: false },
+      data: holidayDates,
+      axisLabel: {
+        show: true,
+        fontSize: 9,
+        rotate: 45,
+        interval: 9, // show every ~10th day for readability
+      },
       splitLine: { show: false },
     },
     yAxis: { type: "value" as const, axisLabel: { fontSize: 9 } },
@@ -566,21 +584,29 @@ export default function TransactionsPage() {
   ];
   const allBranchNames = ["سوق المنارة", "سوق سلاح الجو", "سوق العساكرة"];
   const branchColors = useMemo(
-    () => [palette.primaryGreen, palette.primaryBlue, palette.primaryAmber],
+    // Distinct, high-contrast colors (avoid close hues like cyan vs blue)
+    () => [palette.primaryGreen, palette.primaryAmber, palette.primaryBlue],
     [palette],
   );
 
   const waterfallOption = {
-    tooltip: { trigger: "axis" as const },
+    tooltip: {
+      trigger: "axis" as const,
+      backgroundColor: "var(--bg-panel)",
+      borderColor: "var(--border-subtle)",
+      textStyle: { color: "var(--text-primary)", fontSize: 11 },
+    },
     legend: {
       data: allBranchNames,
-      top: 6,
+      bottom: 0,
       left: "center",
-      textStyle: { fontSize: 10 },
+      type: "scroll" as const,
+      textStyle: { fontSize: 10, color: "var(--text-muted)" },
       itemWidth: 14,
       itemHeight: 10,
+      pageIconSize: 10,
     },
-    grid: { left: "8%", right: "4%", top: "18%", bottom: "8%" },
+    grid: { left: "8%", right: "4%", top: "12%", bottom: "18%" },
     xAxis: {
       type: "category" as const,
       data: years,
@@ -605,13 +631,13 @@ export default function TransactionsPage() {
       type: "bar" as const,
       barWidth: 32,
       barGap: "15%",
-      data: yearData.map((yd) => {
-        const found = yd.branches.find((b) => b.name === br);
-        return {
-          value: found?.val || 0,
-          itemStyle: { color: branchColors[bi] },
-        };
-      }),
+      itemStyle: {
+        color: branchColors[bi],
+        borderRadius: [6, 6, 0, 0],
+      },
+      data: yearData.map(
+        (yd) => yd.branches.find((b) => b.name === br)?.val || 0,
+      ),
       label: {
         show: false,
       },
@@ -660,7 +686,7 @@ export default function TransactionsPage() {
       {
         type: "value" as const,
         axisLabel: { formatter: "{value}", fontSize: 9 },
-        name: "ATV",
+        name: "متوسط قيمة الفاتورة",
         nameTextStyle: { fontSize: 8 },
       },
     ],
@@ -736,7 +762,7 @@ export default function TransactionsPage() {
     },
     {
       icon: AlertTriangle,
-      label: "عدد Void",
+      label: "عدد الفواتير المرتجعة",
       value: String(totalVoids),
       color: "var(--accent-amber)",
       dim: "rgba(217,119,6,0.1)",
@@ -763,7 +789,7 @@ export default function TransactionsPage() {
             className="text-xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Transactions Dashboard
+            التغير في الارباح و المبيعات
           </h1>
           <div className="flex items-center gap-1.5">
             <div
@@ -881,8 +907,8 @@ export default function TransactionsPage() {
                   "صافي المبيعات",
                   "عدد الفواتير",
                   "عدد الفواتير",
-                  "عدد Void",
-                  "ATV",
+                  "عدد الفواتير المرتجعة",
+                  "متوسط قيمة الفاتورة",
                 ].map((h, i) => (
                   <th
                     key={i}
@@ -966,7 +992,7 @@ export default function TransactionsPage() {
                       {/* صف الفرع */}
                       <tr
                         onClick={() => toggleRow(brKey)}
-                        className="cursor-pointer hover:bg-white/[0.015] transition-colors"
+                        className="cursor-pointer hover:bg-white/1.5 transition-colors"
                         style={{
                           borderBottom: "1px solid var(--border-subtle)",
                           background: isBrOpen
@@ -1041,7 +1067,7 @@ export default function TransactionsPage() {
                                     delay: si * 0.03,
                                   }}
                                   onClick={() => toggleRow(subKey)}
-                                  className="cursor-pointer hover:bg-white/[0.015] transition-colors"
+                                  className="cursor-pointer hover:bg-white/1.5 transition-colors"
                                   style={{
                                     borderBottom:
                                       "1px solid var(--border-subtle)",
@@ -1262,7 +1288,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <InvoicesTable />
+      {/* <InvoicesTable /> */}
       <InvoiceItemsTable />
     </div>
   );

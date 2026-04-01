@@ -44,11 +44,16 @@ export type BuildThreeYearMonthQuarterYearXAxesParams = {
     monthNames: string[];
     /** Exactly three years, oldest first (e.g. ['2023','2024','2025']). */
     years: readonly [string, string, string];
+    /** When true, month labels append year suffix like `شهر 1 25`. Default: true. */
+    appendYearSuffix?: boolean;
 };
 
 export function buildThreeYearMonthQuarterYearXAxes(params: BuildThreeYearMonthQuarterYearXAxesParams): Record<string, unknown>[] {
     const [y0, y1, y2] = params.years;
-    const monthRow = [y0, y1, y2].flatMap((y) => params.monthNames.map((m) => `${m} ${y.slice(2)}`));
+    const append = params.appendYearSuffix ?? true;
+    const monthRow = [y0, y1, y2].flatMap((y) =>
+        params.monthNames.map((m) => (append ? `${m} ${y.slice(2)}` : m)),
+    );
     const quarterNames: [string, string, string, string] = [
         "الربع الأول",
         "الربع الثاني",
@@ -61,7 +66,7 @@ export function buildThreeYearMonthQuarterYearXAxes(params: BuildThreeYearMonthQ
             type: 'category',
             position: 'bottom',
             data: monthRow,
-            axisLabel: { interval: 0, fontSize: 8, rotate: 32, margin: 2 },
+            axisLabel: { interval: 0, fontSize: 8, rotate: 32, margin: 8 },
             axisTick: { alignWithLabel: true },
         },
         {

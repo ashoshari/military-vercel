@@ -3,6 +3,7 @@
 import "@/lib/echarts/register-bar-line-pie";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import {
   CreditCard,
   ShoppingBag,
@@ -62,6 +63,9 @@ const salesTypeRows = [
 
 export default function SalesMethodPage() {
   const palette = useResolvedAnalyticsPalette();
+  const [methodTrendPeriod, setMethodTrendPeriod] = useState<
+    "شهري" | "ربعي" | "سنوي"
+  >("شهري");
 
   // ── مخطط طرق الدفع (أعمدة + خط للكمية) ──
   const paymentTypeOption = {
@@ -69,26 +73,22 @@ export default function SalesMethodPage() {
       type: "category" as const,
       data: paymentRows.map((r) => r.method),
     },
-    yAxis: [
-      {
-        type: "value" as const,
-        name: "صافي المبيعات",
-        axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
-      },
-      { type: "value" as const, name: "حجم المبيعات (وحدة)" },
-    ],
+    yAxis: {
+      type: "value" as const,
+      name: "المبيعات",
+      axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
+    },
     series: [
       {
-        name: "صافي المبيعات",
         type: "bar",
         data: paymentRows.map((r, i) => ({
           value: r.sales,
           itemStyle: {
             color: [
               palette.primaryGreen,
-              palette.primaryCyan,
+              palette.primaryRed,
               palette.primaryBlue,
-            ][i],
+            ][i % 3],
             borderRadius: [4, 4, 0, 0],
           },
           label: {
@@ -101,22 +101,7 @@ export default function SalesMethodPage() {
         })),
         barWidth: 40,
       },
-      {
-        name: "حجم المبيعات",
-        type: "line",
-        yAxisIndex: 1,
-        data: paymentRows.map((r) => r.volume),
-        lineStyle: { color: "#64748b", width: 2 },
-        itemStyle: { color: "#64748b" },
-        symbol: "circle",
-        symbolSize: 8,
-      },
     ],
-    legend: {
-      data: ["صافي المبيعات", "حجم المبيعات"],
-      bottom: 0,
-      left: "center",
-    },
   };
 
   // ── مخطط نوع البيع (أعمدة + خط للكمية) ──
@@ -125,26 +110,22 @@ export default function SalesMethodPage() {
       type: "category" as const,
       data: salesTypeRows.map((r) => r.type),
     },
-    yAxis: [
-      {
-        type: "value" as const,
-        name: "صافي المبيعات",
-        axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
-      },
-      { type: "value" as const, name: "حجم المبيعات (وحدة)" },
-    ],
+    yAxis: {
+      type: "value" as const,
+      name: "المبيعات",
+      axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
+    },
     series: [
       {
-        name: "صافي المبيعات",
         type: "bar",
         data: salesTypeRows.map((r, i) => ({
           value: r.sales,
           itemStyle: {
             color: [
               palette.primaryGreen,
-              palette.primaryCyan,
+              palette.primaryRed,
               palette.primaryBlue,
-            ][i],
+            ][i % 3],
             borderRadius: [4, 4, 0, 0],
           },
           label: {
@@ -157,126 +138,142 @@ export default function SalesMethodPage() {
         })),
         barWidth: 44,
       },
-      {
-        name: "حجم المبيعات",
-        type: "line",
-        yAxisIndex: 1,
-        data: salesTypeRows.map((r) => r.volume),
-        lineStyle: { color: "#64748b", width: 2 },
-        itemStyle: { color: "#64748b" },
-        symbol: "circle",
-        symbolSize: 8,
-      },
     ],
-    legend: {
-      data: ["صافي المبيعات", "حجم المبيعات"],
-      bottom: 0,
-      left: "center",
-    },
   };
 
-  // ── اتجاه طرق الدفع شهرياً ──
-  const methodTrendOption = {
-    xAxis: {
-      type: "category" as const,
-      data: Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`),
-    },
-    yAxis: {
-      type: "value" as const,
-      axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
-    },
-    series: [
+  // ── اتجاه طرق الدفع: شهري/ربعي/سنوي ──
+  const methodTrendOption = useMemo(() => {
+    const monthLabels = Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`);
+    const quarterLabels = ["ربع 1", "ربع 2", "ربع 3", "ربع 4"];
+    const yearLabels = ["سنوي"];
+
+    const groupSum = (arr: number[], size: number) => {
+      const out: number[] = [];
+      for (let i = 0; i < arr.length; i += size) {
+        out.push(arr.slice(i, i + size).reduce((s, n) => s + n, 0));
+      }
+      return out;
+    };
+
+    const seriesMonthly = [
       {
         name: "نقدي",
-        type: "line",
-        stack: "total",
+        color: palette.primaryGreen,
         data: [
           850000, 820000, 900000, 880000, 870000, 950000, 920000, 910000,
           980000, 940000, 1000000, 1100000,
         ],
-        areaStyle: { opacity: 0.3 },
-        lineStyle: { color: palette.primaryGreen, width: 2 },
-        itemStyle: { color: palette.primaryGreen },
       },
       {
         name: "فيزا/ماستركارد",
-        type: "line",
-        stack: "total",
+        color: palette.primaryCyan,
         data: [
           560000, 580000, 620000, 600000, 630000, 700000, 680000, 690000,
           730000, 720000, 780000, 850000,
         ],
-        areaStyle: { opacity: 0.3 },
-        lineStyle: { color: palette.primaryCyan, width: 2 },
-        itemStyle: { color: palette.primaryCyan },
       },
       {
         name: "كوبون / قسيمة",
-        type: "line",
-        stack: "total",
+        color: palette.primaryAmber,
         data: [
           80000, 90000, 100000, 110000, 95000, 120000, 115000, 108000, 125000,
           118000, 130000, 145000,
         ],
-        areaStyle: { opacity: 0.3 },
-        lineStyle: { color: palette.primaryAmber, width: 2 },
-        itemStyle: { color: palette.primaryAmber },
       },
       {
         name: "دفع لاحق",
-        type: "line",
-        stack: "total",
+        color: "#6366f1",
         data: [
           200000, 190000, 210000, 220000, 200000, 230000, 220000, 210000,
           240000, 230000, 250000, 280000,
         ],
-        areaStyle: { opacity: 0.3 },
-        lineStyle: { color: "#6366f1", width: 2 },
-        itemStyle: { color: "#6366f1" },
       },
-    ],
-    legend: {
-      data: ["نقدي", "فيزا/ماستركارد", "كوبون / قسيمة", "دفع لاحق"],
-      bottom: 0,
-      left: "center",
-    },
-  };
+    ] as const;
 
-  // ── الإيرادات والهامش حسب الطريقة ──
-  const profitByMethodOption = {
-    xAxis: {
-      type: "category" as const,
-      data: ["نقدي", "فيزا/ماستركارد", "كوبون / قسيمة", "دفع لاحق", "آجل"],
-    },
-    yAxis: [
-      {
+    const labels =
+      methodTrendPeriod === "شهري"
+        ? monthLabels
+        : methodTrendPeriod === "ربعي"
+          ? quarterLabels
+          : yearLabels;
+
+    const toPeriod = (arr: number[]) => {
+      if (methodTrendPeriod === "شهري") return arr;
+      if (methodTrendPeriod === "ربعي") return groupSum(arr, 3);
+      return [arr.reduce((s, n) => s + n, 0)];
+    };
+
+    return {
+      xAxis: { type: "category" as const, data: labels },
+      yAxis: {
         type: "value" as const,
-        name: "الإيرادات",
         axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
       },
-      { type: "value" as const, name: "الهامش %" },
-    ],
-    series: [
-      {
-        name: "الإيرادات",
-        type: "bar",
-        data: [10300000, 6900000, 1200000, 2500000, 800000].map((v) => ({
-          value: v,
-          itemStyle: { color: "#22c55e", borderRadius: [4, 4, 0, 0] },
-        })),
-        barWidth: 36,
+      grid: {
+        top: "12%",
+        bottom: "18%",
+        left: "6%",
+        right: "3%",
+        containLabel: true,
       },
-      {
-        name: "هامش الربح",
-        type: "line",
-        yAxisIndex: 1,
-        data: [22.1, 19.5, 14.3, 15.3, 12.7],
-        lineStyle: { color: "#f59e0b", width: 2 },
-        itemStyle: { color: "#f59e0b" },
+      series: seriesMonthly.map((s) => ({
+        name: s.name,
+        type: "line" as const,
+        stack: "total",
+        data: toPeriod([...s.data]),
+        areaStyle: { opacity: 0.22 },
+        lineStyle: { color: s.color, width: 2 },
+        itemStyle: { color: s.color },
+        showSymbol: false,
+      })),
+      legend: {
+        data: seriesMonthly.map((s) => s.name),
+        bottom: 0,
+        left: "center",
       },
-    ],
-    legend: { data: ["الإيرادات", "هامش الربح"], bottom: 0, left: "center" },
-  };
+    };
+  }, [
+    methodTrendPeriod,
+    palette.primaryAmber,
+    palette.primaryCyan,
+    palette.primaryGreen,
+  ]);
+
+  // ── الإيرادات والهامش حسب الطريقة ──
+  // const profitByMethodOption = {
+  //   xAxis: {
+  //     type: "category" as const,
+  //     data: ["نقدي", "فيزا/ماستركارد", "كوبون / قسيمة", "دفع لاحق", "آجل"],
+  //   },
+  //   yAxis: [
+  //     {
+  //       type: "value" as const,
+  //       name: "الإيرادات",
+  //       axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
+  //     },
+  //     { type: "value" as const, name: "الهامش %" },
+  //   ],
+  //   series: [
+  //     {
+  //       name: "الإيرادات",
+  //       type: "bar",
+  //       data: [10300000, 6900000, 1200000, 2500000, 800000].map((v) => ({
+  //         value: v,
+  //         itemStyle: { color: "#22c55e", borderRadius: [4, 4, 0, 0] },
+  //       })),
+  //       barWidth: 36,
+  //     },
+  //     {
+  //       name: "هامش الربح",
+  //       type: "line",
+  //       yAxisIndex: 1,
+  //       data: [22.1, 19.5, 14.3, 15.3, 12.7],
+  //       lineStyle: { color: "#f59e0b", width: 2 },
+  //       itemStyle: { color: "#f59e0b" },
+  //     },
+  //   ],
+  //   legend: { data: ["الإيرادات", "هامش الربح"], bottom: 0, left: "center" },
+  // };
 
   // ── نوع البيع اتجاه شهري ──
   const salesTypeTrendOption = {
@@ -463,9 +460,9 @@ export default function SalesMethodPage() {
           <AnalyticsTable
             headers={[
               { label: "طريقة الدفع", align: "right" },
-              { label: "صافي المبيعات", align: "center" },
-              { label: "حجم المبيعات", align: "center" },
-              { label: "الهامش %", align: "center" },
+              { label: "المبيعات", align: "center" },
+              { label: "الربح", align: "center" },
+              { label: "هامش الربح %", align: "center" },
             ]}
           >
             {(() => {
@@ -528,9 +525,9 @@ export default function SalesMethodPage() {
           <AnalyticsTable
             headers={[
               { label: "نوع البيع", align: "right" },
-              { label: "صافي المبيعات", align: "center" },
-              { label: "حجم المبيعات", align: "center" },
-              { label: "الهامش %", align: "center" },
+              { label: "المبيعات", align: "center" },
+              { label: "الربح", align: "center" },
+              { label: "هامش الربح %", align: "center" },
             ]}
           >
             {(() => {
@@ -593,14 +590,43 @@ export default function SalesMethodPage() {
       {/* اتجاهات شهرية */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <ChartCard
-          title="اتجاه طرق الدفع شهرياً"
+          title="اتجاه طرق الدفع"
           subtitle="تطور استخدام كل طريقة خلال العام"
           option={methodTrendOption}
           height="340px"
           delay={3}
+          headerExtra={
+            <div className="flex items-center gap-1 flex-wrap justify-end">
+              {(["شهري", "ربعي", "سنوي"] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setMethodTrendPeriod(p)}
+                  className="px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
+                  style={{
+                    background:
+                      methodTrendPeriod === p
+                        ? "var(--accent-green-dim)"
+                        : "var(--bg-elevated)",
+                    color:
+                      methodTrendPeriod === p
+                        ? "var(--accent-green)"
+                        : "var(--text-muted)",
+                    border: `1px solid ${
+                      methodTrendPeriod === p
+                        ? "var(--accent-green)"
+                        : "var(--border-subtle)"
+                    }`,
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          }
         />
         <ChartCard
-          title="اتجاه نوع البيع شهرياً"
+          title="اتجاه نوع البيع"
           subtitle="ذمم — بيع إلكتروني — دفع فوري"
           option={salesTypeTrendOption}
           height="340px"
@@ -609,13 +635,13 @@ export default function SalesMethodPage() {
       </div>
 
       {/* الإيرادات والهامش */}
-      <ChartCard
+      {/* <ChartCard
         title="الإيرادات وهامش الربح حسب طريقة الدفع"
         subtitle="مقارنة الإيرادات مع هامش الربح لكل طريقة"
         option={profitByMethodOption}
         height="300px"
         delay={5}
-      />
+      /> */}
     </div>
   );
 }

@@ -54,6 +54,10 @@ const NetProfitAndSalesByDate = () => {
   const drillMonthHierarchy = drillLevel === "month";
   const drillLegendBottom = drillMonthHierarchy ? 2 : 0;
   const palette = useResolvedAnalyticsPalette();
+  const monthIndexLabels = useMemo(
+    () => Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`),
+    [],
+  );
 
   // ── Drill-down: بيانات حسب المستوى (ثلاث سنوات: 2023–2025) ──
   const drillData = useMemo(() => {
@@ -115,9 +119,7 @@ const NetProfitAndSalesByDate = () => {
       const profits = values.map((v, i) =>
         Math.round(v * (0.22 + (i % 12) * 0.004)),
       );
-      const labels = [...DRILL_YEARS].flatMap((y) =>
-        months.map((m) => `${m} ${y.slice(2)}`),
-      );
+      const labels = [...DRILL_YEARS].flatMap(() => monthIndexLabels);
       return { labels, values, profits };
     }
     const labels: string[] = [];
@@ -126,14 +128,14 @@ const NetProfitAndSalesByDate = () => {
       for (const y of DRILL_YEARS) {
         const mv = monthlyForYear(y);
         values.push(mv[mi]);
-        labels.push(`${months[mi]} ${y.slice(2)}`);
+        labels.push(monthIndexLabels[mi]);
       }
     }
     const profits = values.map((v, i) =>
       Math.round(v * (0.22 + (i % 3) * 0.004)),
     );
     return { labels, values, profits };
-  }, [drillLevel, selectedQuarters, selectedMonthIndices]);
+  }, [drillLevel, selectedQuarters, selectedMonthIndices, monthIndexLabels]);
 
   const yearSeparatorMarkLine = useMemo(() => {
     const nYears = DRILL_YEARS.length;
@@ -224,8 +226,9 @@ const NetProfitAndSalesByDate = () => {
   };
   const drillXAxis = drillMonthHierarchy
     ? buildThreeYearMonthQuarterYearXAxes({
-        monthNames: months,
+        monthNames: monthIndexLabels,
         years: DRILL_YEARS,
+        appendYearSuffix: false,
       })
     : drillLevel === "quarter"
       ? [
@@ -399,12 +402,14 @@ const NetProfitAndSalesByDate = () => {
           {drillLevel === "quarter" && (
             <div className="flex flex-col items-end gap-1 w-full sm:max-w-md">
               <div className="flex flex-wrap justify-end gap-1">
-                {( [
-                  ["الربع الأول", 0],
-                  ["الربع الثاني", 1],
-                  ["الربع الثالث", 2],
-                  ["الربع الرابع", 3],
-                ] as const ).map(([label, qi]) => {
+                {(
+                  [
+                    ["الربع الأول", 0],
+                    ["الربع الثاني", 1],
+                    ["الربع الثالث", 2],
+                    ["الربع الرابع", 3],
+                  ] as const
+                ).map(([label, qi]) => {
                   const on = selectedQuarters.has(qi);
                   return (
                     <button
