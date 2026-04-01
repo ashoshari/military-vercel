@@ -764,7 +764,7 @@ export default function ProductsPage() {
   // ── مخطط صافي المبيعات حسب الفئة ──
   const salesByCatOption = {
     tooltip: { trigger: "axis" as const },
-    grid: { ...productsStandardGrid },
+    grid: { ...productsStandardGrid, bottom: "0" },
     xAxis: {
       type: "category" as const,
       data: categories.map((c) => c.name),
