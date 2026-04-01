@@ -29,6 +29,7 @@ interface ChartCardProps {
   titleFlag?: ChartCardTitleFlag;
   titleFlagNumber?: number;
   headerExtra?: React.ReactNode;
+  className?: string;
   /** Allow scrolling inside the plot area only. */
   plotOverflowY?: "hidden" | "auto" | "visible";
   /** Override the inner ECharts canvas height (enables plot scrolling). */
@@ -406,6 +407,7 @@ function ChartCard({
   titleFlag,
   titleFlagNumber,
   headerExtra,
+  className = "flex",
   plotOverflowY = "hidden",
   innerChartHeight,
   option,
@@ -522,7 +524,7 @@ function ChartCard({
   const chartShell = (
     <>
       <div
-        className={`flex px-5 pt-4 pb-2 gap-3 ${showTitleBlock ? "justify-between" : "justify-end"}`}
+        className={`${className} px-5 pt-4 pb-2 gap-3 ${showTitleBlock ? "justify-between" : "justify-end"}`}
       >
         {showTitleBlock && (
           <div className="min-w-0">

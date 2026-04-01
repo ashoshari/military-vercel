@@ -86,7 +86,8 @@ export default function CustomersPage() {
   });
 
   const heatmapOption = {
-    grid: { left: "3%", right: "4%", top: "5%", bottom: "15%" },
+    // leave room for the vertical color ruler (visualMap) on the right
+    grid: { left: "3%", right: "6%", top: "5%", bottom: "10%" },
     xAxis: {
       type: "category" as const,
       data: hours,
@@ -103,9 +104,11 @@ export default function CustomersPage() {
       min: 5,
       max: 95,
       calculable: true,
-      orient: "horizontal" as const,
-      left: "center",
-      bottom: "0%",
+      orient: "vertical" as const,
+      right: 0,
+      top: "middle",
+      itemHeight: 180,
+      itemWidth: 14,
       inRange: { color: greenToRedScale },
       textStyle: { color: "var(--text-muted)" },
     },
@@ -269,45 +272,92 @@ export default function CustomersPage() {
     return txScatterData.filter((d) => set.has(d[4] as unknown as string));
   }, [activeMarkets, txScatterData]);
 
-  const txFreqOption = {
-    grid: { left: "3%", right: "4%", top: "12%", bottom: "15%" },
-    xAxis: {
-      type: "value" as const,
-      name: "اجمالي قيمة الفواتير",
-      nameLocation: "center" as const,
-      nameGap: 30,
-      max: 700,
-    },
-    yAxis: {
-      type: "value" as const,
-      name: "عدد الفواتير",
-      nameLocation: "center" as const,
-      nameGap: 35,
-      max: 140,
-    },
-    visualMap: {
-      show: true,
-      dimension: 2,
-      min: 0,
-      max: 1.88,
-      calculable: true,
-      orient: "horizontal" as const,
-      left: "center",
-      top: 0,
-      inRange: { color: greenToRedScale },
-      textStyle: { fontSize: 9, color: "var(--text-muted)" },
-      formatter: (v: number) => `${v.toFixed(2)}K`,
-    },
-    series: [
-      {
-        type: "scatter",
-        data: filteredTxScatterData,
+  const marketColors = useMemo(
+    () => [
+      palette.primaryGreen,
+      palette.primaryCyan,
+      "#3b82f6",
+      "#a855f7",
+      "#f59e0b",
+    ],
+    [palette.primaryCyan, palette.primaryGreen],
+  );
+
+  const txFreqOption = useMemo(() => {
+    const selected: Record<string, boolean> = {};
+    if (activeMarkets.length === 0) {
+      MARKETS.forEach((m) => {
+        selected[m] = true;
+      });
+    } else {
+      const set = new Set(activeMarkets);
+      MARKETS.forEach((m) => {
+        selected[m] = set.has(m);
+      });
+    }
+
+    return {
+      grid: { left: "3%", right: "4%", top: "12%", bottom: "22%" },
+      tooltip: {
+        trigger: "item" as const,
+        formatter: (p: { data: unknown }) => {
+          const d = Array.isArray(p.data) ? p.data : [];
+          const market = String(d[4] ?? "");
+          return `${market}<br/>اجمالي قيمة الفواتير: <b>${d[0]}</b><br/>عدد الفواتير: <b>${d[1]}</b>`;
+        },
+      },
+      legend: {
+        data: MARKETS,
+        bottom: 0,
+        left: "center",
+        selected,
+        textStyle: { fontSize: 10, color: "var(--text-muted)" },
+        itemWidth: 10,
+        itemHeight: 10,
+      },
+      xAxis: {
+        type: "value" as const,
+        name: "اجمالي قيمة الفواتير",
+        nameLocation: "center" as const,
+        nameGap: 30,
+        max: 700,
+      },
+      yAxis: {
+        type: "value" as const,
+        name: "عدد الفواتير",
+        nameLocation: "center" as const,
+        nameGap: 35,
+        max: 140,
+      },
+      visualMap: {
+        show: true,
+        dimension: 2,
+        min: 0,
+        max: 1.88,
+        calculable: true,
+        orient: "horizontal" as const,
+        left: "center",
+        top: 0,
+        inRange: { color: greenToRedScale },
+        textStyle: { fontSize: 9, color: "var(--text-muted)" },
+        formatter: (v: number) => `${v.toFixed(2)}K`,
+      },
+      series: MARKETS.map((m, i) => ({
+        name: m,
+        type: "scatter" as const,
+        data: filteredTxScatterData.filter((d) => String(d[4]) === m),
         symbolSize: (d: unknown) => (Array.isArray(d) ? (d[3] as number) : 8),
         encode: { x: 0, y: 1 },
-        itemStyle: { opacity: 0.75 },
-      },
-    ],
-  };
+        itemStyle: { opacity: 0.78, color: marketColors[i % marketColors.length] },
+      })),
+    };
+  }, [
+    MARKETS,
+    activeMarkets,
+    filteredTxScatterData,
+    greenToRedScale,
+    marketColors,
+  ]);
 
   return (
     <div className="space-y-6">
@@ -489,6 +539,42 @@ export default function CustomersPage() {
         titleFlag="green"
         subtitle="عدد المستخدمين ونسبة الاستفادة الشهرية"
         option={discountUsageOption}
+        headerExtra={
+          <div
+            className="mt-2 flex flex-wrap items-center gap-3 text-[10px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <span
+              className="font-semibold"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              الإيضاح:
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-block rounded-sm"
+                style={{
+                  width: 14,
+                  height: 10,
+                  background: palette.primaryGreen,
+                  border: "1px solid var(--border-subtle)",
+                }}
+              />
+              <span>عدد المستخدمين (أعمدة)</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className="inline-block rounded-full"
+                style={{
+                  width: 14,
+                  height: 3,
+                  background: palette.primaryCyan,
+                }}
+              />
+              <span>النسبة % (خط)</span>
+            </span>
+          </div>
+        }
         height="300px"
         delay={5}
       />
