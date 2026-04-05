@@ -133,14 +133,25 @@ function applyLightAxisStyle(
   };
   const applyLightAxis = (ax: Record<string, unknown>) => {
     const existingAxisLabel = (ax.axisLabel || {}) as Record<string, unknown>;
+    const existingAxisLine = (ax.axisLine || {}) as Record<string, unknown>;
+    const existingLineStyle = (existingAxisLine.lineStyle || {}) as Record<
+      string,
+      unknown
+    >;
+    const hasFontSize = existingAxisLabel.fontSize != null;
+    const axisLineShow = existingAxisLine.show === false ? false : true;
     return {
       ...lightAxisStyle,
       ...ax,
-      axisLine: { lineStyle: { color: "#e2e8f0" } },
+      axisLine: {
+        ...existingAxisLine,
+        show: axisLineShow,
+        lineStyle: { color: "#e2e8f0", ...existingLineStyle },
+      },
       axisLabel: {
         ...existingAxisLabel,
         color: "#64748b",
-        fontSize: 11,
+        ...(hasFontSize ? {} : { fontSize: 11 }),
       },
     };
   };
@@ -269,12 +280,13 @@ function enhanceAxisLine(
 ): Record<string, unknown> {
   const existingLine = (ax.axisLine || {}) as Record<string, unknown>;
   const existingLS = (existingLine.lineStyle || {}) as Record<string, unknown>;
+  const showSpine = existingLine.show === false ? false : true;
   return {
     ...ax,
     axisLine: {
-      show: true,
       ...existingLine,
       lineStyle: { width: 2, color: spineColor, ...existingLS },
+      show: showSpine,
     },
   };
 }

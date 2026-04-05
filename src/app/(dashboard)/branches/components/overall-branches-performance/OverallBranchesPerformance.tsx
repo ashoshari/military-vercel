@@ -1,39 +1,17 @@
 import { useMemo, useState } from "react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
-import { branchScores } from "../utils/branchScores";
+import {
+  BRANCH_PERF_BIMONTH_LABELS,
+  BRANCH_PERF_QUARTER_LABELS,
+  branchPerfPeriodScore,
+  branchScores,
+} from "../utils/branchScores";
 import ChartCard from "@/components/ui/chart-card/ChartCard";
-
-const BRANCH_PERF_QUARTER_LABELS = [
-  "الربع الأول",
-  "الربع الثاني",
-  "الربع الثالث",
-  "الربع الرابع",
-] as const;
-const BRANCH_PERF_BIMONTH_LABELS = [
-  "يناير–فبراير",
-  "مارس–أبريل",
-  "مايو–جون",
-  "يوليو–أغسطس",
-  "سبتمبر–أكتوبر",
-  "نوفمبر–ديسمبر",
-] as const;
 
 const OverallBranchesPerformance = () => {
   const palette = useResolvedAnalyticsPalette();
 
-  function branchPerfPeriodScore(
-    baseScore: number,
-    branchIndex: number,
-    periodIndex: number,
-    periodCount: number,
-  ): number {
-    const wave =
-      Math.sin((periodIndex / periodCount) * Math.PI * 2 + branchIndex * 0.65) *
-      7;
-    const noise = ((branchIndex * 17 + periodIndex * 11) % 9) - 4;
-    return Math.max(18, Math.min(98, Math.round(baseScore + wave + noise)));
-  }
   const [branchPerfGranularity, setBranchPerfGranularity] = useState<
     "year" | "quarter" | "bimonth"
   >("year");

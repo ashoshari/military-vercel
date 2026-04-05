@@ -96,3 +96,36 @@ export const branchScores = [
     discount: 7.2,
   },
 ];
+
+export const BRANCH_PERF_QUARTER_LABELS = [
+  "الربع الأول",
+  "الربع الثاني",
+  "الربع الثالث",
+  "الربع الرابع",
+] as const;
+export const BRANCH_PERF_BIMONTH_LABELS = [
+  "يناير–فبراير",
+  "مارس–أبريل",
+  "مايو–جون",
+  "يوليو–أغسطس",
+  "سبتمبر–أكتوبر",
+  "نوفمبر–ديسمبر",
+] as const;
+export function branchPerfPeriodScore(
+  baseScore: number,
+  branchIndex: number,
+  periodIndex: number,
+  periodCount: number,
+): number {
+  const wave =
+    Math.sin((periodIndex / periodCount) * Math.PI * 2 + branchIndex * 0.65) *
+    7;
+  const noise = ((branchIndex * 17 + periodIndex * 11) % 9) - 4;
+  return Math.max(18, Math.min(98, Math.round(baseScore + wave + noise)));
+}
+export function getBarColor(score: number) {
+  if (score >= 70) return "var(--accent-green)";
+  if (score >= 50) return "var(--accent-amber)";
+  if (score >= 30) return "#f97316";
+  return "var(--accent-red)";
+}

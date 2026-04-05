@@ -38,6 +38,7 @@ export default function DashboardLayout({
 
   return (
     <div
+      id="dashboard-scroll-root"
       className="h-screen overflow-y-auto"
       style={{ background: "var(--bg-primary)" }}
     >

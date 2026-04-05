@@ -1,7 +1,6 @@
 import { buildThreeYearMonthQuarterYearXAxes } from "@/components/ui/chartMonthQuarterYearXAxis";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import { getMonthlySalesData } from "@/lib/mockData";
-import { months } from "@/utils/months";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import {
@@ -446,7 +445,7 @@ const NetProfitAndSalesByDate = () => {
           {drillLevel === "month" && (
             <div className="flex flex-col items-end gap-1 w-full">
               <div className="flex flex-wrap justify-end gap-0.5 max-w-[min(100%,520px)]">
-                {months.map((m, mi) => {
+                {monthIndexLabels.map((label, mi) => {
                   const on = selectedMonthIndices.has(mi);
                   return (
                     <button
@@ -462,7 +461,7 @@ const NetProfitAndSalesByDate = () => {
                         border: `1px solid ${on ? "var(--accent-green)" : "var(--border-subtle)"}`,
                       }}
                     >
-                      {m}
+                      {label}
                     </button>
                   );
                 })}

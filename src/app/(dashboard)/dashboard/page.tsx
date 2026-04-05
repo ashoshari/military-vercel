@@ -19,7 +19,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* العنوان */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -29,14 +28,12 @@ export default function DashboardPage() {
         <OverviewStats />
       </motion.div>
 
-      {/* بطاقات KPI */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
         {kpiData.map((kpi, i) => (
           <KPICard key={kpi.id} data={kpi} delay={i} />
         ))}
       </div>
 
-      {/* الرسوم البيانية */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <RevenueTrend />
         <ClassDistribution />
@@ -47,7 +44,6 @@ export default function DashboardPage() {
         <RegionalPerformance />
       </div>
 
-      {/* آخر الأنشطة */}
       <LatestActivities />
     </div>
   );

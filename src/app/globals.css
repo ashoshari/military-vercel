@@ -33,11 +33,20 @@
   --accent-blue: #3b82f6;
   --accent-purple: #a855f7;
 
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-card:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
   --shadow-elevated: 0 10px 25px -3px rgba(0, 0, 0, 0.4);
 
-  --panel-gradient: linear-gradient(135deg, rgba(26, 32, 53, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
-  --panel-gradient-hover: linear-gradient(135deg, rgba(30, 42, 58, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
+  --panel-gradient: linear-gradient(
+    135deg,
+    rgba(26, 32, 53, 0.9) 0%,
+    rgba(17, 24, 39, 0.95) 100%
+  );
+  --panel-gradient-hover: linear-gradient(
+    135deg,
+    rgba(30, 42, 58, 0.9) 0%,
+    rgba(17, 24, 39, 0.95) 100%
+  );
 
   --sidebar-bg: linear-gradient(180deg, #0d1321 0%, #0a0e17 100%);
   --sidebar-text: #94a3b8;
@@ -193,12 +202,20 @@ body {
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Noto Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    "Noto Sans Arabic",
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   font-size: 14px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 /* ── لوحة زجاجية ── */
@@ -208,7 +225,10 @@ body {
   backdrop-filter: blur(20px);
   border-radius: 12px;
   box-shadow: var(--shadow-card);
-  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .glass-panel-hover:hover {
@@ -216,40 +236,29 @@ body {
   background: var(--panel-gradient-hover);
 }
 
-/* ── تأثيرات التوهج ── */
-.glow-green {
-  box-shadow: 0 0 20px rgba(0, 229, 160, 0.12), 0 0 40px rgba(0, 229, 160, 0.04);
-}
-
 .glow-cyan {
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15), 0 0 40px rgba(0, 212, 255, 0.06);
-}
-
-.glow-amber {
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.12);
-}
-
-.glow-red {
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.12);
-}
-
-[data-theme="light"] .glow-green {
-  box-shadow: 0 0 8px rgba(5, 150, 105, 0.08);
+  box-shadow:
+    0 0 20px rgba(0, 212, 255, 0.15),
+    0 0 40px rgba(0, 212, 255, 0.06);
 }
 
 [data-theme="light"] .glow-cyan {
   box-shadow: 0 0 8px rgba(8, 145, 178, 0.08);
 }
 
-[data-theme="light"] .glow-amber {
-  box-shadow: 0 0 6px rgba(217, 119, 6, 0.06);
-}
-
-[data-theme="light"] .glow-red {
-  box-shadow: 0 0 6px rgba(220, 38, 38, 0.06);
-}
-
 /* ── حركة الوميض ── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-panel) 25%,
+    var(--bg-elevated) 50%,
+    var(--bg-panel) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -260,16 +269,8 @@ body {
   }
 }
 
-.skeleton {
-  background: linear-gradient(90deg, var(--bg-panel) 25%, var(--bg-elevated) 50%, var(--bg-panel) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: 6px;
-}
-
 /* ── نبض التوهج ── */
 @keyframes pulse-glow {
-
   0%,
   100% {
     opacity: 1;
@@ -278,10 +279,6 @@ body {
   50% {
     opacity: 0.6;
   }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
 }
 
 /* ── خلفية الشبكة ── */
@@ -301,19 +298,6 @@ body {
     linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
   background-size: 40px 40px;
   animation: grid-scroll 4s linear infinite;
-}
-
-/* ── مؤشرات KPI ── */
-.kpi-up {
-  color: var(--accent-green);
-}
-
-.kpi-down {
-  color: var(--accent-red);
-}
-
-.kpi-neutral {
-  color: var(--text-muted);
 }
 
 /* ── شارات الحالة ── */
@@ -372,49 +356,19 @@ body {
 }
 
 .ai-module::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-cyan),
+    transparent
+  );
   animation: pulse-glow 3s ease-in-out infinite;
-}
-
-/* ── الجداول ── */
-.enterprise-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  direction: rtl;
-}
-
-.enterprise-table th {
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.3px;
-  padding: 12px 16px;
-  border-bottom: 2px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.enterprise-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 13px;
-  transition: background 0.15s ease;
-  text-align: right;
-}
-
-.enterprise-table tbody tr:hover td {
-  background: var(--bg-hover);
 }
 
 /* ── شريط التقدم ── */
@@ -433,7 +387,9 @@ body {
 
 /* ── انتقالات ── */
 .sidebar-transition {
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .content-transition {

@@ -1,7 +1,7 @@
 import ChartCard from "@/components/ui/chart-card/ChartCard";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import React, { useMemo } from "react";
-import { branchScores } from "../utils/branchScores";
+import { branchScores, getBarColor } from "../utils/branchScores";
 import { BRANCH_KEYS, categoryScores } from "./utils/data";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import {
@@ -11,16 +11,11 @@ import {
 } from "@/components/ui/AnalyticsTable";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 
-function getBarColor(score: number) {
-  if (score >= 70) return "var(--accent-green)";
-  if (score >= 50) return "var(--accent-amber)";
-  if (score >= 30) return "#f97316";
-  return "var(--accent-red)";
-}
-
 interface ProductCategoryPerformanceByBranchProps {
   expandedCats: Record<string, boolean>;
-  setExpandedCats: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setExpandedCats: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
 }
 
 const ProductCategoryPerformanceByBranch = ({

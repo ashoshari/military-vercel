@@ -12,21 +12,21 @@ interface KPICardProps {
 
 export default function KPICard({ data, delay = 0 }: KPICardProps) {
   const TrendIcon =
-    data.changeType === "increase"
+    data.changeType === "إرتفاع"
       ? TrendingUp
-      : data.changeType === "decrease"
+      : data.changeType === "إنخفاض"
         ? TrendingDown
         : Minus;
   const trendColorVar =
-    data.changeType === "increase"
+    data.changeType === "إرتفاع"
       ? "var(--accent-green)"
-      : data.changeType === "decrease"
+      : data.changeType === "إنخفاض"
         ? "var(--accent-red)"
         : "var(--text-muted)";
   const trendBgVar =
-    data.changeType === "increase"
+    data.changeType === "إرتفاع"
       ? "var(--accent-green-dim)"
-      : data.changeType === "decrease"
+      : data.changeType === "إنخفاض"
         ? "rgba(239,68,68,0.1)"
         : "rgba(100,116,139,0.08)";
 

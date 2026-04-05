@@ -1,0 +1,190 @@
+import { ChevronDown, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const InlineSearchDropdown = ({
+  label,
+  value,
+  options,
+  onChange,
+  accent = "var(--accent-cyan)",
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (v: string) => void;
+  accent?: string;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  function useClickOutside(
+    ref: React.RefObject<HTMLDivElement | null>,
+    cb: () => void,
+  ) {
+    useEffect(() => {
+      const h = (e: MouseEvent) => {
+        if (ref.current && !ref.current.contains(e.target as Node)) cb();
+      };
+      document.addEventListener("mousedown", h);
+      return () => document.removeEventListener("mousedown", h);
+    }, [ref, cb]);
+  }
+
+  useClickOutside(ref, () => {
+    setOpen(false);
+    setQ("");
+  });
+
+  const filtered = options.filter((o) => o.includes(q));
+  const isSet = !!value;
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
+        style={{
+          background: isSet
+            ? `color-mix(in srgb, ${accent} 15%, transparent)`
+            : "var(--bg-elevated)",
+          color: isSet ? accent : "var(--text-muted)",
+          border: `1px solid ${isSet ? accent : "var(--border-subtle)"}`,
+          whiteSpace: "nowrap",
+          maxWidth: 180,
+        }}
+      >
+        <Search size={11} style={{ color: accent, flexShrink: 0 }} />
+        <span
+          style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            maxWidth: 120,
+          }}
+        >
+          {value || label}
+        </span>
+        <ChevronDown
+          size={10}
+          style={{
+            opacity: 0.6,
+            flexShrink: 0,
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform .2s",
+          }}
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 5, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.97 }}
+            transition={{ duration: 0.13 }}
+            style={{
+              position: "absolute",
+              top: "calc(100% + 5px)",
+              left: 0,
+              zIndex: 1050,
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: 12,
+              boxShadow: "0 8px 30px rgba(0,0,0,.45)",
+              width: 240,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "8px 8px 4px",
+                borderBottom: "1px solid var(--border-subtle)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "4px 8px",
+                  borderRadius: 7,
+                  background: "var(--bg-elevated)",
+                  border: "1px solid var(--border-subtle)",
+                }}
+              >
+                <Search
+                  size={10}
+                  style={{ color: "var(--text-muted)", flexShrink: 0 }}
+                />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="بحث..."
+                  autoFocus
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    fontSize: 11,
+                    color: "var(--text-primary)",
+                    width: "100%",
+                    direction: "rtl",
+                  }}
+                />
+              </div>
+            </div>
+            <div style={{ maxHeight: 260, overflowY: "auto" }}>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange("");
+                    setOpen(false);
+                    setQ("");
+                  }}
+                  className="w-full text-right px-3 py-1.5 text-[10px] transition-colors hover:bg-white/5 block"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  ✕ كل الأصناف
+                </button>
+              )}
+              {filtered.map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => {
+                    onChange(o);
+                    setOpen(false);
+                    setQ("");
+                  }}
+                  className="w-full text-right px-3 py-1.5 text-[11px] transition-colors hover:bg-white/5 block"
+                  style={{
+                    color: o === value ? accent : "var(--text-secondary)",
+                    fontWeight: o === value ? 700 : 400,
+                  }}
+                >
+                  {o}
+                </button>
+              ))}
+              {filtered.length === 0 && (
+                <p
+                  style={{
+                    padding: "8px 12px",
+                    fontSize: 10,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  لا توجد نتائج
+                </p>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default InlineSearchDropdown;

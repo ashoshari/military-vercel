@@ -8,28 +8,39 @@ import {
 
 export default function AnalyticsTableCard({
   title,
-  flag = "green",
+  flag,
+  aiModule = false,
   subtitles,
   headerExtra,
   children,
+  footer,
 }: {
   title: string;
-  flag?: ChartCardTitleFlag;
+  /** لون الشارة؛ الافتراضي أخضر. مرّر `false` لإخفاء الشارة. */
+  flag?: ChartCardTitleFlag | false;
+  /** شريط علوي متدرج (نمط `.ai-module` في globals.css) — صفحات التحليل/الذكاء. */
+  aiModule?: boolean;
   /** One or many lines under the title (keeps same typography as existing tables). */
   subtitles?: React.ReactNode;
   /** Optional content inside the header block (e.g. legends). */
   headerExtra?: React.ReactNode;
   children: React.ReactNode;
+  /** Optional strip under the table (pagination, totals, …). */
+  footer?: React.ReactNode;
 }) {
   return (
-    <div className="glass-panel overflow-hidden">
+    <div
+      className={`glass-panel overflow-hidden${aiModule ? " ai-module" : ""}`}
+    >
       <div
         className="flex items-center justify-between px-5 py-4 border-b"
         style={{ borderColor: "var(--border-subtle)" }}
       >
         <div>
           <div className="flex items-center gap-2">
-            {flag && <ChartTitleFlagBadge flag={flag} size="sm" />}
+            {flag !== false && (
+              <ChartTitleFlagBadge flag={flag ?? "green"} size="sm" />
+            )}
             <h3
               className="text-sm font-semibold"
               style={{ color: "var(--text-primary)" }}
@@ -42,6 +53,7 @@ export default function AnalyticsTableCard({
         {headerExtra}
       </div>
       <div className="overflow-x-auto">{children}</div>
+      {footer}
     </div>
   );
 }

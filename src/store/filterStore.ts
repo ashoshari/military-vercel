@@ -26,6 +26,31 @@ export interface FilterState {
     workShift: "all" | "morning" | "evening";
     /** /employees only (percent) */
     returnRateRange: [number, number];
+    /** /employees — المدن ([] = كل المدن) */
+    employeeCities: string[];
+    /** /employees — نسبة عدد الفواتير اليومية (٪) */
+    dailyInvoiceRatioRange: [number, number];
+    /** /employees — نسبة أداء الموظفين (٪) */
+    employeePerformanceRatioRange: [number, number];
+    /** /ai-basket — المدن ([] = كل المدن) */
+    aiBasketCities: string[];
+    /** /ai-basket — وقت البيع */
+    aiBasketSaleTime: "all" | "morning" | "evening";
+    /** /ai-basket — أيام العطل والمناسبات */
+    aiBasketHoliday: string;
+    /** /ai-basket — العروض */
+    aiBasketOffers: string;
+    /** /ai-basket — القيمة المادية للسلة (د.أ) */
+    aiBasketValueRange: [number, number];
+    /** /branches — المدن ([] = كل المدن) */
+    branchCities: string[];
+    /** /branches — وقت البيع (تقارير تفصيلية) */
+    branchSaleTime: "all" | "morning" | "evening";
+    /** /branches — أيام العطل والمناسبات (تقارير) */
+    branchHoliday: string;
+    /** /branches — العروض (تقارير) */
+    branchOffers: string;
+    /** /sales — تقارير تفصيلية: الاتفاقية ([] = كل الاتفاقيات) */
     agreement: string[];
     season: string;
     holiday: string;
@@ -61,6 +86,18 @@ const defaultFilters: FilterState = {
     employee: [],
     workShift: "all",
     returnRateRange: [0, 100],
+    employeeCities: [],
+    dailyInvoiceRatioRange: [0, 100],
+    employeePerformanceRatioRange: [0, 100],
+    aiBasketCities: [],
+    aiBasketSaleTime: "all",
+    aiBasketHoliday: "",
+    aiBasketOffers: "",
+    aiBasketValueRange: [0, 100_000],
+    branchCities: [],
+    branchSaleTime: "all",
+    branchHoliday: "",
+    branchOffers: "",
     agreement: [],
     season: '',
     holiday: '',

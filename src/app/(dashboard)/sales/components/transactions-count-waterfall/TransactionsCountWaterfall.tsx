@@ -100,7 +100,6 @@ function Dropdown({
               zIndex: 1050,
               background: "var(--bg-panel)",
               border: "1px solid var(--border-subtle)",
-              borderRadius: 12,
               boxShadow: "0 8px 30px rgba(0,0,0,.45)",
               width: 220,
               overflow: "hidden",
@@ -251,10 +250,8 @@ export default function TransactionsCountWaterfall() {
           }>,
         ) => {
           const total = params.find((p) => p.seriesName === "إجمالي")?.data;
-          const incV =
-            params.find((p) => p.seriesName === "Increase")?.data ?? 0;
-          const decV =
-            params.find((p) => p.seriesName === "Decrease")?.data ?? 0;
+          const incV = params.find((p) => p.seriesName === "إرتفاع")?.data ?? 0;
+          const decV = params.find((p) => p.seriesName === "إنخفاض")?.data ?? 0;
           const netDelta = (incV ?? 0) - (decV ?? 0);
           const title = params[0]?.axisValueLabel ?? "";
 
@@ -271,7 +268,7 @@ export default function TransactionsCountWaterfall() {
         },
       },
       legend: {
-        data: ["Increase", "Decrease", "إجمالي"],
+        data: ["إرتفاع", "إنخفاض", "إجمالي"],
         bottom: 0,
         left: "center",
         textStyle: { color: "var(--text-muted)", fontSize: 10 },
@@ -309,30 +306,29 @@ export default function TransactionsCountWaterfall() {
           silent: true,
         },
         {
-          name: "Increase",
+          name: "إرتفاع",
           type: "bar",
           stack: "wf",
           data: inc,
           itemStyle: {
             color: palette.primaryGreen,
-            borderRadius: [6, 6, 0, 0],
           },
-          barWidth: 26,
+          barWidth: 45,
         },
         {
-          name: "Decrease",
+          name: "إنخفاض",
           type: "bar",
           stack: "wf",
           data: dec,
-          itemStyle: { color: palette.primaryRed, borderRadius: [6, 6, 0, 0] },
-          barWidth: 26,
+          itemStyle: { color: palette.primaryRed },
+          barWidth: 45,
         },
         {
           name: "إجمالي",
           type: "bar",
           data: totalBars,
-          itemStyle: { color: palette.primaryBlue, borderRadius: [6, 6, 0, 0] },
-          barWidth: 26,
+          itemStyle: { color: palette.primaryBlue },
+          barWidth: 45,
         },
       ],
     };
@@ -349,7 +345,7 @@ export default function TransactionsCountWaterfall() {
     <ChartCard
       title="عدد المعاملات حسب السنة/الربع والفرع"
       titleFlag="blue"
-      subtitle="Count of Transactions by Year / Quarter and Branch Location"
+      subtitle="عدد المعاملات حسب السنة / الربع وموقع الفرع"
       option={option}
       height="360px"
       delay={2}

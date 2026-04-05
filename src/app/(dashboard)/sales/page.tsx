@@ -20,11 +20,9 @@ export default function SalesPage() {
         <RevenueWaterfall />
       </div>
       <SalesHierarchyAnalysis />
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <TransactionsCountWaterfall />
-        <DetailedTimeBasedSalesAnalysis />
-      </div>
+      <DetailedTimeBasedSalesAnalysis />
       <DrillDownTable />
+      <TransactionsCountWaterfall />
     </div>
   );
 }
