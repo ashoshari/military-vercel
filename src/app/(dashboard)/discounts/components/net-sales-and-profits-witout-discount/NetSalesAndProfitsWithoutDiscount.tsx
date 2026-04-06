@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import InlineSearchDropdown from "../inline-search-dropdown/InlineSearchDropdown";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import {
   monthOptions,
@@ -7,6 +6,8 @@ import {
   noDiscProfitFor,
   tcBranches,
 } from "../../utils/data";
+import { SearchDropdown } from "@/components/ui/SearchDropdown";
+import { Search } from "lucide-react";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -82,14 +83,16 @@ const NetSalesAndProfitsWithoutDiscount = ({
       delay={3}
       headerExtra={
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <InlineSearchDropdown
+          <SearchDropdown
+            icon={Search}
             label="الفترة اليسرى"
             value={tcLeftMonth}
             options={monthOptions}
             onChange={setTcLeftMonth}
             accent="#047857"
           />
-          <InlineSearchDropdown
+          <SearchDropdown
+            icon={Search}
             label="الفترة اليمنى"
             value={tcRightMonth}
             options={monthOptions}

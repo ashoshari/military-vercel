@@ -1,4 +1,4 @@
-import { buildThreeYearMonthQuarterYearXAxes } from "@/components/ui/chartMonthQuarterYearXAxis";
+import { buildThreeYearMonthValueXAxes } from "@/components/ui/chartMonthQuarterYearXAxis";
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import { getMonthlySalesData } from "@/lib/mockData";
 import dynamic from "next/dynamic";
@@ -24,14 +24,33 @@ const salesData = getMonthlySalesData();
 const salesYAxis = {
   type: "value" as const,
   name: "المبيعات",
+  position: "left" as const,
   min: 0,
-  axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
+  axisLine: { show: true, onZero: false },
+  axisTick: { show: true }, // ✅ ADD
+  splitLine: { show: true }, // ✅ ADD
+  axisLabel: {
+    formatter: (v: number) => `${(v / 1000000).toFixed(1)}M`,
+  },
+  nameLocation: "end",
+  nameGap: 12,
+  gridIndex: 0,
 };
+
 const profitYAxis = {
   type: "value" as const,
   name: "الأرباح",
+  position: "right" as const,
   min: 0,
-  axisLabel: { formatter: (v: number) => `${(v / 1000000).toFixed(1)}M` },
+  axisLine: { show: true, onZero: false },
+  axisTick: { show: true }, // ✅ ADD
+  splitLine: { show: false }, // ✅ prevent clutter
+  axisLabel: {
+    formatter: (v: number) => `${(v / 1000000).toFixed(1)}M`,
+  },
+  nameLocation: "end",
+  nameGap: 12,
+  gridIndex: 0,
 };
 
 const NetProfitAndSalesByDate = () => {
@@ -123,8 +142,8 @@ const NetProfitAndSalesByDate = () => {
     }
     const labels: string[] = [];
     const values: number[] = [];
-    for (const mi of ms) {
-      for (const y of DRILL_YEARS) {
+    for (const y of DRILL_YEARS) {
+      for (const mi of ms) {
         const mv = monthlyForYear(y);
         values.push(mv[mi]);
         labels.push(monthIndexLabels[mi]);
@@ -137,14 +156,12 @@ const NetProfitAndSalesByDate = () => {
   }, [drillLevel, selectedQuarters, selectedMonthIndices, monthIndexLabels]);
 
   const yearSeparatorMarkLine = useMemo(() => {
-    const nYears = DRILL_YEARS.length;
-    const line = (xAxis: number) => [
-      { coord: [xAxis, "min"] as const },
-      { coord: [xAxis, "max"] as const },
-    ];
+    const line = (xAxis: number) => ({
+      xAxis,
+    });
     const base = {
       silent: true,
-      z: -1,
+      z: 10, // 👈 IMPORTANT (bring to front)
       symbol: "none" as const,
       label: { show: false },
       lineStyle: {
@@ -152,6 +169,7 @@ const NetProfitAndSalesByDate = () => {
         width: YEAR_SEP_LINE_WIDTH,
         type: "solid" as const,
       },
+      xAxisIndex: 0, // 👈 THIS IS THE FIX
     };
     if (drillLevel === "year") {
       return { ...base, data: [line(0.5), line(1.5)] };
@@ -167,13 +185,11 @@ const NetProfitAndSalesByDate = () => {
       }
       const nm = selectedMonthIndices.size;
       if (nm === 0) return undefined;
-      const data: ReturnType<typeof line>[] = [];
-      for (let b = 0; b < nm; b++) {
-        for (let s = 0; s < nYears - 1; s++) {
-          data.push(line(b * nYears + s + 0.5));
-        }
-      }
-      return { ...base, data };
+
+      return {
+        ...base,
+        data: [{ xAxis: 11.5 }, { xAxis: 23.5 }],
+      };
     }
     return undefined;
   }, [drillLevel, selectedMonthIndices]);
@@ -181,8 +197,8 @@ const NetProfitAndSalesByDate = () => {
   const profitLineSeries = {
     name: "الأرباح",
     type: "line" as const,
-    yAxisIndex: drillSeriesMode === "both" ? 1 : 0,
-    data: drillData.profits,
+    yAxisIndex: drillSeriesMode === "both" ? 1 : 0, // ✅ FIX
+    data: drillData.profits.map((v, i) => [i, v]),
     lineStyle: { color: palette.primaryCyan, width: 2.5 },
     itemStyle: { color: palette.primaryCyan, borderWidth: 2 },
     symbol: "circle" as const,
@@ -214,7 +230,7 @@ const NetProfitAndSalesByDate = () => {
   const salesBarSeries = {
     name: "المبيعات",
     type: "bar" as const,
-    data: drillData.values,
+    data: drillData.values.map((v, i) => [i, v]),
     barWidth: drillLevel === "month" ? 6 : drillLevel === "quarter" ? 14 : 40,
     ...(drillLevel === "month" ? { barMaxWidth: 12 } : {}),
     itemStyle: { color: palette.primaryGreen, borderRadius: [4, 4, 0, 0] },
@@ -224,10 +240,12 @@ const NetProfitAndSalesByDate = () => {
       : {}),
   };
   const drillXAxis = drillMonthHierarchy
-    ? buildThreeYearMonthQuarterYearXAxes({
+    ? buildThreeYearMonthValueXAxes({
         monthNames: monthIndexLabels,
         years: DRILL_YEARS,
-        appendYearSuffix: false,
+        xMax: drillData.values.length - 1,
+        fullYear: selectedMonthIndices.size === 12,
+        sortedMonthIndices: [...selectedMonthIndices].sort((a, b) => a - b),
       })
     : drillLevel === "quarter"
       ? [
@@ -243,7 +261,7 @@ const NetProfitAndSalesByDate = () => {
             position: "bottom" as const,
             offset: 28,
             data: [...DRILL_YEARS],
-            axisLine: { show: false },
+            axisLine: { show: true, onZero: false },
             axisTick: { show: false },
             axisLabel: { interval: 0, fontSize: 10, fontWeight: 600 },
           },

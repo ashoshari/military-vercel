@@ -4,10 +4,10 @@ import { useThemeStore } from "@/store/themeStore";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { productsStandardGrid } from "../../utils/data";
-import { InlineDropdown } from "../inline-dropdown/InlineDropdown";
 import { Layers, Package } from "lucide-react";
-import { InlineSearchDropdown } from "../inline-search-dropdown/InlineSearchDropdown";
-import { InlineMultiSelectDropdown } from "../inline-multi-select-dropdown/InlineMultiSelectDropdown";
+import { MultiSelectDropdown } from "@/components/ui/MultiSelectDropdown";
+import { SearchDropdown } from "@/components/ui/SearchDropdown";
+import { Dropdown } from "@/components/ui/Dropdown";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -196,7 +196,7 @@ const SalesVolumeVsProfitMargin = () => {
               الفلاتر:
             </span>
 
-            <InlineDropdown
+            <Dropdown
               icon={Layers}
               label="المجموعة الأولى"
               value={selectedG1 ?? "all"}
@@ -210,7 +210,7 @@ const SalesVolumeVsProfitMargin = () => {
               accent="var(--accent-amber)"
             />
 
-            <InlineDropdown
+            <Dropdown
               icon={Layers}
               label="المجموعة الثانية"
               value={selectedG2 ?? "all"}
@@ -224,7 +224,7 @@ const SalesVolumeVsProfitMargin = () => {
               accent="#f59e0b"
             />
 
-            <InlineSearchDropdown
+            <SearchDropdown
               icon={Package}
               label="المنتجات"
               value={selectedProduct ?? ""}
@@ -239,7 +239,7 @@ const SalesVolumeVsProfitMargin = () => {
 
           {selectedProduct && (
             <div className="flex flex-wrap items-center gap-2 text-[10px]">
-              <InlineMultiSelectDropdown
+              <MultiSelectDropdown
                 icon={Layers}
                 label="المجموعة الثالثة"
                 selectedValues={selectedG3}

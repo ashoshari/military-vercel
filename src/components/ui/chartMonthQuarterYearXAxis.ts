@@ -43,59 +43,6 @@ export function buildMonthQuarterYearXAxes(
   ];
 }
 
-/** Same stacking pattern as single-year helper, for 36 months (3×12): 12 quarter bands, 3 year bands. */
-export type BuildThreeYearMonthQuarterYearXAxesParams = {
-  monthNames: string[];
-  /** Exactly three years, oldest first (e.g. ['2023','2024','2025']). */
-  years: readonly [string, string, string];
-  /** When true, month labels append year suffix like `شهر 1 25`. Default: true. */
-  appendYearSuffix?: boolean;
-};
-
-export function buildThreeYearMonthQuarterYearXAxes(
-  params: BuildThreeYearMonthQuarterYearXAxesParams,
-): Record<string, unknown>[] {
-  const [y0, y1, y2] = params.years;
-  const append = params.appendYearSuffix ?? true;
-  const monthRow = [y0, y1, y2].flatMap((y) =>
-    params.monthNames.map((m) => (append ? `${m} ${y.slice(2)}` : m)),
-  );
-  const quarterNames: [string, string, string, string] = [
-    "الربع الأول",
-    "الربع الثاني",
-    "الربع الثالث",
-    "الربع الرابع",
-  ];
-  const quarterRow = [y0, y1, y2].flatMap(() => quarterNames);
-  return [
-    {
-      type: "category",
-      position: "bottom",
-      data: monthRow,
-      axisLabel: { interval: 0, fontSize: 9, rotate: 32, margin: 8 },
-      axisTick: { alignWithLabel: true },
-    },
-    {
-      type: "category",
-      position: "bottom",
-      offset: 32,
-      data: quarterRow,
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { interval: 0, fontSize: 9, fontWeight: 500, margin: 2 },
-    },
-    {
-      type: "category",
-      position: "bottom",
-      offset: 54,
-      data: [y0, y1, y2],
-      axisLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { interval: 0, fontSize: 10, fontWeight: 600, margin: 2 },
-    },
-  ];
-}
-
 const QUARTER_NAMES_VALUE_AXIS: readonly [string, string, string, string] = [
   "الربع الأول",
   "الربع الثاني",
@@ -119,7 +66,6 @@ export function buildThreeYearMonthValueXAxes(
   params: BuildThreeYearMonthValueXAxesParams,
 ): Record<string, unknown>[] {
   const { monthNames, years, xMax, fullYear, sortedMonthIndices } = params;
-  const nm = sortedMonthIndices.length;
   const xMin = -0.5;
   const xMaxBound = xMax + 0.5;
 

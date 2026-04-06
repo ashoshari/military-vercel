@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { categories } from "../../utils/categories";
 import { stableHash } from "../../utils/stableHash";
-import InlineSearchDropdown from "../inline-search-dropdown/InlineSearchDropdown";
+import { SearchDropdown } from "@/components/ui/SearchDropdown";
+import { Search } from "lucide-react";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -219,7 +220,8 @@ const ProfitMarginByCategoryAndTypeOfDiscount = () => {
             aria-hidden
           />
           <div>
-            <InlineSearchDropdown
+            <SearchDropdown
+              icon={Search}
               label="كل الأصناف"
               value={profitCatPick}
               options={

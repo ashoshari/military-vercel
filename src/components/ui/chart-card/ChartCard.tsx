@@ -643,12 +643,3 @@ function ChartCard({
 }
 
 export default memo(ChartCard);
-
-export {
-  buildMonthQuarterYearXAxes,
-  buildThreeYearMonthQuarterYearXAxes,
-} from "../chartMonthQuarterYearXAxis";
-export type {
-  BuildMonthQuarterYearXAxesParams,
-  BuildThreeYearMonthQuarterYearXAxesParams,
-} from "../chartMonthQuarterYearXAxis";

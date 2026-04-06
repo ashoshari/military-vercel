@@ -1,8 +1,8 @@
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import { InlineMultiSelectDropdown } from "../inline-multi-select-dropdown/InlineMultiSelectDropdown";
 import { MapPin } from "lucide-react";
+import { MultiSelectDropdown } from "@/components/ui/MultiSelectDropdown";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -166,7 +166,7 @@ const AverageBasketSizePerMarket = () => {
           >
             الأسواق:
           </span>
-          <InlineMultiSelectDropdown
+          <MultiSelectDropdown
             icon={MapPin}
             label="الأسواق"
             selectedValues={activeMarkets}

@@ -6,7 +6,7 @@ import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import MetricsBubblePlot from "@/components/ui/MetricsBubblePlot";
 import { BRANCH_PRODUCT_ANALYSIS } from "@/lib/branchProductAnalysis";
 import { buildBasketPriceBubblePoints } from "../../utils/buildBasketPriceBubblePoints";
-import { InlineMultiSelectDropdown } from "../inline-multiselect-dropdown/InlineMultiSelectDropdown";
+import { MultiSelectDropdown } from "@/components/ui/MultiSelectDropdown";
 
 const BUBBLE_PLOT_PROPS = {
   xLabel: "عدد المنتجات المباعة",
@@ -67,10 +67,7 @@ export default function BranchBasketPriceBubbleSection({
           تغير المبيعات حسب السعر
         </h3>
       </div>
-      <p
-        className="text-[10px] mt-0.5"
-        style={{ color: "var(--text-muted)" }}
-      >
+      <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
         الفئات حسب الأسواق • انقر على فئة لعرض المواد المرتبطة بها • حجم الدائرة
         يمثل الربح التقديري
       </p>
@@ -143,11 +140,12 @@ export default function BranchBasketPriceBubbleSection({
         {titleBlock}
         <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
           {backButton}
-          <InlineMultiSelectDropdown
+          <MultiSelectDropdown
             icon={MapPin}
             label="الأسواق"
             selectedValues={
-              basketPriceActiveBranches.length === BRANCH_PRODUCT_ANALYSIS.length
+              basketPriceActiveBranches.length ===
+              BRANCH_PRODUCT_ANALYSIS.length
                 ? []
                 : basketPriceActiveBranches
             }

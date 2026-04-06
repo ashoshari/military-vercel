@@ -2,9 +2,9 @@ import { getProductData } from "@/lib/mockData";
 import { useThemeStore } from "@/store/themeStore";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import { InlineDropdown } from "../inline-dropdown/InlineDropdown";
 import { Layers, Package } from "lucide-react";
-import { InlineSearchDropdown } from "../inline-search-dropdown/InlineSearchDropdown";
+import { SearchDropdown } from "@/components/ui/SearchDropdown";
+import { Dropdown } from "@/components/ui/Dropdown";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -207,7 +207,7 @@ const SalesVolumeAndProfitsByProduct = () => {
               الفلاتر:
             </span>
 
-            <InlineDropdown
+            <Dropdown
               icon={Layers}
               label="المجموعة الأولى"
               value={contribG1 ?? "all"}
@@ -219,7 +219,7 @@ const SalesVolumeAndProfitsByProduct = () => {
               accent="var(--accent-amber)"
             />
 
-            <InlineDropdown
+            <Dropdown
               icon={Layers}
               label="المجموعة الثانية"
               value={contribG2 ?? "all"}
@@ -231,7 +231,7 @@ const SalesVolumeAndProfitsByProduct = () => {
               accent="#f59e0b"
             />
 
-            <InlineSearchDropdown
+            <SearchDropdown
               icon={Package}
               label="المنتجات"
               value={contribProduct ?? ""}
