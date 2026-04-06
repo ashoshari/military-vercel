@@ -101,7 +101,7 @@ const DiscountRatesAndGroupSalesVolume = () => {
 
   return (
     <ChartCard
-      title="نسب الخصم وحجم مبيعات المجموعات"
+      title="نوع الخصم وحجم مبيعات المجموعات"
       titleFlag="green"
       subtitle="Discount % vs product sales volume; bubble size = profit margin %"
       option={scatterOption}
