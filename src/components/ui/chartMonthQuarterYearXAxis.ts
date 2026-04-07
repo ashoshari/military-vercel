@@ -175,6 +175,8 @@ export function buildThreeYearMonthValueXAxes(
     {
       ...baseAxis,
       offset: 54,
+      // Keep the year labels axis "line-less"; we'll render a divider *below*
+      // the labels using a dedicated axis after it.
       axisLine: { show: false },
       axisTick: {
         show: true,
@@ -189,6 +191,14 @@ export function buildThreeYearMonthValueXAxes(
         fontWeight: 600,
         margin: 2,
       },
+    },
+    // Divider line under the drill-year labels (no labels/ticks).
+    {
+      ...baseAxis,
+      offset: 74,
+      axisLine: { show: true, onZero: false },
+      axisTick: { show: false },
+      axisLabel: { ...labelShowAll, formatter: () => "" },
     },
   ];
 }

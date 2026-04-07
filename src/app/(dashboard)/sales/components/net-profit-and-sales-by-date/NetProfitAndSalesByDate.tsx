@@ -216,7 +216,7 @@ const NetProfitAndSalesByDate = () => {
         left: "6%" as const,
         right: "7%" as const,
         top: 28,
-        bottom: 94,
+        bottom: 110,
         containLabel: false,
       }
     : {

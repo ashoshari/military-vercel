@@ -1,9 +1,9 @@
 import {
   AnalyticsBarCell,
   AnalyticsTable,
+  AnalyticsTableHeader,
   analyticsTdBaseStyle,
 } from "@/components/ui/AnalyticsTable";
-import type { AnalyticsTableHeader } from "@/components/ui/AnalyticsTable";
 import SectionTitleWithFlag from "@/components/ui/SectionTitleWithFlag";
 import { BranchBaseRow, branches } from "../../utils/branches";
 import React from "react";
