@@ -3,6 +3,7 @@ import {
   AnalyticsTable,
   analyticsTdBaseStyle,
 } from "@/components/ui/AnalyticsTable";
+import type { AnalyticsTableHeader } from "@/components/ui/AnalyticsTable";
 import SectionTitleWithFlag from "@/components/ui/SectionTitleWithFlag";
 import { BranchBaseRow, branches } from "../../utils/branches";
 import React from "react";
@@ -14,7 +15,7 @@ interface Props {
   toggleCat: (cat: string) => void;
 }
 
-const headers = [
+const headers: AnalyticsTableHeader[] = [
   { label: "الفرع", align: "right" },
   { label: "الفواتير", align: "center" },
   { label: "ف. مخصومة", align: "center" },
