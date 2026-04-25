@@ -3,13 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { useThemeStore } from "@/store/themeStore";
 import { useAuthStore } from "@/store/authStore";
 import {
-  LayoutDashboard,
   TrendingUp,
   Building2,
   Settings2,
@@ -136,7 +135,6 @@ export default function Sidebar() {
   const { mode, toggleMode } = useThemeStore();
   const user = useAuthStore((s) => s.user);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isSmallViewport, setIsSmallViewport] = useState(false);
   const [time, setTime] = useState("");
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
