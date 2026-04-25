@@ -180,18 +180,22 @@ const NetProfitAndSalesByDate = () => {
       return undefined;
     }
     if (drillLevel === "month") {
-      if (selectedMonthIndices.size === 12) {
-        return { ...base, data: [line(11.5), line(23.5)] };
-      }
       const nm = selectedMonthIndices.size;
       if (nm === 0) return undefined;
 
       return {
         ...base,
-        data: [{ xAxis: 11.5 }, { xAxis: 23.5 }],
+        data: [line(nm - 0.5), line(nm * 2 - 0.5)],
       };
     }
     return undefined;
+  }, [drillLevel, selectedMonthIndices]);
+
+  const monthYearSeparatorPositions = useMemo(() => {
+    if (drillLevel !== "month") return [];
+    const monthCount = selectedMonthIndices.size;
+    if (monthCount === 0) return [];
+    return [monthCount - 0.5, monthCount * 2 - 0.5];
   }, [drillLevel, selectedMonthIndices]);
 
   const profitLineSeries = {
@@ -246,6 +250,9 @@ const NetProfitAndSalesByDate = () => {
         xMax: drillData.values.length - 1,
         fullYear: selectedMonthIndices.size === 12,
         sortedMonthIndices: [...selectedMonthIndices].sort((a, b) => a - b),
+        yearSeparatorPositions: monthYearSeparatorPositions,
+        yearSeparatorColor: YEAR_SEP_COLOR,
+        yearSeparatorWidth: YEAR_SEP_LINE_WIDTH,
       })
     : drillLevel === "quarter"
       ? [

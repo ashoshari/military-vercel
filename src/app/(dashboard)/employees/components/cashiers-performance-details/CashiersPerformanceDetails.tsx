@@ -27,6 +27,7 @@ const CashiersPerformanceDetails = () => {
     () =>
       cashiersBase.map((c, idx) => ({
         ...c,
+        id: `${c.name}-${idx}`,
         workShift: (idx % 2 === 0 ? "morning" : "evening") as
           | "morning"
           | "evening",
@@ -177,7 +178,7 @@ const CashiersPerformanceDetails = () => {
         ]}
       >
         {sorted.map((c, i) => {
-          const rank = ranked.findIndex((x) => x.name === c.name) + 1;
+          const rank = ranked.findIndex((x) => x.id === c.id) + 1;
           const medalColor =
             rank === 1
               ? "#f59e0b"
@@ -188,7 +189,7 @@ const CashiersPerformanceDetails = () => {
                   : "var(--text-muted)";
           return (
             <motion.tr
-              key={c.name}
+              key={c.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.02 }}

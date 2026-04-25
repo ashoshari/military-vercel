@@ -665,80 +665,74 @@ export default function MetricsBubblePlot({
         </AnimatePresence>
       </div>
 
-      {showDepthLegend && (
+      {(showDepthLegend ||
+        bubbleSizing === "volume" ||
+        bubbleSizing === "basketProfit") && (
         <div
-          className="flex flex-wrap items-center gap-3 px-4 py-2 border-t text-[9px]"
+          className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 border-t text-[9px]"
           style={{
             borderColor: "var(--border-subtle)",
             color: "var(--text-muted)",
           }}
         >
-          <span
-            className="font-semibold"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            المستوى:
-          </span>
-          {(
-            [
-              { label: "فرع", d: 0 as const },
-              { label: "فئة", d: 1 as const },
-              { label: "منتج", d: 2 as const },
-            ] as const
-          ).map(({ label, d }) => {
-            const dot = bubbleSizing === "depth" ? 8 + d * 2 : 10;
-            return (
-              <div key={label} className="flex items-center gap-1.5">
-                <div
-                  style={{
-                    width: dot,
-                    height: dot,
-                    borderRadius: "50%",
-                    background: depthColor(d, variant),
-                  }}
-                />
-                <span>{label}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      {!showDepthLegend && bubbleSizing === "volume" && (
-        <div
-          className="flex flex-wrap items-center gap-2 px-4 py-2 border-t text-[9px]"
-          style={{
-            borderColor: "var(--border-subtle)",
-            color: "var(--text-muted)",
-          }}
-          dir="rtl"
-        >
-          <span
-            className="font-semibold"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            دليل الحجم:
-          </span>
-          <span>الدائرة الأكبر = أكبر عدد للمواد الملغات</span>
-          <span className="opacity-70">(عدد المواد الملغات)</span>
-        </div>
-      )}
-      {bubbleSizing === "basketProfit" && (
-        <div
-          className="flex flex-wrap items-center gap-2 px-4 py-2 border-t text-[9px]"
-          style={{
-            borderColor: "var(--border-subtle)",
-            color: "var(--text-muted)",
-          }}
-          dir="rtl"
-        >
-          <span
-            className="font-semibold"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            دليل الحجم:
-          </span>
-          <span>حجم الدائرة يتناسب مع متوسط ربح السلة</span>
-          <span className="opacity-70">(أكبر دائرة = أعلى ربح سلة)</span>
+          {showDepthLegend ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <span
+                className="font-semibold"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                المستوى:
+              </span>
+              {(
+                [
+                  { label: "فرع", d: 0 as const },
+                  { label: "فئة", d: 1 as const },
+                  { label: "منتج", d: 2 as const },
+                ] as const
+              ).map(({ label, d }) => {
+                const dot = bubbleSizing === "depth" ? 8 + d * 2 : 10;
+                return (
+                  <div key={label} className="flex items-center gap-1.5">
+                    <div
+                      style={{
+                        width: dot,
+                        height: dot,
+                        borderRadius: "50%",
+                        background: depthColor(d, variant),
+                      }}
+                    />
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div />
+          )}
+
+          {(bubbleSizing === "volume" || bubbleSizing === "basketProfit") && (
+            <div className="flex flex-wrap items-center gap-2" dir="rtl">
+              <span
+                className="font-semibold"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                دليل الحجم:
+              </span>
+              {bubbleSizing === "volume" ? (
+                <>
+                  <span>الدائرة الأكبر = أكبر عدد للمواد الملغات</span>
+                  <span className="opacity-70">(عدد المواد الملغات)</span>
+                </>
+              ) : (
+                <>
+                  <span>حجم الدائرة يتناسب مع متوسط ربح السلة</span>
+                  <span className="opacity-70">
+                    (أكبر دائرة = أعلى ربح سلة)
+                  </span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

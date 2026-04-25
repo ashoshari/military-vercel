@@ -82,7 +82,7 @@ const NetSalesOverTimeForEachBranch = () => {
     <ChartCard
       title="صافي المبيعات عبر الزمن لكل فرع"
       titleFlag="green"
-      subtitle="Net Sales Over Time by Branch"
+      subtitle="صافي المبيعات عبر الزمن لكل فرع"
       option={netSalesByBranchOption}
       height="420px"
       delay={2}

@@ -51,8 +51,15 @@ export default function DashboardLayout({
         <div className="flex-1 flex flex-col min-h-screen min-w-0">
           <Header />
           <main className="flex-1 content-transition min-h-0">
-            {/* شريط الفلاتر — فوق كل محتوى الصفحة */}
-            <div style={{ padding: "8px 24px 0" }}>
+            {/* شريط الفلاتر — ثابت (sticky) تحت الهيدر في كل الصفحات */}
+            <div
+              className="sticky z-20"
+              style={{
+                top: 64,
+                padding: "8px 24px 0",
+                background: "var(--bg-primary)",
+              }}
+            >
               <GlobalFilterBar />
             </div>
             <div className="p-6 pt-2">{children}</div>

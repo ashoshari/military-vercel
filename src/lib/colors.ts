@@ -205,7 +205,6 @@ export const PRIMARY_SLATE = DEFAULT_ANALYTICS_PALETTE.primarySlate;
 export const PRIMARY_BLUE = DEFAULT_ANALYTICS_PALETTE.primaryBlue;
 export const PRIMARY_RED = DEFAULT_ANALYTICS_PALETTE.primaryRed;
 export const PRIMARY_PURPLE = DEFAULT_ANALYTICS_PALETTE.primaryPurple;
-
 export const LABEL_COLOR = DEFAULT_ANALYTICS_PALETTE.labelColor;
 
 export const GREEN_SCALE = [

@@ -1,6 +1,7 @@
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import { getProductData } from "@/lib/mockData";
 import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -11,16 +12,6 @@ const ChartCard = dynamic(
 );
 
 const products = getProductData();
-
-const salesVsProfitSlice = products.slice(0, 8);
-
-const xAxis = {
-  type: "category" as const,
-  data: salesVsProfitSlice.map((p) =>
-    p.nameAr.split(" ").slice(0, 2).join(" "),
-  ),
-  axisLabel: { rotate: 35, fontSize: 10 },
-};
 
 const yAxis = [
   {
@@ -34,10 +25,9 @@ const yAxis = [
     axisLabel: { formatter: (v: number) => `${(v / 1000).toFixed(0)}K` },
   },
 ];
-// defines types from data and palette
 
 const createSalesOverviewSeries = (
-  data: typeof salesVsProfitSlice,
+  data: typeof products,
   palette: ReturnType<typeof useResolvedAnalyticsPalette>,
 ) => [
   {
@@ -73,14 +63,35 @@ const legend = {
   left: "center",
 };
 
+const classificationOptions = [
+  { value: "group-1", label: "المجموعة الاولي" },
+  { value: "group-2", label: "المجموعة الثانية" },
+  { value: "group-3", label: "المجموعة الثالثة" },
+] as const;
+
 const NetProfitAndSalesByClassification = () => {
   const palette = useResolvedAnalyticsPalette();
+  const [selectedClassification, setSelectedClassification] =
+    useState<(typeof classificationOptions)[number]["value"]>("group-2");
+
+  const salesVsProfitSlice = useMemo(() => products.slice(0, 8), []);
+
+  const xAxis = useMemo(
+    () => ({
+      type: "category" as const,
+      data: salesVsProfitSlice.map((product) =>
+        product.nameAr.split(" ").slice(0, 2).join(" "),
+      ),
+      axisLabel: { rotate: 35, fontSize: 10 },
+    }),
+    [salesVsProfitSlice],
+  );
 
   const salesVsProfitOption = {
-    xAxis: xAxis,
-    yAxis: yAxis,
+    xAxis,
+    yAxis,
     series: createSalesOverviewSeries(salesVsProfitSlice, palette),
-    legend: legend,
+    legend,
   };
 
   return (
@@ -89,6 +100,45 @@ const NetProfitAndSalesByClassification = () => {
       subtitle="مقارنة حسب التصنيف"
       titleFlag="green"
       titleFlagNumber={1}
+      headerExtra={
+        <div className="flex items-center gap-0.5 flex-wrap justify-end">
+          <span
+            className="text-[9px] shrink-0"
+            style={{ color: "var(--text-muted)" }}
+          >
+            التصنيف:
+          </span>
+          <div
+            className="flex items-center gap-0.5 flex-wrap"
+            role="radiogroup"
+            aria-label="التصنيف"
+          >
+            {classificationOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selectedClassification === option.value}
+                onClick={() => setSelectedClassification(option.value)}
+                className="px-2 py-1 rounded-md text-[10px] font-medium transition-colors"
+                style={{
+                  background:
+                    selectedClassification === option.value
+                      ? "var(--accent-green-dim)"
+                      : "var(--bg-elevated)",
+                  color:
+                    selectedClassification === option.value
+                      ? "var(--accent-green)"
+                      : "var(--text-muted)",
+                  border: `1px solid ${selectedClassification === option.value ? "var(--accent-green)" : "var(--border-subtle)"}`,
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      }
       option={salesVsProfitOption}
       height="340px"
       delay={2}

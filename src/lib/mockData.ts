@@ -77,8 +77,21 @@ export interface ForecastData {
 }
 
 // ── Helper Functions ──
+type RandomFn = () => number;
+
+const createSeededRandom = (seed: number): RandomFn => {
+  let state = seed >>> 0;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+};
+
 const randomBetween = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
+
+const randomBetweenSeeded = (rand: RandomFn, min: number, max: number) =>
+  Math.floor(rand() * (max - min + 1)) + min;
 
 const generateSparkline = (
   length: number,
@@ -241,6 +254,7 @@ export const getBranchData = (): BranchData[] => {
 
 // ── Monthly Sales Data ──
 export const getMonthlySalesData = (): SalesData[] => {
+  const rand = createSeededRandom(303);
   const months = [
     "Jan",
     "Feb",
@@ -256,9 +270,9 @@ export const getMonthlySalesData = (): SalesData[] => {
     "Dec",
   ];
   return months.map((m) => {
-    const rev = randomBetween(1800000, 3200000);
-    const orders = randomBetween(12000, 22000);
-    const returns = randomBetween(200, 800);
+    const rev = randomBetweenSeeded(rand, 1800000, 3200000);
+    const orders = randomBetweenSeeded(rand, 12000, 22000);
+    const returns = randomBetweenSeeded(rand, 200, 800);
     return {
       date: m,
       revenue: rev,
@@ -272,6 +286,7 @@ export const getMonthlySalesData = (): SalesData[] => {
 
 // ── Product Data ──
 export const getProductData = (): ProductData[] => {
+  const rand = createSeededRandom(404);
   const products = [
     {
       name: "Premium Rice 5kg",
@@ -348,11 +363,11 @@ export const getProductData = (): ProductData[] => {
   return products.map((p, i) => ({
     id: `prod-${i + 1}`,
     ...p,
-    price: Number((Math.random() * 15 + 1.5).toFixed(2)),
-    unitsSold: randomBetween(5000, 85000),
-    revenue: randomBetween(50000, 500000),
-    margin: Number((Math.random() * 30 + 5).toFixed(1)),
-    trend: (["up", "down", "stable"] as const)[randomBetween(0, 2)],
+    price: Number((rand() * 15 + 1.5).toFixed(2)),
+    unitsSold: randomBetweenSeeded(rand, 5000, 85000),
+    revenue: randomBetweenSeeded(rand, 50000, 500000),
+    margin: Number((rand() * 30 + 5).toFixed(1)),
+    trend: (["up", "down", "stable"] as const)[randomBetweenSeeded(rand, 0, 2)],
   }));
 };
 

@@ -53,6 +53,20 @@ export interface FilterState {
     /** /sales — تقارير تفصيلية: الاتفاقية ([] = كل الاتفاقيات) */
     agreement: string[];
     season: string;
+
+    /** /customers — المدن ([] = كل المدن) */
+    customersCities: string[];
+    /** /customers — وقت البيع */
+    customersSaleTime: "all" | "morning" | "evening";
+    /** /customers — العروض */
+    customersOffers: string;
+    /** /customers — نوع الدفع (لحظي) */
+    customersPaymentType: string;
+    /** /customers — طريقة البيع (لحظي) */
+    customersSaleMethod: string;
+    /** /customers — القيمة المادية للسلة (د.أ) */
+    customersBasketValueRange: [number, number];
+
     holiday: string;
     isApplied: boolean;
     isLoading: boolean;
@@ -100,6 +114,12 @@ const defaultFilters: FilterState = {
     branchOffers: "",
     agreement: [],
     season: '',
+    customersCities: [],
+    customersSaleTime: "all",
+    customersOffers: "",
+    customersPaymentType: "",
+    customersSaleMethod: "",
+    customersBasketValueRange: [0, 100_000],
     holiday: '',
     isApplied: false,
     isLoading: false,

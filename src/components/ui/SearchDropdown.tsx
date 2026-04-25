@@ -74,7 +74,7 @@ export function SearchDropdown({
             style={{
               position: "absolute",
               top: "calc(100% + 5px)",
-              right: 0,
+              left: 0,
               zIndex: 1050,
               background: "var(--bg-panel)",
               border: "1px solid var(--border-subtle)",

@@ -12,7 +12,13 @@ const ChartCard = dynamic(
   },
 );
 
-const BRANCHES = ["سوق المنارة", "سوق سلاح الجو", "سوق المدينة", "سوق الجبيهة"];
+const BRANCHES = [
+  "كل الأسواق",
+  "سوق المنارة",
+  "سوق سلاح الجو",
+  "سوق المدينة",
+  "سوق الجبيهة",
+];
 const YEARS = [2020, 2021, 2022, 2023, 2024, 2025];
 
 const stableHash = (s: string) => {
@@ -28,8 +34,8 @@ function buildTotalsForBranch(branch: string) {
   // deterministic, realistic-ish yearly counts
   const base = 12000 + (stableHash(`tx_base_${branch}`) % 15000);
   return YEARS.map((y, i) => {
-    const drift = ((stableHash(`tx_d_${branch}_${y}`) % 4200) - 1800) | 0;
-    const season = Math.round(base * (1 + i * 0.045));
+    const drift = (stableHash(`tx_d_${branch}_${y}`) % 9000) - 6000;
+    const season = Math.round(base * (1 + i * 0.03 - 0.01));
     return Math.max(1200, season + drift);
   });
 }
@@ -270,6 +276,7 @@ export default function TransactionsCountWaterfall() {
               }))}
               onChange={(v) => setYearPick(Number(v))}
               accent="var(--accent-blue)"
+              left0={true}
             />
           )}
 
@@ -280,6 +287,8 @@ export default function TransactionsCountWaterfall() {
             options={BRANCHES.map((b) => ({ value: b, label: b }))}
             onChange={setBranch}
             accent="var(--accent-green)"
+            defaultValue="كل الأسواق"
+            left0={true}
           />
         </div>
       }

@@ -23,6 +23,7 @@ const ProductCategoryPerformanceByBranch = ({
   setExpandedCats,
 }: ProductCategoryPerformanceByBranchProps) => {
   const palette = useResolvedAnalyticsPalette();
+  const maxVisibleXAxisItems = 9;
 
   const branchChartColors = useMemo(
     () =>
@@ -50,12 +51,8 @@ const ProductCategoryPerformanceByBranch = ({
             .join("<br/>"),
       },
       legend: {
-        data: branchScores.map((b) => b.name),
-        bottom: 0,
-        textStyle: { fontSize: 9 },
-        type: "scroll" as const,
+        show: true,
       },
-      dataZoom: [{ type: "inside" as const }],
       grid: {
         bottom: "22%",
         top: "8%",
@@ -66,7 +63,7 @@ const ProductCategoryPerformanceByBranch = ({
       xAxis: {
         type: "category" as const,
         data: categoryScores.map((c) => c.cat),
-        axisLabel: { rotate: 25, fontSize: 9 },
+        axisLabel: { interval: 0, rotate: 25, fontSize: 9 },
       },
       yAxis: {
         type: "value" as const,
@@ -94,8 +91,14 @@ const ProductCategoryPerformanceByBranch = ({
     }),
     [branchChartColors],
   );
+
+  const chartWidth = useMemo(() => {
+    const ratio = categoryScores.length / maxVisibleXAxisItems;
+    return `${Math.max(100, ratio * 100)}%`;
+  }, [maxVisibleXAxisItems]);
+
   return (
-    <div className="glass-panel overflow-hidden">
+    <div className="glass-panel overflow-visible">
       <div
         className="px-5 py-3 border-b"
         style={{ borderColor: "var(--border-subtle)" }}
@@ -134,9 +137,33 @@ const ProductCategoryPerformanceByBranch = ({
           <span style={{ color: "var(--text-muted)" }}>55%</span>
         </div>
       </div>
-      <ChartCard title="" option={categoryPerfOption} height="320px" />
+      <ChartCard
+        title=""
+        option={categoryPerfOption}
+        height="320px"
+        width={chartWidth}
+        scrollViewportDir="ltr"
+      />
 
       {/* جدول تفصيلي للفئات */}
+      {/* <div className="px-5 pb-3">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[10px]">
+          {branchScores.map((branch, branchIndex) => (
+            <div key={branch.id} className="flex items-center gap-1">
+              <span
+                className="inline-block rounded-[3px] shrink-0"
+                style={{
+                  width: 12,
+                  height: 8,
+                  background: branchChartColors[branchIndex],
+                }}
+              />
+              <span style={{ color: "var(--text-muted)" }}>{branch.name}</span>
+            </div>
+          ))}
+        </div>
+      </div> */}
+
       <div className="px-5 pb-4 overflow-x-auto">
         <AnalyticsTable
           headers={[
@@ -249,7 +276,7 @@ const ProductCategoryPerformanceByBranch = ({
                         const val =
                           Number(
                             (sub as unknown as Record<string, number>)[
-                              `b${bi + 1}`
+                              `b${bi + 1}akusdkabsdsabd`
                             ],
                           ) || 0;
                         return (

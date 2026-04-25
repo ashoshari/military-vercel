@@ -16,6 +16,9 @@ const ChartCard = dynamic(
 
 const products = getProductData();
 
+/** Plot area max height; taller charts scroll inside the card (`ChartCard` `plotOverflowY="auto"`). */
+const CHART_PLOT_MAX_HEIGHT_PX = 480;
+
 const contrib = [
   { name: "دجاج محمد باريال", vol: 2.08, profit: 7.31 },
   { name: "دجاج سنحه نعمه", vol: 3.26, profit: 9.12 },
@@ -88,14 +91,14 @@ const SalesVolumeAndProfitsByProduct = () => {
 
   const g1Options = useMemo(
     () => [
-      { value: "all", label: "كل المجموعة الأولى" },
+      { value: "all", label: "المجموعة الأولى" },
       ...productGroup1Options.map((o) => ({ value: o, label: o })),
     ],
     [productGroup1Options],
   );
   const g2Options = useMemo(
     () => [
-      { value: "all", label: "كل المجموعة الثانية" },
+      { value: "all", label: "المجموعة الثانية" },
       ...productGroup2Options.map((o) => ({ value: o, label: o })),
     ],
     [productGroup2Options],
@@ -190,7 +193,10 @@ const SalesVolumeAndProfitsByProduct = () => {
   const contribScrollableHeightPx = useMemo(() => {
     const rowPx = 28;
     const headerPad = 140; // legend + margins
-    return Math.max(480, headerPad + contribFilteredSorted.length * rowPx);
+    return Math.max(
+      CHART_PLOT_MAX_HEIGHT_PX,
+      headerPad + contribFilteredSorted.length * rowPx,
+    );
   }, [contribFilteredSorted.length]);
   return (
     <ChartCard
@@ -243,7 +249,7 @@ const SalesVolumeAndProfitsByProduct = () => {
         </div>
       }
       className=""
-      height="480px"
+      height={`${CHART_PLOT_MAX_HEIGHT_PX}px`}
       delay={1}
     />
   );

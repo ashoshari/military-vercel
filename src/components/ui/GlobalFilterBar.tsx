@@ -2,9 +2,7 @@
 
 import {
   useState,
-  useRef,
   useEffect,
-  useLayoutEffect,
   useCallback,
 } from "react";
 import { usePathname } from "next/navigation";
@@ -29,7 +27,6 @@ import {
   Handshake,
 } from "lucide-react";
 import { useFilterStore } from "@/store/filterStore";
-import { useSidebarStore } from "@/store/sidebarStore";
 import {
   AI_BASKET_HOLIDAY_OPTIONS,
   AI_BASKET_OFFERS,
@@ -39,6 +36,7 @@ import {
   BRANCHES,
   BRANCHES_PAGE_QUICK_PERIODS,
   CATEGORIES,
+  CUSTOMERS_PAGE_QUICK_PERIODS,
   CUSTOMER_HOLIDAYS,
   DAILY_INVOICE_RATIO_RANGES,
   DISTRIBUTORS,
@@ -74,9 +72,8 @@ import { ReportCreatingPopup } from "./ReportCreatingPopup";
 const DEFAULT_INSTANT_PERIOD = "month";
 const DEFAULT_SALES_INSTANT_PERIOD = "month";
 
-const DASHBOARD_HEADER_PX = 64;
-const LG_BREAKPOINT = 1024;
-const SALES_SCROLL_REPORTS_THRESHOLD = 48;
+const FILTERS_HIDE_THRESHOLD = 80;
+const FILTERS_SHOW_THRESHOLD = 24;
 
 /** صفحة /branches — تقارير: خيارات العطل/المناسبات */
 const BRANCH_HOLIDAY_OPTIONS = AI_BASKET_HOLIDAY_OPTIONS;
@@ -93,8 +90,10 @@ export default function GlobalFilterBar() {
   const isBranchesPage = pathname === "/branches";
   const isEmployeesPage = pathname === "/employees";
   const isAiBasketPage = pathname === "/ai-basket";
+  const isOperationsPage = pathname === "/operations";
   const isCustomersPage = pathname === "/customers";
   const isProductsPage = pathname === "/products";
+  const isBasketLikePage = isAiBasketPage || isOperationsPage;
   const {
     activeBranches,
     activePeriod,
@@ -114,6 +113,11 @@ export default function GlobalFilterBar() {
     branchOffers,
     agreement,
     holiday,
+    customersCities,
+    customersSaleTime,
+    customersOffers,
+    customersSaleMethod,
+    customersBasketValueRange,
     setActiveBranches,
     setActivePeriod,
     setFilter,
@@ -143,6 +147,12 @@ export default function GlobalFilterBar() {
   const [aiBasketG2, setAiBasketG2] = useState<string[]>([]);
   const [aiBasketReportG3, setAiBasketReportG3] = useState<string[]>([]);
 
+  /** فلاتر /customers — غير لحظي: المجموعات الثلاث + المنتج. */
+  const [customersG1, setCustomersG1] = useState<string[]>([]);
+  const [customersG2, setCustomersG2] = useState<string[]>([]);
+  const [customersG3, setCustomersG3] = useState<string[]>([]);
+  const [customersProduct, setCustomersProduct] = useState("");
+
   useEffect(() => {
     if (isSalesPage) {
       setActivePeriod(DEFAULT_SALES_INSTANT_PERIOD);
@@ -154,7 +164,7 @@ export default function GlobalFilterBar() {
       }
       return;
     }
-    if (isBranchesPage || isEmployeesPage || isAiBasketPage) {
+    if (isBranchesPage || isEmployeesPage || isBasketLikePage) {
       setActivePeriod(DEFAULT_INSTANT_PERIOD);
       setDateFrom("");
       setDateTo("");
@@ -170,7 +180,7 @@ export default function GlobalFilterBar() {
     isSalesPage,
     isBranchesPage,
     isEmployeesPage,
-    isAiBasketPage,
+    isBasketLikePage,
     setActivePeriod,
   ]);
 
@@ -194,8 +204,15 @@ export default function GlobalFilterBar() {
     ? !!(paymentType || saleMethod || agreement.length > 0)
     : isEmployeesPage
       ? !!(paymentType || saleMethod)
-      : isAiBasketPage
+      : isBasketLikePage
         ? !!(aiBasketReportG3.length || product || paymentType || saleMethod)
+        : isCustomersPage
+          ? !!(
+              customersG1.length ||
+              customersG2.length ||
+              customersG3.length ||
+              customersProduct
+            )
         : isBranchesPage
           ? !!(
               branchSaleTime !== "all" ||
@@ -234,6 +251,10 @@ export default function GlobalFilterBar() {
       setFilter("branchHoliday", "");
       setFilter("branchOffers", "");
       setAiBasketReportG3([]);
+      setCustomersG1([]);
+      setCustomersG2([]);
+      setCustomersG3([]);
+      setCustomersProduct("");
       setProdG1("");
       setProdG2("");
       setProdG3("");
@@ -268,6 +289,11 @@ export default function GlobalFilterBar() {
     setFilter("aiBasketHoliday", "");
     setFilter("aiBasketOffers", "");
     setFilter("aiBasketValueRange", [0, 100_000]);
+    setFilter("customersCities", []);
+    setFilter("customersSaleTime", "all");
+    setFilter("customersOffers", "");
+    setFilter("customersSaleMethod", "");
+    setFilter("customersBasketValueRange", [0, 100_000]);
     setFilter("branchCities", []);
     setFilter("branchSaleTime", "all");
     setFilter("branchHoliday", "");
@@ -292,67 +318,34 @@ export default function GlobalFilterBar() {
     setDiscount("");
     setPaymentType("");
     setSaleMethod("");
+    setCustomersG1([]);
+    setCustomersG2([]);
+    setCustomersG3([]);
+    setCustomersProduct("");
     setProdG1("");
     setProdG2("");
     setProdG3("");
     setProdName("");
   }, [pathname, setActiveBranches, setActivePeriod, setFilter]);
 
-  const isCollapsed = useSidebarStore((s) => s.isCollapsed);
-  const isMobileOpen = useSidebarStore((s) => s.isMobileOpen);
-  const [isLgViewport, setIsLgViewport] = useState(true);
-  const [salesShowReportsRow, setSalesShowReportsRow] = useState(true);
-  const salesInstantFixedRef = useRef<HTMLDivElement>(null);
-  const [salesInstantStripHeight, setSalesInstantStripHeight] = useState(0);
+  const [showReportsRow, setShowReportsRow] = useState(true);
 
   useEffect(() => {
-    const mql = window.matchMedia(`(min-width: ${LG_BREAKPOINT}px)`);
-    const h = () => setIsLgViewport(mql.matches);
-    h();
-    mql.addEventListener("change", h);
-    return () => mql.removeEventListener("change", h);
-  }, []);
-
-  const sidebarReservePx = !isLgViewport
-    ? isMobileOpen
-      ? 260
-      : 0
-    : isCollapsed
-      ? 72
-      : 260;
-
-  useEffect(() => {
-    if (!isSalesPage) {
-      queueMicrotask(() => setSalesShowReportsRow(true));
-      return;
-    }
     const el = document.getElementById("dashboard-scroll-root");
     if (!el) return;
     const onScroll = () => {
-      setSalesShowReportsRow(el.scrollTop <= SALES_SCROLL_REPORTS_THRESHOLD);
+      const currentTop = el.scrollTop;
+      setShowReportsRow((prev) => {
+        if (prev) {
+          return currentTop < FILTERS_HIDE_THRESHOLD;
+        }
+        return currentTop <= FILTERS_SHOW_THRESHOLD;
+      });
     };
     onScroll();
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, [isSalesPage, pathname]);
-
-  useLayoutEffect(() => {
-    if (!isSalesPage || salesShowReportsRow) return;
-    const node = salesInstantFixedRef.current;
-    if (!node) return;
-    const ro = new ResizeObserver(() => {
-      setSalesInstantStripHeight(node.getBoundingClientRect().height);
-    });
-    ro.observe(node);
-    setSalesInstantStripHeight(node.getBoundingClientRect().height);
-    return () => ro.disconnect();
-  }, [
-    isSalesPage,
-    salesShowReportsRow,
-    isLgViewport,
-    isCollapsed,
-    isMobileOpen,
-  ]);
+  }, [pathname]);
 
   if (pathname === "/reports") return null;
 
@@ -389,129 +382,25 @@ export default function GlobalFilterBar() {
     (isEmployeesPage &&
       (employeePerformanceRatioRange[0] !== 0 ||
         employeePerformanceRatioRange[1] !== 100)) ||
-    (isAiBasketPage && aiBasketCities.length > 0) ||
-    (isAiBasketPage && aiBasketSaleTime !== "all") ||
-    (isAiBasketPage && aiBasketHoliday !== "") ||
-    (isAiBasketPage && aiBasketOffers !== "") ||
-    (isAiBasketPage &&
+    (isBasketLikePage && aiBasketCities.length > 0) ||
+    (isBasketLikePage && aiBasketSaleTime !== "all") ||
+    (isBasketLikePage && aiBasketHoliday !== "") ||
+    (isBasketLikePage && aiBasketOffers !== "") ||
+    (isBasketLikePage &&
       (aiBasketValueRange[0] !== 0 || aiBasketValueRange[1] !== 100_000)) ||
-    (isAiBasketPage && (aiBasketG1.length > 0 || aiBasketG2.length > 0)) ||
-    (isCustomersPage && holiday !== "") ||
+    (isBasketLikePage && (aiBasketG1.length > 0 || aiBasketG2.length > 0)) ||
+    (isCustomersPage &&
+      (customersCities.length > 0 ||
+        customersSaleTime !== "all" ||
+        holiday !== "" ||
+        customersOffers !== "" ||
+        customersSaleMethod ||
+        customersBasketValueRange[0] !== 0 ||
+        customersBasketValueRange[1] !== 100_000)) ||
     salesInstantDirty;
 
   return (
     <>
-      {isSalesPage && !salesShowReportsRow && (
-        <div
-          ref={salesInstantFixedRef}
-          style={{
-            position: "fixed",
-            top: DASHBOARD_HEADER_PX,
-            left: 10,
-            right: sidebarReservePx + 0,
-            zIndex: 28,
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 8,
-            rowGap: 8,
-
-            background: "var(--bg-panel)",
-            backdropFilter: "blur(20px)",
-            borderBottom: "1px solid var(--border-subtle)",
-            boxShadow: "0 4px 12px rgba(0,0,0,.18)",
-            padding: "8px 8px 6px 8px",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 9,
-              fontWeight: 800,
-              color: "var(--accent-green)",
-              letterSpacing: ".5px",
-              whiteSpace: "nowrap",
-              textTransform: "uppercase",
-            }}
-          >
-            ⚡ لحظي
-          </span>
-          <DateFilterDropdown
-            activePeriod={activePeriod}
-            setActivePeriod={setActivePeriod}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            setDateFrom={setDateFrom}
-            setDateTo={setDateTo}
-            quickPeriodOptions={[...SALES_PAGE_QUICK_PERIODS]}
-            fillQuickPeriodDates={getSalesQuickPeriodRange}
-            rangeGranularity="month"
-          />
-          <MultiSelectDropdown
-            icon={MapPin}
-            label="الإقليم"
-            selectedValues={activeRegions}
-            options={REGIONS}
-            onChange={setActiveRegions}
-            accent="var(--accent-cyan)"
-            manyLabel={(n) => `${n} أقاليم`}
-          />
-          <MultiSelectDropdown
-            icon={Building2}
-            label="الفرع"
-            selectedValues={activeBranches}
-            options={BRANCHES}
-            onChange={setActiveBranches}
-            accent="var(--accent-green)"
-            manyLabel={(n) => `${n} فروع`}
-          />
-          <MultiSelectDropdown
-            icon={Layers}
-            label="المجموعة الأولى"
-            selectedValues={salesG1}
-            options={SALES_GROUP_1}
-            onChange={setSalesG1}
-            accent="var(--accent-amber)"
-            manyLabel={(n) => `${n} مجموعات`}
-          />
-          <MultiSelectDropdown
-            icon={Layers}
-            label="المجموعة الثانية"
-            selectedValues={salesG2}
-            options={SALES_GROUP_2}
-            onChange={setSalesG2}
-            accent="#f59e0b"
-            manyLabel={(n) => `${n} مجموعات`}
-          />
-          <MultiSelectDropdown
-            icon={Layers}
-            label="المجموعة الثالثة"
-            selectedValues={salesG3}
-            options={SALES_GROUP_3}
-            onChange={setSalesG3}
-            accent="#ea580c"
-            manyLabel={(n) => `${n} مجموعات`}
-          />
-          <MultiSelectDropdown
-            icon={Building2}
-            label="الشركة"
-            selectedValues={salesCompany}
-            options={SALES_COMPANIES}
-            onChange={setSalesCompany}
-            accent="#6366f1"
-            manyLabel={(n) => `${n} شركات`}
-          />
-          <MultiSelectDropdown
-            icon={Package}
-            label="كل المنتجات"
-            selectedValues={salesProduct}
-            options={SALES_INSTANT_PRODUCTS}
-            onChange={setSalesProduct}
-            accent="#00d4ff"
-            manyLabel={(n) => `${n} منتجات`}
-          />
-        </div>
-      )}
-
       <div
         style={{
           position: "relative",
@@ -529,18 +418,7 @@ export default function GlobalFilterBar() {
           backdropFilter: "blur(20px)",
         }}
       >
-        {isSalesPage && !salesShowReportsRow && (
-          <div
-            style={{
-              width: "100%",
-              flexShrink: 0,
-              height: Math.max(salesInstantStripHeight, 1),
-            }}
-            aria-hidden
-          />
-        )}
-        {!(isSalesPage && !salesShowReportsRow) && (
-          <>
+        <>
             {/* ── فلاتر لحظية ── */}
             <span
               style={{
@@ -742,7 +620,7 @@ export default function GlobalFilterBar() {
                   accent="#a855f7"
                 />
               </>
-            ) : isAiBasketPage ? (
+            ) : isBasketLikePage ? (
               <>
                 <DateFilterDropdown
                   activePeriod={activePeriod}
@@ -861,6 +739,126 @@ export default function GlobalFilterBar() {
                   accent="#14b8a6"
                 />
               </>
+            ) : isCustomersPage ? (
+              <>
+                <DateFilterDropdown
+                  activePeriod={activePeriod}
+                  setActivePeriod={setActivePeriod}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  setDateFrom={setDateFrom}
+                  setDateTo={setDateTo}
+                  quickPeriodOptions={[...CUSTOMERS_PAGE_QUICK_PERIODS]}
+                  rangeGranularity="month"
+                />
+                <MultiSelectDropdown
+                  icon={MapPin}
+                  label="الإقليم"
+                  selectedValues={activeRegions}
+                  options={REGIONS}
+                  onChange={setActiveRegions}
+                  accent="var(--accent-cyan)"
+                  manyLabel={(n) => `${n} أقاليم`}
+                />
+                <MultiSelectDropdown
+                  icon={MapPinned}
+                  label="المدينة"
+                  selectedValues={customersCities}
+                  options={[...EMPLOYEES_CITIES]}
+                  onChange={(v) => setFilter("customersCities", v)}
+                  accent="#38bdf8"
+                  manyLabel={(n) => `${n} مدن`}
+                />
+                <MultiSelectDropdown
+                  icon={Building2}
+                  label="الفرع"
+                  selectedValues={activeBranches}
+                  options={BRANCHES}
+                  onChange={setActiveBranches}
+                  accent="var(--accent-green)"
+                  manyLabel={(n) => `${n} فروع`}
+                />
+                <Dropdown
+                  icon={Clock}
+                  label="وقت البيع"
+                  value={customersSaleTime}
+                  options={
+                    AI_BASKET_SHIFTS as unknown as {
+                      value: string;
+                      label: string;
+                    }[]
+                  }
+                  onChange={(v) =>
+                    setFilter(
+                      "customersSaleTime",
+                      (v === "morning" || v === "evening" ? v : "all") as
+                        | "all"
+                        | "morning"
+                        | "evening",
+                    )
+                  }
+                  accent="var(--accent-cyan)"
+                />
+                <Dropdown
+                  icon={Calendar}
+                  label="أيام العطل / المناسبات"
+                  value={holiday}
+                  options={
+                    CUSTOMER_HOLIDAYS as unknown as {
+                      value: string;
+                      label: string;
+                    }[]
+                  }
+                  onChange={(v) => setFilter("holiday", v)}
+                  accent="var(--accent-amber)"
+                />
+                <Dropdown
+                  icon={Tag}
+                  label="العروض"
+                  value={customersOffers}
+                  options={
+                    AI_BASKET_OFFERS as unknown as {
+                      value: string;
+                      label: string;
+                    }[]
+                  }
+                  onChange={(v) => setFilter("customersOffers", v)}
+                  accent="#f472b6"
+                />
+                <Dropdown
+                  icon={Store}
+                  label="طريقة البيع"
+                  value={customersSaleMethod}
+                  options={[
+                    { value: "", label: "طريقة البيع" },
+                    ...SALE_METHOD_OPTIONS.map((m) => ({
+                      value: m,
+                      label: m,
+                    })),
+                  ]}
+                  onChange={(v) => setFilter("customersSaleMethod", v)}
+                  accent="#0ea5e9"
+                />
+                <Dropdown
+                  icon={ShoppingCart}
+                  label="القيمة المادية للسلة"
+                  value={`${customersBasketValueRange[0]}-${customersBasketValueRange[1]}`}
+                  options={BASKET_VALUE_RANGES.map((r) => ({
+                    value: `${r.range[0]}-${r.range[1]}`,
+                    label: r.label,
+                  }))}
+                  onChange={(v) => {
+                    const hit = BASKET_VALUE_RANGES.find(
+                      (r) => `${r.range[0]}-${r.range[1]}` === v,
+                    );
+                    setFilter(
+                      "customersBasketValueRange",
+                      hit ? hit.range : [0, 100_000],
+                    );
+                  }}
+                  accent="#14b8a6"
+                />
+              </>
             ) : (
               <>
                 <DateFilterDropdown
@@ -898,22 +896,6 @@ export default function GlobalFilterBar() {
                   accent="var(--accent-green)"
                   manyLabel={(n) => `${n} فروع`}
                 />
-
-                {isCustomersPage && (
-                  <Dropdown
-                    icon={Calendar}
-                    label="المناسبات"
-                    value={holiday}
-                    options={
-                      CUSTOMER_HOLIDAYS as unknown as {
-                        value: string;
-                        label: string;
-                      }[]
-                    }
-                    onChange={(v) => setFilter("holiday", v)}
-                    accent="var(--accent-amber)"
-                  />
-                )}
 
                 {isSalesPage && (
                   <>
@@ -967,7 +949,7 @@ export default function GlobalFilterBar() {
               </>
             )}
 
-            {isEmployeesPage && (
+            {showReportsRow && isEmployeesPage && (
               <>
                 <div
                   style={{
@@ -988,7 +970,7 @@ export default function GlobalFilterBar() {
                     textTransform: "uppercase",
                   }}
                 >
-                  📊 تقارير تفصيلية
+                  📊 غير لحظي 
                 </span>
 
                 <Dropdown
@@ -1019,7 +1001,7 @@ export default function GlobalFilterBar() {
               </>
             )}
 
-            {isAiBasketPage && (
+            {showReportsRow && isBasketLikePage && (
               <>
                 <div
                   style={{
@@ -1040,7 +1022,7 @@ export default function GlobalFilterBar() {
                     textTransform: "uppercase",
                   }}
                 >
-                  📊 تقارير تفصيلية
+                  📊 غير لحظي 
                 </span>
 
                 <MultiSelectDropdown
@@ -1088,10 +1070,10 @@ export default function GlobalFilterBar() {
               </>
             )}
 
-            {!isEmployeesPage && !isAiBasketPage && (
+            {!isEmployeesPage && !isBasketLikePage && (
               <>
                 {isSalesPage ? (
-                  salesShowReportsRow && (
+                  showReportsRow && (
                     <>
                       {/* Divider */}
                       <div
@@ -1113,7 +1095,7 @@ export default function GlobalFilterBar() {
                           textTransform: "uppercase",
                         }}
                       >
-                        📊 تقارير تفصيلية
+                        📊 غير لحظي 
                       </span>
 
                       <Dropdown
@@ -1153,7 +1135,8 @@ export default function GlobalFilterBar() {
                     </>
                   )
                 ) : (
-                  <>
+                  showReportsRow && (
+                    <>
                     {/* Divider */}
                     <div
                       style={{
@@ -1174,9 +1157,7 @@ export default function GlobalFilterBar() {
                         textTransform: "uppercase",
                       }}
                     >
-                      {isBranchesPage
-                        ? "📊 التقرير التفصيلي"
-                        : "📊 تقارير تفصيلية"}
+                      📊 غير لحظي
                     </span>
 
                     {isBranchesPage ? (
@@ -1253,35 +1234,71 @@ export default function GlobalFilterBar() {
                       </>
                     ) : (
                       <>
-                        {!isCustomersPage && (
-                          <SearchDropdown
-                            icon={Truck}
-                            label="الموزع"
-                            value={distributor}
-                            options={DISTRIBUTORS}
-                            onChange={setDistributor}
-                            accent="#f59e0b"
-                          />
-                        )}
-
-                        <SearchDropdown
-                          icon={Package}
-                          label="الفئة"
-                          value={category}
-                          options={CATEGORIES}
-                          onChange={setCategory}
-                          accent="#3b82f6"
-                        />
-
-                        {!isCustomersPage && (
-                          <SearchDropdown
-                            icon={Search}
-                            label="المنتج"
-                            value={product}
-                            options={PRODUCTS}
-                            onChange={setProduct}
-                            accent="#00d4ff"
-                          />
+                        {isCustomersPage ? (
+                          <>
+                            <MultiSelectDropdown
+                              icon={Layers}
+                              label="المجموعة الأولى"
+                              selectedValues={customersG1}
+                              options={SALES_GROUP_1}
+                              onChange={setCustomersG1}
+                              accent="var(--accent-amber)"
+                              manyLabel={(n) => `${n} مجموعات`}
+                            />
+                            <MultiSelectDropdown
+                              icon={Layers}
+                              label="المجموعة الثانية"
+                              selectedValues={customersG2}
+                              options={SALES_GROUP_2}
+                              onChange={setCustomersG2}
+                              accent="#f59e0b"
+                              manyLabel={(n) => `${n} مجموعات`}
+                            />
+                            <MultiSelectDropdown
+                              icon={Layers}
+                              label="المجموعة الثالثة"
+                              selectedValues={customersG3}
+                              options={SALES_GROUP_3}
+                              onChange={setCustomersG3}
+                              accent="#ea580c"
+                              manyLabel={(n) => `${n} مجموعات`}
+                            />
+                            <SearchDropdown
+                              icon={Search}
+                              label="المنتج"
+                              value={customersProduct}
+                              options={PRODUCTS}
+                              onChange={setCustomersProduct}
+                              accent="#00d4ff"
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <SearchDropdown
+                              icon={Truck}
+                              label="الموزع"
+                              value={distributor}
+                              options={DISTRIBUTORS}
+                              onChange={setDistributor}
+                              accent="#f59e0b"
+                            />
+                            <SearchDropdown
+                              icon={Package}
+                              label="الفئة"
+                              value={category}
+                              options={CATEGORIES}
+                              onChange={setCategory}
+                              accent="#3b82f6"
+                            />
+                            <SearchDropdown
+                              icon={Search}
+                              label="المنتج"
+                              value={product}
+                              options={PRODUCTS}
+                              onChange={setProduct}
+                              accent="#00d4ff"
+                            />
+                          </>
                         )}
 
                         {isProductsPage && (
@@ -1321,47 +1338,54 @@ export default function GlobalFilterBar() {
                           </>
                         )}
 
-                        <Dropdown
-                          icon={Percent}
-                          label="الخصم"
-                          value={discount}
-                          options={[
-                            { value: "", label: "الخصم" },
-                            ...DISCOUNTS.map((d) => ({ value: d, label: d })),
-                          ]}
-                          onChange={setDiscount}
-                          accent="#ef4444"
-                        />
+                        {!isCustomersPage && (
+                          <Dropdown
+                            icon={Percent}
+                            label="الخصم"
+                            value={discount}
+                            options={[
+                              { value: "", label: "الخصم" },
+                              ...DISCOUNTS.map((d) => ({
+                                value: d,
+                                label: d,
+                              })),
+                            ]}
+                            onChange={setDiscount}
+                            accent="#ef4444"
+                          />
+                        )}
 
-                        <Dropdown
-                          icon={CreditCard}
-                          label="نوع الدفع"
-                          value={paymentType}
-                          options={[
-                            { value: "", label: "نوع الدفع" },
-                            ...PAYMENT_TYPES.map((p) => ({
-                              value: p,
-                              label: p,
-                            })),
-                          ]}
-                          onChange={setPaymentType}
-                          accent="#a855f7"
-                        />
+                        {!isCustomersPage && (
+                          <Dropdown
+                            icon={CreditCard}
+                            label="نوع الدفع"
+                            value={paymentType}
+                            options={[
+                              { value: "", label: "نوع الدفع" },
+                              ...PAYMENT_TYPES.map((p) => ({
+                                value: p,
+                                label: p,
+                              })),
+                            ]}
+                            onChange={setPaymentType}
+                            accent="#a855f7"
+                          />
+                        )}
                       </>
                     )}
-                  </>
+                    </>
+                  )
                 )}
               </>
             )}
-          </>
-        )}
+        </>
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
         {/* زر إنشاء التقرير */}
         <AnimatePresence>
-          {hasReportFilter && (!isSalesPage || salesShowReportsRow) && (
+          {hasReportFilter && showReportsRow && (
             <motion.button
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}

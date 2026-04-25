@@ -86,14 +86,14 @@ const SalesVolumeVsProfitMargin = () => {
 
   const g1Options = useMemo(
     () => [
-      { value: "all", label: "كل المجموعة الأولى" },
+      { value: "all", label: "المجموعة الأولى" },
       ...productGroup1Options.map((o) => ({ value: o, label: o })),
     ],
     [productGroup1Options],
   );
   const g2Options = useMemo(
     () => [
-      { value: "all", label: "كل المجموعة الثانية" },
+      { value: "all", label: "المجموعة الثانية" },
       ...productGroup2Options.map((o) => ({ value: o, label: o })),
     ],
     [productGroup2Options],
@@ -102,7 +102,7 @@ const SalesVolumeVsProfitMargin = () => {
   const productGroup3Options = useMemo(() => ["مرتفع", "متوسط", "منخفض"], []);
   const productGroup3MultiOptions = useMemo(
     () => [
-      { value: "all", label: "كل المجموعة الثالثة" },
+      { value: "all", label: "المجموعة الثالثة" },
       ...productGroup3Options.map((o) => ({ value: o, label: o })),
     ],
     [productGroup3Options],

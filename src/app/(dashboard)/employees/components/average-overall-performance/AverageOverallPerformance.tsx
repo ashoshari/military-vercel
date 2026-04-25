@@ -15,6 +15,7 @@ import { useFilterStore } from "@/store/filterStore";
 
 const cashiers = cashiersBase.map((c, idx) => ({
   ...c,
+  id: `${c.name}-${idx}`,
   workShift: (idx % 2 === 0 ? "morning" : "evening") as "morning" | "evening",
   /** عدد الأصناف المباعة (تقديري للعرض) */
   soldItemsCount: Math.max(0, Math.round(c.transactions * (6 + c.atv / 6))),
@@ -174,7 +175,7 @@ const AverageOverallPerformance = () => {
           🏆 أفضل 3 كاشيرات
         </p>
         {ranked.slice(0, 3).map((c, i) => (
-          <div key={c.name} className="flex items-center gap-2">
+          <div key={c.id} className="flex items-center gap-2">
             <span
               style={{
                 fontSize: 10,

@@ -1,6 +1,7 @@
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
+import { rules } from "../../utils/rules";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -9,74 +10,187 @@ const ChartCard = dynamic(
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
   },
 );
+
+const MAX_NETWORK_RULES = 1000;
+const CHART_VIEWPORT_HEIGHT = "calc(100vh - 180px)";
+const CHART_CANVAS_HEIGHT = "100%";
+const CHART_CANVAS_WIDTH = "100%";
+
+const splitBasket = (basket: string) => basket.split(/\s*\u2192\s*/u);
+
+const topRules = [...rules]
+  .sort((a, b) => b.support - a.support)
+  .slice(0, MAX_NETWORK_RULES);
+
 const BasketAnalysisNetowrk = () => {
   const palette = useResolvedAnalyticsPalette();
 
-  /** توزيع المنتجات في السلة — مخطط دائري (بدلاً من شبكة ثانية). */
-  const basketMixPieOption = useMemo(() => {
-    const series = palette.seriesPalette;
-    const labelMuted = palette.primarySlate;
-    const basketMixPieData = [
-      { name: "حليب", value: 24 },
-      { name: "خبز", value: 22 },
-      { name: "أرز", value: 23 },
-      { name: "دجاج", value: 20 },
-      { name: "زيت", value: 19 },
-      { name: "شامبو", value: 18 },
-      { name: "بيض", value: 17 },
-      { name: "صابون", value: 15 },
-      { name: "تونة", value: 16 },
-      { name: "سكر", value: 14 },
-      { name: "مكرونة", value: 16 },
-      { name: "معجون", value: 14 },
-    ].map((d, i) => ({
-      ...d,
-      itemStyle: { color: series[i % series.length] },
-    }));
+  const networkOption = useMemo(() => {
+    const colorPool = [
+      palette.primaryBlue,
+      palette.primaryGreen,
+      palette.primaryCyan,
+      palette.primaryPurple,
+      palette.primaryAmber,
+      palette.primaryRed,
+      palette.primarySlate,
+    ] as const;
+
+    const productStats = new Map<
+      string,
+      {
+        degree: number;
+        totalSupport: number;
+        maxLift: number;
+      }
+    >();
+
+    topRules.forEach((rule) => {
+      const [sourceRaw, targetRaw] = splitBasket(rule.basket);
+      const source = sourceRaw?.trim();
+      const target = targetRaw?.trim();
+      if (!source || !target) return;
+
+      [source, target].forEach((product) => {
+        const current = productStats.get(product) ?? {
+          degree: 0,
+          totalSupport: 0,
+          maxLift: 0,
+        };
+
+        productStats.set(product, {
+          degree: current.degree + 1,
+          totalSupport: current.totalSupport + rule.support,
+          maxLift: Math.max(current.maxLift, rule.lift),
+        });
+      });
+    });
+
+    const nodes = Array.from(productStats.entries()).map(
+      ([product, stats], index) => {
+        const color = colorPool[index % colorPool.length];
+
+        return {
+          id: product,
+          name: product,
+          value: Number((stats.totalSupport * 100).toFixed(2)),
+          symbolSize: Math.min(
+            36,
+            12 + stats.degree * 1.6 + Math.min(stats.totalSupport * 18, 8),
+          ),
+          itemStyle: {
+            color,
+            borderColor: "#ffffff",
+            borderWidth: 2,
+            shadowBlur: 12,
+            shadowColor: `${color}44`,
+          },
+          label: {
+            show: stats.degree >= 3 || stats.totalSupport >= 0.18,
+            position: "right" as const,
+            fontSize: 10,
+            color: "#475569",
+            distance: 3,
+          },
+          tooltip: {
+            formatter: [
+              `<b>${product}</b>`,
+              `عدد الروابط: ${stats.degree}`,
+              `إجمالي الدعم: ${(stats.totalSupport * 100).toFixed(1)}%`,
+              `أعلى رفع: ${stats.maxLift.toFixed(2)}`,
+            ].join("<br/>"),
+          },
+        };
+      },
+    );
+
+    const links = topRules
+      .map((rule) => {
+        const [sourceRaw, targetRaw] = splitBasket(rule.basket);
+        const source = sourceRaw?.trim();
+        const target = targetRaw?.trim();
+        if (!source || !target) return null;
+
+        return {
+          source,
+          target,
+          value: rule.lift,
+          lineStyle: {
+            width: 0.4 + Math.min(rule.lift * 0.55, 2.1),
+            color: "rgba(148,163,184,0.22)",
+            opacity: 0.44,
+            curveness: 0.08,
+          },
+          tooltip: {
+            formatter: [
+              `<b>${source}</b> → <b>${target}</b>`,
+              `الدعم: ${(rule.support * 100).toFixed(1)}%`,
+              `الرفع: ${rule.lift.toFixed(2)}`,
+            ].join("<br/>"),
+          },
+        };
+      })
+      .filter(Boolean);
 
     return {
+      xAxis: { show: false },
+      yAxis: { show: false },
       tooltip: {
-        trigger: "item" as const,
-        formatter: (p: { name: string; value: number; percent: number }) =>
-          `${p.name}<br/>${p.value} — ${p.percent.toFixed(1)}%`,
+        formatter: (params: {
+          dataType?: string;
+          data?: { tooltip?: { formatter?: string } };
+        }) => params.data?.tooltip?.formatter,
       },
-      legend: {
-        type: "scroll" as const,
-        orient: "horizontal" as const,
-        bottom: 0,
-        left: "center",
-        textStyle: { fontSize: 9, color: labelMuted },
-        itemWidth: 10,
-        itemHeight: 8,
-        pageIconColor: labelMuted,
-      },
+      animation: false,
       series: [
         {
-          type: "pie" as const,
-          radius: ["38%", "62%"],
-          center: ["50%", "46%"],
-          avoidLabelOverlap: true,
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: "var(--bg-elevated)",
-            borderWidth: 1,
+          type: "graph" as const,
+          layout: "force" as const,
+          left: "4%",
+          right: "4%",
+          top: "4%",
+          bottom: "4%",
+          roam: true,
+          draggable: false,
+          data: nodes,
+          links,
+          zoom: 0.14,
+          scaleLimit: {
+            min: 0.01,
+            max: 2,
+          }, 
+          force: {
+            repulsion: 170,
+            gravity: 0.05,
+            edgeLength: [40, 138],
+            friction: 0.08,
+            layoutAnimation: false,
           },
-          label: { fontSize: 9, color: labelMuted },
           emphasis: {
-            itemStyle: { shadowBlur: 8, shadowColor: "rgba(0,0,0,0.2)" },
-            label: { show: true, fontWeight: "bold" as const },
+            focus: "adjacency" as const,
+            lineStyle: {
+              width: 2.4,
+              color: palette.primaryCyan,
+            },
           },
-          data: basketMixPieData,
+          edgeSymbol: ["none", "none"] as const,
+          edgeLabel: { show: false },
+          labelLayout: { hideOverlap: true },
         },
       ],
     };
   }, [palette]);
+
   return (
     <ChartCard
       title="شبكة تحليل السلة"
-      subtitle="توزيع المنتجات في السلة — مخطط دائري"
-      option={basketMixPieOption}
-      height="400px"
+      subtitle="شبكة ترابط المنتجات داخل السلة باستخدام قواعد الدعم والرفع"
+      option={networkOption}
+      height={CHART_VIEWPORT_HEIGHT}
+      innerChartHeight={CHART_CANVAS_HEIGHT}
+      width={CHART_CANVAS_WIDTH}
+      plotOverflowY="hidden"
+      scrollViewportDir="ltr"
       aiPowered
       delay={3}
     />

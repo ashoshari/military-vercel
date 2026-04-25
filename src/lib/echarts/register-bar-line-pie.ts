@@ -1,5 +1,5 @@
 import './register-components';
 import * as echarts from 'echarts/core';
-import { BarChart, LineChart, PieChart } from 'echarts/charts';
+import { BarChart, GraphChart, LineChart, PieChart } from 'echarts/charts';
 
-echarts.use([BarChart, LineChart, PieChart]);
+echarts.use([BarChart, GraphChart, LineChart, PieChart]);

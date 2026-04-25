@@ -134,7 +134,7 @@ export const CATS = [
   { label: "غير مصنف", pct: 0.01 },
 ];
 
-export const BRANCHES = [
+export const FIRST_GROUP = [
   { label: "سوق المنارة المركزي", pct: 0.18 },
   { label: "سوق سطح النجم", pct: 0.12 },
   { label: "فرع عمّان الغربي", pct: 0.1 },
@@ -148,6 +148,14 @@ export const BRANCHES = [
   { label: "فرع جرش التراث", pct: 0.06 },
   { label: "فرع الطفيلة", pct: 0.05 },
 ];
+
+export const THIRD_GROUPS = [
+  "المجموعة الثالثة 1",
+  "المجموعة الثالثة 2",
+  "المجموعة الثالثة 3",
+] as const;
+
+export const BRANCHES = FIRST_GROUP;
 
 interface TreeNode {
   id: string;

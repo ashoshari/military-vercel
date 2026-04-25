@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { useThemeStore } from "@/store/themeStore";
@@ -43,15 +43,16 @@ interface NavItem {
   href: string;
   isAI?: boolean;
   dividerBefore?: boolean;
+  subItems?: { id: string; label: string; href: string }[];
 }
 
 const navItems: NavItem[] = [
-  {
-    id: "dashboard",
-    label: "لوحة القيادة",
-    icon: LayoutDashboard,
-    href: "/dashboard",
-  },
+  // {
+  //   id: "dashboard",
+  //   label: "لوحة القيادة",
+  //   icon: LayoutDashboard,
+  //   href: "/dashboard",
+  // },
   { id: "sales", label: "تحليل المبيعات", icon: TrendingUp, href: "/sales" },
   { id: "branches", label: "أداء الفروع", icon: Building2, href: "/branches" },
   { id: "operations", label: "السلة", icon: Settings2, href: "/operations" },
@@ -92,6 +93,19 @@ const navItems: NavItem[] = [
     icon: ShoppingBasket,
     href: "/ai-basket",
     isAI: true,
+    subItems: [
+      { id: "ai-basket-main", label: "نظرة عامة", href: "/ai-basket" },
+      {
+        id: "ai-basket-products",
+        label: "شبكة ارتباط المنتجات",
+        href: "/ai-basket/products",
+      },
+      {
+        id: "ai-basket-analysis",
+        label: "شبكة تحليل السلة",
+        href: "/ai-basket/analysis",
+      },
+    ],
   },
   {
     id: "time-compare",
@@ -122,8 +136,16 @@ export default function Sidebar() {
   const { mode, toggleMode } = useThemeStore();
   const user = useAuthStore((s) => s.user);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isSmallViewport, setIsSmallViewport] = useState(false);
   const [time, setTime] = useState("");
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${LG_BREAKPOINT - 1}px)`);
@@ -349,78 +371,139 @@ export default function Sidebar() {
               {navItems.map((item) => {
                 const isActive =
                   pathname === item.href ||
-                  (item.href !== "/dashboard" &&
-                    pathname.startsWith(item.href));
+                  (item.href !== "/sales" && pathname.startsWith(item.href));
                 const Icon = item.icon;
+                const hasSubItems = item.subItems && item.subItems.length > 0;
+                  const isExpanded = expandedItems.includes(item.id) || isActive;
 
-                return (
-                  <React.Fragment key={item.id}>
-                    {item.dividerBefore && (
-                      <div
-                        className="mx-4 my-2 h-px"
-                        style={{ background: "var(--sidebar-divider)" }}
-                      />
-                    )}
-                    <Link href={item.href}>
-                      <div
-                        onClick={() => {
-                          if (isSmallViewport) setMobileOpen(false);
-                        }}
-                        className="relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group"
-                        style={{
-                          background: isActive
-                            ? "var(--sidebar-active-bg)"
-                            : "transparent",
-                          color: isActive
-                            ? "var(--sidebar-text-active)"
-                            : item.isAI
-                              ? "var(--sidebar-ai-text)"
-                              : "var(--sidebar-text)",
-                        }}
-                        title={isCollapsed ? item.label : undefined}
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeTab"
-                            className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-l-full"
-                            style={{ background: "var(--sidebar-active-bar)" }}
-                          />
-                        )}
-
-                        <Icon
-                          size={20}
-                          className="shrink-0 transition-colors"
+                  return (
+                    <React.Fragment key={item.id}>
+                      {item.dividerBefore && (
+                        <div
+                          className="mx-4 my-2 h-px"
+                          style={{ background: "var(--sidebar-divider)" }}
                         />
+                      )}
+                      <div className="flex flex-col">
+                        <Link
+                          href={hasSubItems ? "#" : item.href}
+                          onClick={(e) => {
+                            if (hasSubItems) {
+                              e.preventDefault();
+                              toggleExpand(item.id);
+                            } else if (isSmallViewport) {
+                              setMobileOpen(false);
+                            }
+                          }}
+                        >
+                          <div
+                            className="relative flex items-center gap-3 mx-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 group"
+                            style={{
+                              background: isActive && !hasSubItems
+                                ? "var(--sidebar-active-bg)"
+                                : "transparent",
+                              color:
+                                isActive && !hasSubItems
+                                  ? "var(--sidebar-text-active)"
+                                  : item.isAI
+                                    ? "var(--sidebar-ai-text)"
+                                    : "var(--sidebar-text)",
+                            }}
+                            title={isCollapsed ? item.label : undefined}
+                          >
+                            {isActive && !hasSubItems && (
+                              <motion.div
+                                layoutId="activeTab"
+                                className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-l-full"
+                                style={{
+                                  background: "var(--sidebar-active-bar)",
+                                }}
+                              />
+                            )}
 
+                            <Icon
+                              size={20}
+                              className="shrink-0 transition-colors"
+                            />
+
+                            <AnimatePresence>
+                              {!isCollapsed && (
+                                <motion.span
+                                  initial={{ opacity: 0, width: 0 }}
+                                  animate={{ opacity: 1, width: "auto" }}
+                                  exit={{ opacity: 0, width: 0 }}
+                                  className="text-[13px] font-medium whitespace-nowrap overflow-hidden flex-1"
+                                >
+                                  {item.label}
+                                </motion.span>
+                              )}
+                            </AnimatePresence>
+
+                            {!isCollapsed && hasSubItems && (
+                              <ChevronRight
+                                size={14}
+                                className={`transition-transform duration-200 ${
+                                  isExpanded ? "rotate-90" : ""
+                                }`}
+                                style={{ color: "var(--text-muted)" }}
+                              />
+                            )}
+
+                            {item.isAI && !isCollapsed && !hasSubItems && (
+                              <span
+                                className="mr-auto text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                                style={{
+                                  background: "var(--sidebar-ai-bg)",
+                                  color: "var(--sidebar-ai-text)",
+                                  border: "1px solid var(--sidebar-ai-border)",
+                                }}
+                              >
+                                AI
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+
+                        {/* Sub Items */}
                         <AnimatePresence>
-                          {!isCollapsed && (
-                            <motion.span
-                              initial={{ opacity: 0, width: 0 }}
-                              animate={{ opacity: 1, width: "auto" }}
-                              exit={{ opacity: 0, width: 0 }}
-                              className="text-[13px] font-medium whitespace-nowrap overflow-hidden"
+                          {hasSubItems && isExpanded && !isCollapsed && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden flex flex-col gap-1 mt-1 mb-2"
                             >
-                              {item.label}
-                            </motion.span>
+                              {item.subItems?.map((sub) => {
+                                const isSubActive = pathname === sub.href;
+                                // Note: window.location might not be available during SSR, but this is a client component.
+                                // Actually, in Next.js it's better to use useSearchParams for robustness.
+                                
+                                return (
+                                  <Link key={sub.id} href={sub.href}>
+                                    <div
+                                      onClick={() => {
+                                        if (isSmallViewport) setMobileOpen(false);
+                                      }}
+                                      className="flex items-center gap-3 mx-2 mr-9 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200"
+                                      style={{
+                                        background: isSubActive ? "var(--sidebar-active-bg)" : "transparent",
+                                        color: isSubActive ? "var(--sidebar-text-active)" : "var(--sidebar-text)",
+                                        opacity: isSubActive ? 1 : 0.8,
+                                      }}
+                                    >
+                                      <span className="text-[12px] font-medium whitespace-nowrap">
+                                        {sub.label}
+                                      </span>
+                                    </div>
+                                  </Link>
+                                );
+                              })}
+                            </motion.div>
                           )}
                         </AnimatePresence>
-
-                        {item.isAI && !isCollapsed && (
-                          <span
-                            className="mr-auto text-[9px] px-1.5 py-0.5 rounded-full font-bold"
-                            style={{
-                              background: "var(--sidebar-ai-bg)",
-                              color: "var(--sidebar-ai-text)",
-                              border: "1px solid var(--sidebar-ai-border)",
-                            }}
-                          >
-                            AI
-                          </span>
-                        )}
                       </div>
-                    </Link>
-                  </React.Fragment>
-                );
+                    </React.Fragment>
+                  );
               })}
             </nav>
 

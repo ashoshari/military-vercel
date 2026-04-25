@@ -82,7 +82,7 @@ export default function BranchBasketPriceBubbleSection({
           style={{ borderColor: "var(--border-subtle)" }}
         >
           {titleBlock}
-          <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+          <div className="mt-2 overflow-x-auto overflow-y-hidden max-w-[70%] flex items-center gap-1.5 text-[10px] px-2 whitespace-nowrap">
             {backButton}
             {BRANCH_PRODUCT_ANALYSIS.map((b) => {
               const on = basketPriceActiveBranches.includes(b.branch);
@@ -105,7 +105,7 @@ export default function BranchBasketPriceBubbleSection({
                       return Array.from(set);
                     });
                   }}
-                  className="px-2 py-0.5 rounded-full border transition-colors"
+                  className="px-2 py-0.5 rounded-full border transition-colors shrink-0 whitespace-nowrap"
                   style={{
                     borderColor: on
                       ? "var(--accent-green)"

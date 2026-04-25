@@ -60,12 +60,24 @@ export type BuildThreeYearMonthValueXAxesParams = {
   xMax: number;
   fullYear: boolean;
   sortedMonthIndices: number[];
+  yearSeparatorPositions?: number[];
+  yearSeparatorColor?: string;
+  yearSeparatorWidth?: number;
 };
 
 export function buildThreeYearMonthValueXAxes(
   params: BuildThreeYearMonthValueXAxesParams,
 ): Record<string, unknown>[] {
-  const { monthNames, years, xMax, fullYear, sortedMonthIndices } = params;
+  const {
+    monthNames,
+    years,
+    xMax,
+    fullYear,
+    sortedMonthIndices,
+    yearSeparatorPositions = [],
+    yearSeparatorColor = "rgba(148, 163, 184, 0.55)",
+    yearSeparatorWidth = 1,
+  } = params;
   const xMin = -0.5;
   const xMaxBound = xMax + 0.5;
 
@@ -191,6 +203,22 @@ export function buildThreeYearMonthValueXAxes(
         fontWeight: 600,
         margin: 2,
       },
+    },
+    // Extend the year separators from the plot area through the label bands.
+    {
+      ...baseAxis,
+      axisLine: { show: false },
+      axisTick: {
+        show: yearSeparatorPositions.length > 0,
+        alignWithLabel: true,
+        customValues: yearSeparatorPositions,
+        length: 74,
+        lineStyle: {
+          color: yearSeparatorColor,
+          width: yearSeparatorWidth,
+        },
+      },
+      axisLabel: { ...labelShowAll, formatter: () => "" },
     },
     // Divider line under the drill-year labels (no labels/ticks).
     {

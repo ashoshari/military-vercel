@@ -9,6 +9,8 @@ export function Dropdown({
   options,
   onChange,
   accent = "var(--accent-green)",
+  defaultValue,
+  left0,
 }: {
   icon: React.ElementType;
   label: string;
@@ -16,13 +18,17 @@ export function Dropdown({
   options: { value: string; label: string }[];
   onChange: (v: string) => void;
   accent?: string;
+  defaultValue?: string;
+  left0?: boolean;
 }) {
+  console.log(left0);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false));
   const display = options.find((o) => o.value === value)?.label ?? label;
-  const isChanged = value !== options[0]?.value;
+  const isChanged = value !== defaultValue;
 
+  const alignStyle = left0 ? { left: 0 } : { right: 0 };
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
@@ -70,7 +76,7 @@ export function Dropdown({
             style={{
               position: "absolute",
               top: "calc(100% + 6px)",
-              left: 0,
+              ...alignStyle,
               zIndex: 1050,
               background: "var(--bg-panel)",
               border: "1px solid var(--border-subtle)",

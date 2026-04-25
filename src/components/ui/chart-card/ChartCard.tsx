@@ -36,7 +36,10 @@ interface ChartCardProps {
   innerChartHeight?: string;
   option: Record<string, unknown>;
   height?: string;
+  /** Optional inner chart width for horizontal scrolling without stretching the card. */
   width?: string;
+  /** Controls the horizontal scroll container direction when the chart is wider than the card. */
+  scrollViewportDir?: "ltr" | "rtl";
   delay?: number;
   aiPowered?: boolean;
 }
@@ -425,6 +428,7 @@ function ChartCard({
   option,
   height = "320px",
   width = "100%",
+  scrollViewportDir,
   delay = 0,
   aiPowered = false,
 }: ChartCardProps) {
@@ -532,6 +536,10 @@ function ChartCard({
   const fullscreenChartNode = useMemo(() => chartEl("100%", true), [chartEl]);
 
   const showTitleBlock = Boolean(title || subtitle);
+  /** Tall inner canvas + plotOverflowY auto: inner wrapper must expand so the plot container can scroll. */
+  const plotScrollsWithInnerHeight =
+    plotOverflowY === "auto" && Boolean(innerChartHeight);
+  const hasCustomChartWidth = width !== "100%";
 
   const chartShell = (
     <>
@@ -592,16 +600,21 @@ function ChartCard({
         </div>
       </div>
       <div
-        className="overflow-x-auto sm:overflow-x-hidden"
+        className={hasCustomChartWidth ? "overflow-x-auto" : "overflow-x-auto sm:overflow-x-hidden"}
+        dir={scrollViewportDir}
         style={{
           height,
-          width,
+          width: "100%",
           overflowY: plotOverflowY,
         }}
       >
         <div
-          className="h-full min-w-230 sm:min-w-0"
-          style={{ overflow: "hidden" }}
+          className={`min-w-230 sm:min-w-0 ${plotScrollsWithInnerHeight ? "" : "h-full"}`}
+          style={{
+            width,
+            minWidth: hasCustomChartWidth ? width : undefined,
+            overflow: plotScrollsWithInnerHeight ? "visible" : "hidden",
+          }}
         >
           {inlineChartNode}
         </div>

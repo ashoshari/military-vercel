@@ -15,6 +15,7 @@ export interface User {
 
 interface AuthState {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   sessionExpiry: number | null;
   login: (username: string, password: string) => Promise<boolean>;
@@ -26,6 +27,7 @@ const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  token: null,
   isAuthenticated: false,
   sessionExpiry: null,
 
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     set({
       user: mockUser,
+      token: "mock-jwt-token-xyz", // Replace with real token from API response
       isAuthenticated: true,
       sessionExpiry: Date.now() + SESSION_DURATION,
     });
@@ -51,7 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    set({ user: null, isAuthenticated: false, sessionExpiry: null });
+    set({ user: null, token: null, isAuthenticated: false, sessionExpiry: null });
   },
 
   extendSession: () => {

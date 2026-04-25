@@ -214,11 +214,6 @@ const maxVisits = Math.max(...customers.map((c) => c.annualVisitsAvg));
 const maxBasketValue = Math.max(...customers.map((c) => c.avgBasketValue));
 const maxDiscountUsage = Math.max(...customers.map((c) => c.discountUsagePct));
 
-const fmt2 = (n: number) =>
-  new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(n);
 const fmtN = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 function segmentColor(seg: string) {
@@ -344,7 +339,10 @@ export default function CustomerInsightsTable() {
             align: "center",
           },
           {
-            label: sortHeaderLabel("متوسط عدد الزيارات السنوية", "annualVisitsAvg"),
+            label: sortHeaderLabel(
+              "متوسط عدد الزيارات السنوية",
+              "annualVisitsAvg",
+            ),
             align: "center",
           },
           {

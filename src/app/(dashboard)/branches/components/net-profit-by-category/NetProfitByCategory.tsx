@@ -100,7 +100,7 @@ const NetProfitByCategory = () => {
     <ChartCard
       title="صافي الأرباح حسب الفئة"
       titleFlag="green"
-      subtitle="Net Profit by Category"
+      subtitle="صافي الأرباح حسب الفئة"
       option={profitByCategoryOption}
       height="500px"
       delay={1}

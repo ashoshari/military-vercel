@@ -19,7 +19,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased" style={{ fontFamily: "'Noto Sans Arabic', 'Inter', sans-serif" }}>
+      <body
+        className="antialiased"
+        style={{ fontFamily: "'Noto Sans Arabic', 'Inter', sans-serif" }}
+      >
         {children}
       </body>
     </html>

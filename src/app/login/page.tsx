@@ -17,7 +17,6 @@ export default function LoginPage() {
   const login = useAuthStore((s) => s.login);
   const mode = useThemeStore((s) => s.mode);
   const isDark = mode === "dark";
-  console.log(mode);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,7 +34,7 @@ export default function LoginPage() {
     try {
       const success = await login(username, password);
       if (success) {
-        router.push("/dashboard");
+        router.push("/sales");
       }
     } catch {
       setError("فشل التحقق من الهوية. تواصل مع مسؤول النظام.");
@@ -212,7 +211,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg text-sm font-bold tracking-wide transition-all mt-6"
+              className="cursor-pointer w-full flex items-center justify-center gap-2 py-3.5 rounded-lg text-sm font-bold tracking-wide transition-all mt-6"
               style={{
                 background: isLoading
                   ? "rgba(4,120,87,0.3)"

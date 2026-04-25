@@ -5,18 +5,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { ChartTitleFlagBadge } from "@/components/ui/ChartTitleFlagBadge";
 import { secondarySalesMetric } from "./utils/data";
-import { treeData } from "./utils/TreeNode";
+import { treeData, type TreeNode } from "./utils/TreeNode";
 import { TreeItem } from "./components/TreeItem";
 
-interface TreeNode {
-  id: string;
-  label: string;
-  labelEn?: string;
-  value: number;
-  children?: TreeNode[];
-}
-
 type Level = { label: string; node: TreeNode };
+
+const HIERARCHY_TITLES = [
+  "الفرع",
+  "المجموعة الاولي",
+  "المجموعة الثانية",
+  "المجموعة الثالثة",
+  "المنتج",
+] as const;
 
 export default function SalesHierarchyAnalysis() {
   const [path, setPath] = useState<Level[]>([]);
@@ -24,28 +24,29 @@ export default function SalesHierarchyAnalysis() {
   const columns: { title: string; titleAr: string; nodes: TreeNode[] }[] = [];
 
   const rootChildren = treeData.children || [];
-  columns.push({ title: "Branch", titleAr: "الفرع", nodes: rootChildren });
+  columns.push({
+    title: HIERARCHY_TITLES[0],
+    titleAr: HIERARCHY_TITLES[0],
+    nodes: rootChildren,
+  });
 
   for (let i = 0; i < path.length; i++) {
     const children = path[i].node.children;
     if (children && children.length > 0) {
-      const nextTitles = ["Category", "SubCategory", "Product Na..."];
-      const nextTitlesAr = ["الفئة", "الفئة الفرعية", "المنتج"];
+      const nextTitle = HIERARCHY_TITLES[i + 1] || `المستوى ${i + 2}`;
       columns.push({
-        title: nextTitles[i] || `Level ${i + 2}`,
-        titleAr: nextTitlesAr[i] || `المستوى ${i + 2}`,
+        title: nextTitle,
+        titleAr: nextTitle,
         nodes: children,
       });
     }
   }
 
-  // القيمة القصوى لكل عمود
   const getMax = (nodes: TreeNode[]) => Math.max(...nodes.map((n) => n.value));
   const getMaxSecondary = (nodes: TreeNode[]) =>
     Math.max(1, ...nodes.map((n) => secondarySalesMetric(n)));
 
   const handleSelect = (colIdx: number, node: TreeNode) => {
-    // إذا نقر على نفس العنصر المحدد → إلغاء
     if (path[colIdx]?.node.id === node.id) {
       setPath(path.slice(0, colIdx));
     } else {
@@ -64,13 +65,12 @@ export default function SalesHierarchyAnalysis() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0; // RTL: scroll to start
+      scrollRef.current.scrollLeft = 0;
     }
   }, [path.length]);
 
   return (
     <div className="glass-panel overflow-hidden">
-      {/* رأس */}
       <div
         className="px-5 py-4 border-b"
         style={{ borderColor: "var(--border-subtle)" }}
@@ -88,12 +88,12 @@ export default function SalesHierarchyAnalysis() {
           className="text-[11px] mt-0.5"
           style={{ color: "var(--text-muted)" }}
         >
-          اضغط على أي عنصر للتعمق • الشريط والرقم الأزرق: المبيعات • الأخضر
-          تحتهما: ربح تقديري • الفرع ← الفئة ← الفئة الفرعية ← المنتج
+          اضغط على أي عنصر للتعمق • الشريط والرقم الأزرق: المبيعات • الأخضر:
+          ربح تقديري • الفرع ← المجموعة الاولي ← المجموعة الثانية ← المجموعة
+          الثالثة ← المنتج
         </p>
       </div>
 
-      {/* شريط الفلاتر */}
       <AnimatePresence>
         {path.length > 0 && (
           <motion.div
@@ -140,14 +140,13 @@ export default function SalesHierarchyAnalysis() {
         )}
       </AnimatePresence>
 
-      {/* جسم الشجرة: تمرير أفقي + صف الأعمدة */}
       <div ref={scrollRef} className="overflow-x-auto p-5">
         <div className="flex w-max me-auto ps-30 gap-2 items-stretch" dir="ltr">
-          {/* أعمدة ديناميكية — السهم يظهر قبل الصف المحدد داخل العمود */}
           {columns.map((col, colIdx) => {
             const selectedNode = path[colIdx]?.node;
             const maxVal = getMax(col.nodes);
             const maxSecVal = getMaxSecondary(col.nodes);
+
             return (
               <React.Fragment key={`col-${colIdx}`}>
                 <motion.div
@@ -157,7 +156,6 @@ export default function SalesHierarchyAnalysis() {
                   className="shrink-0 self-stretch flex flex-col"
                   style={{ minWidth: "160px", maxWidth: "160px" }}
                 >
-                  {/* رأس العمود */}
                   <div className="flex items-center justify-between mb-2 px-1">
                     <span
                       className="text-[10px] font-semibold"
@@ -176,13 +174,13 @@ export default function SalesHierarchyAnalysis() {
                     )}
                   </div>
 
-                  {/* العناصر */}
                   <div
                     className="space-y-0 overflow-y-auto flex-1 min-h-0"
                     style={{ maxHeight: "650px", paddingRight: "2px" }}
                   >
                     {col.nodes.map((node) => {
                       const isSel = selectedNode?.id === node.id;
+
                       return (
                         <TreeItem
                           key={node.id}
@@ -203,7 +201,6 @@ export default function SalesHierarchyAnalysis() {
         </div>
       </div>
 
-      {/* وسيلة الإيضاح */}
       <div className="px-5 pb-4 pt-0">
         <div className="flex flex-wrap items-center justify-center gap-3 text-[10px]">
           <div className="flex items-center gap-1">

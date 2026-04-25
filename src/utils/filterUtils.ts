@@ -2,10 +2,10 @@
 // بيانات الفلاتر
 // ═══════════════════════════════════════════════
 export const QUICK_PERIODS = [
-  { value: "week", label: "الأسبوع" },
-  { value: "month", label: "الشهر" },
-  { value: "quarter", label: "الربع" },
-  { value: "year", label: "السنة" },
+  { value: "week", label: "أسبوعي" },
+  { value: "month", label: "شهري" },
+  { value: "quarter", label: "ربع سنوي" },
+  { value: "year", label: "سنوي" },
 ];
 
 /** صفحة /sales: فترة لحظية — شهري فقط. */
@@ -24,16 +24,19 @@ export const EMPLOYEES_PAGE_QUICK_PERIODS = [{ value: "month", label: "شهري"
 /** صفحة /ai-basket — فترة لحظية شهري فقط. */
 export const AI_BASKET_PAGE_QUICK_PERIODS = [{ value: "month", label: "شهري" }];
 
+/** صفحة /customers — فترة لحظية شهري فقط. */
+export const CUSTOMERS_PAGE_QUICK_PERIODS = [{ value: "month", label: "شهري" }];
+
 /** صفحة /ai-basket — وقت البيع (صباح / مساء) */
 export const AI_BASKET_SHIFTS = [
-  { value: "all", label: "كل الفترات" },
+  { value: "all", label: "وقت البيع" },
   { value: "morning", label: "صباح" },
   { value: "evening", label: "مساء" },
 ] as const;
 
 /** صفحة /ai-basket — العروض */
 export const AI_BASKET_OFFERS = [
-  { value: "", label: "كل العروض" },
+  { value: "", label: "العروض" },
   { value: "seasonal", label: "عروض موسمية" },
   { value: "weekend", label: "عطلة نهاية الأسبوع" },
   { value: "clearance", label: "تصفيات" },
@@ -44,7 +47,7 @@ export const AI_BASKET_OFFERS = [
 /** صفحة /ai-basket — القيمة المادية للسلة (د.أ) */
 export const BASKET_VALUE_RANGES = [
   {
-    label: "كل القيم",
+    label: "القيمة المادية للسلة",
     range: [0, 100_000] as [number, number],
   },
   { label: "٠–٥٠ د.أ", range: [0, 50] as [number, number] },
@@ -75,7 +78,7 @@ export function getSalesQuickPeriodRange(
 }
 
 export const REGIONS = [
-  { value: "all", label: "كل الأقاليم" },
+  { value: "all", label: "الاقليم" },
   { value: "north", label: "الشمال" },
   { value: "center", label: "الوسط" },
   { value: "south", label: "الجنوب" },
@@ -83,7 +86,7 @@ export const REGIONS = [
 ];
 
 export const BRANCHES = [
-  { value: "all", label: "كل الفروع" },
+  { value: "all", label: "الفرع" },
   { value: "amman", label: "عمّان" },
   { value: "irbid", label: "إربد" },
   { value: "zarqa", label: "الزرقاء" },
@@ -95,7 +98,7 @@ export const BRANCHES = [
 
 /** صفحة /customers فقط — المناسبات */
 export const CUSTOMER_HOLIDAYS = [
-  { value: "", label: "كل المناسبات" },
+  { value: "", label: "أيام العطل / المناسبات" },
   { value: "eid_fitr", label: "عيد الفطر" },
   { value: "eid_adha", label: "عيد الأضحى" },
   { value: "ramadan", label: "رمضان" },
@@ -104,7 +107,7 @@ export const CUSTOMER_HOLIDAYS = [
 ] as const;
 
 export const AI_BASKET_HOLIDAY_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "كل الأيام" },
+  { value: "", label: "أيام العطل / المناسبات" },
   ...CUSTOMER_HOLIDAYS.slice(1).map((o) => ({
     value: o.value,
     label: o.label,
@@ -112,7 +115,7 @@ export const AI_BASKET_HOLIDAY_OPTIONS: { value: string; label: string }[] = [
 ];
 
 export const EMPLOYEES_CITIES = [
-  { value: "all", label: "كل المدن" },
+  { value: "all", label: "المدينة" },
   { value: "amman", label: "عمّان" },
   { value: "irbid", label: "إربد" },
   { value: "zarqa", label: "الزرقاء" },
@@ -123,7 +126,7 @@ export const EMPLOYEES_CITIES = [
 ] as const;
 
 export const WORK_SHIFTS = [
-  { value: "all", label: "الكل" },
+  { value: "all", label: "وقت البيع" },
   { value: "morning", label: "صباحاً" },
   { value: "evening", label: "مساء" },
 ] as const;
@@ -131,7 +134,7 @@ export const WORK_SHIFTS = [
 export const RETURN_RATE_RANGES = [
   {
     value: "all",
-    label: "كل نسب المرتجعات",
+    label: "نسبة المرتجعات",
     range: [0, 100] as [number, number],
   },
   { value: "0-1", label: "0% - 1%", range: [0, 1] as [number, number] },
@@ -142,7 +145,7 @@ export const RETURN_RATE_RANGES = [
 export const DAILY_INVOICE_RATIO_RANGES = [
   {
     value: "all",
-    label: "كل نسب الفواتير اليومية",
+    label: "نسبة عدد الفواتير اليومية",
     range: [0, 100] as [number, number],
   },
   { value: "0-1", label: "0% - 1%", range: [0, 1] as [number, number] },
@@ -155,7 +158,7 @@ export const DAILY_INVOICE_RATIO_RANGES = [
 export const EMPLOYEE_PERFORMANCE_RATIO_RANGES = [
   {
     value: "all",
-    label: "كل نسب الأداء",
+    label: "نسبة اداء الموظفين",
     range: [0, 100] as [number, number],
   },
   { value: "0-1", label: "0% - 1%", range: [0, 1] as [number, number] },
@@ -166,21 +169,21 @@ export const EMPLOYEE_PERFORMANCE_RATIO_RANGES = [
 
 /** فلاتر المبيعات — مجموعات هرمية (صفحة /sales فقط). */
 export const SALES_GROUP_1 = [
-  { value: "all", label: "كل المجموعة الأولى" },
+  { value: "all", label: "المجموعة الأولى" },
   { value: "grocery", label: "بقالة عامة" },
   { value: "fresh", label: "طازج ومبرد" },
   { value: "frozen", label: "مجمد" },
   { value: "dry", label: "جاف ومعلب" },
 ];
 export const SALES_GROUP_2 = [
-  { value: "all", label: "كل المجموعة الثانية" },
+  { value: "all", label: "المجموعة الثانية" },
   { value: "national", label: "علامات وطنية" },
   { value: "import", label: "علامات مستوردة" },
   { value: "private", label: "ماركة خاصة" },
   { value: "organic", label: "عضوي" },
 ];
 export const SALES_GROUP_3 = [
-  { value: "all", label: "كل المجموعة الثالثة" },
+  { value: "all", label: "المجموعة الثالثة" },
   { value: "promo", label: "عروض وتخفيضات" },
   { value: "regular", label: "سعر عادي" },
   { value: "bundle", label: "عبوات مجمّعة" },
@@ -189,7 +192,7 @@ export const SALES_GROUP_3 = [
 
 /** صفحة /sales — الشركات (لحظي) */
 export const SALES_COMPANIES = [
-  { value: "all", label: "كل الشركات" },
+  { value: "all", label: "الشركة" },
   { value: "mcc", label: "شركة المستهلك العسكري" },
   { value: "national_food", label: "شركات غذائية وطنية" },
   { value: "import_partner", label: "شريك استيراد" },
@@ -197,7 +200,7 @@ export const SALES_COMPANIES = [
 
 /** صفحة /sales — الاتفاقيات (تقارير تفصيلية) */
 export const SALES_AGREEMENTS = [
-  { value: "all", label: "كل الاتفاقيات" },
+  { value: "all", label: "الاتفاقية" },
   { value: "retail", label: "اتفاقية تجزئة" },
   { value: "wholesale", label: "اتفاقية جملة" },
   { value: "framework", label: "إطار تعاقدي عام" },
