@@ -13,11 +13,9 @@ export default function AIForecastPage() {
     <div className="space-y-6">
       <Header />
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
-        <div className="xl:col-span-3">
-          <ActualAndProjectedSalesByDate />
-        </div>
+      <div className="flex flex-col items-start w-full gap-4">
         <VerticalIndicators />
+        <ActualAndProjectedSalesByDate />
       </div>
 
       <DailyForecastDetails />

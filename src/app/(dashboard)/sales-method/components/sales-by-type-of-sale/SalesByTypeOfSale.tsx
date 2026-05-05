@@ -9,10 +9,31 @@ const ChartCard = dynamic(
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
   },
 );
+
+type ItemTooltipParam = {
+  marker?: string;
+  name?: string;
+  value?: number | string;
+};
+
+function formatItemTooltip(param: ItemTooltipParam) {
+  return `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; min-width:140px;">
+      <div style="display:flex; align-items:center;">
+        <span style="display:inline-flex; margin-inline-end:8px;">${param.marker ?? ""}</span>
+        <span>${param.name ?? ""}</span>
+      </div>
+      <strong>${Number(param.value ?? 0).toLocaleString("en-US")}</strong>
+    </div>`;
+}
 const SalesByTypeOfSale = () => {
   const palette = useResolvedAnalyticsPalette();
 
   const salesTypeOption = {
+    tooltip: {
+      trigger: "item" as const,
+      formatter: (param: ItemTooltipParam) => formatItemTooltip(param),
+    },
     xAxis: {
       type: "category" as const,
       data: salesTypeRows.map((r) => r.type),

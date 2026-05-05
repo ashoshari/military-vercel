@@ -2,10 +2,12 @@
 // بيانات الفلاتر
 // ═══════════════════════════════════════════════
 export const QUICK_PERIODS = [
-  { value: "week", label: "أسبوعي" },
-  { value: "month", label: "شهري" },
-  { value: "quarter", label: "ربع سنوي" },
-  { value: "year", label: "سنوي" },
+  { value: "month", label: "هذا الشهر" },
+  { value: "last-month", label: "الشهر الماضي" },
+  { value: "quarter", label: "هذا الربع" },
+  { value: "last-quarter", label: "الربع الماضي" },
+  { value: "year", label: "هذا العام" },
+  { value: "last-year", label: "العام الماضي" },
 ];
 
 /** صفحة /sales: فترة لحظية — شهري فقط. */

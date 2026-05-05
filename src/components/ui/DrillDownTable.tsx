@@ -540,6 +540,7 @@ export default function DrillDownTable() {
     <AnalyticsTableCard
       title="تحليل المبيعات التفصيلي — سوق / مجموعات / مادة"
       flag="green"
+      titleFlagNumber={5}
       subtitles={
         <>
           <p

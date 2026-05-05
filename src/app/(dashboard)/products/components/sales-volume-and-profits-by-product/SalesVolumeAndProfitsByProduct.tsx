@@ -1,10 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getProductData } from "@/lib/mockData";
 import { useThemeStore } from "@/store/themeStore";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
-import { Layers, Package } from "lucide-react";
-import { SearchDropdown } from "@/components/ui/SearchDropdown";
-import { Dropdown } from "@/components/ui/Dropdown";
 
 const ChartCard = dynamic(
   () => import("@/components/ui/chart-card/ChartCard"),
@@ -18,6 +16,36 @@ const products = getProductData();
 
 /** Plot area max height; taller charts scroll inside the card (`ChartCard` `plotOverflowY="auto"`). */
 const CHART_PLOT_MAX_HEIGHT_PX = 480;
+
+type AxisTooltipParam = {
+  axisValueLabel?: string;
+  marker?: string;
+  seriesName?: string;
+  value?: number | string;
+};
+
+function formatAxisTooltip(params: AxisTooltipParam | AxisTooltipParam[]) {
+  const items = Array.isArray(params) ? params : [params];
+  const title = items[0]?.axisValueLabel ?? "";
+  const rows = items
+    .map(
+      (item) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+          <div style="display:flex; align-items:center;">
+            <span style="display:inline-flex; margin-inline-end:8px;">${item.marker ?? ""}</span>
+            <span>${item.seriesName ?? ""}</span>
+          </div>
+          <strong>${Number(item.value ?? 0).toLocaleString("en-US")}</strong>
+        </div>`,
+    )
+    .join("");
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:8px; min-width:160px;">
+      <div style="font-weight:700;">${title}</div>
+      ${rows}
+    </div>`;
+}
 
 const contrib = [
   { name: "دجاج محمد باريال", vol: 2.08, profit: 7.31 },
@@ -43,13 +71,13 @@ const SalesVolumeAndProfitsByProduct = () => {
   const [contribG2, setContribG2] = useState<string | null>(null);
   const [contribProduct, setContribProduct] = useState<string | null>(null);
 
-  const contribProductOptions = useMemo(() => {
-    const out = products
-      .filter((p) => (contribG1 ? p.categoryAr === contribG1 : true))
-      .filter((p) => (contribG2 ? p.subcategory === contribG2 : true))
-      .map((p) => p.nameAr);
-    return out;
-  }, [contribG1, contribG2]);
+  // const contribProductOptions = useMemo(() => {
+  //   const out = products
+  //     .filter((p) => (contribG1 ? p.categoryAr === contribG1 : true))
+  //     .filter((p) => (contribG2 ? p.subcategory === contribG2 : true))
+  //     .map((p) => p.nameAr);
+  //   return out;
+  // }, [contribG1, contribG2]);
   const mode = useThemeStore((s) => s.mode);
   const isDark = mode === "dark";
   /** Same as ChartCard `hasBarSeries` cartesian enhancement (bar charts only get this automatically). */
@@ -106,7 +134,11 @@ const SalesVolumeAndProfitsByProduct = () => {
 
   const contribOption = useMemo(
     () => ({
-      tooltip: { trigger: "axis" as const },
+      tooltip: {
+        trigger: "axis" as const,
+        formatter: (params: AxisTooltipParam | AxisTooltipParam[]) =>
+          formatAxisTooltip(params),
+      },
       legend: {
         data: ["% حجم المبيعات", "% مساهمة الربح"],
         bottom: 0,
@@ -116,7 +148,7 @@ const SalesVolumeAndProfitsByProduct = () => {
         left: "3%",
         right: "4%",
         top: "0%",
-        bottom: "18%",
+        bottom: "10%",
         containLabel: true,
       },
       xAxis: {
@@ -206,48 +238,48 @@ const SalesVolumeAndProfitsByProduct = () => {
       option={contribOption}
       plotOverflowY="auto"
       innerChartHeight={`${contribScrollableHeightPx}px`}
-      headerExtra={
-        <div className="mt-2 flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2 text-[10px]">
-            <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
-              الفلاتر:
-            </span>
+      // headerExtra={
+      //   <div className="mt-2 flex flex-col gap-2">
+      //     <div className="flex flex-wrap items-center gap-2 text-[10px]">
+      //       <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+      //         الفلاتر:
+      //       </span>
 
-            <Dropdown
-              icon={Layers}
-              label="المجموعة الأولى"
-              value={contribG1 ?? "all"}
-              options={g1Options}
-              onChange={(v) => {
-                setContribG1(v === "all" ? null : v);
-                setContribProduct(null);
-              }}
-              accent="var(--accent-amber)"
-            />
+      //       <Dropdown
+      //         icon={Layers}
+      //         label="المجموعة الأولى"
+      //         value={contribG1 ?? "all"}
+      //         options={g1Options}
+      //         onChange={(v) => {
+      //           setContribG1(v === "all" ? null : v);
+      //           setContribProduct(null);
+      //         }}
+      //         accent="var(--accent-amber)"
+      //       />
 
-            <Dropdown
-              icon={Layers}
-              label="المجموعة الثانية"
-              value={contribG2 ?? "all"}
-              options={g2Options}
-              onChange={(v) => {
-                setContribG2(v === "all" ? null : v);
-                setContribProduct(null);
-              }}
-              accent="#f59e0b"
-            />
+      //       <Dropdown
+      //         icon={Layers}
+      //         label="المجموعة الثانية"
+      //         value={contribG2 ?? "all"}
+      //         options={g2Options}
+      //         onChange={(v) => {
+      //           setContribG2(v === "all" ? null : v);
+      //           setContribProduct(null);
+      //         }}
+      //         accent="#f59e0b"
+      //       />
 
-            <SearchDropdown
-              icon={Package}
-              label="المنتجات"
-              value={contribProduct ?? ""}
-              options={contribProductOptions}
-              onChange={(v) => setContribProduct(v || null)}
-              accent="#00d4ff"
-            />
-          </div>
-        </div>
-      }
+      //       <SearchDropdown
+      //         icon={Package}
+      //         label="المنتجات"
+      //         value={contribProduct ?? ""}
+      //         options={contribProductOptions}
+      //         onChange={(v) => setContribProduct(v || null)}
+      //         accent="#00d4ff"
+      //       />
+      //     </div>
+      //   </div>
+      // }
       className=""
       height={`${CHART_PLOT_MAX_HEIGHT_PX}px`}
       delay={1}

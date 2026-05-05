@@ -215,20 +215,16 @@ export default function MetricsBubblePlot({
   };
 
   return (
-    <div className="flex flex-col overflow-hidden">
+    <div className="w-full h-full overflow-hidden">
       <div
-        className="relative flex flex-col xl:flex-row"
+        className="relative h-full xl:flex-row"
         style={{ minHeight: plotHeight }}
       >
-        <div
-          className="relative flex-1 overflow-hidden flex"
-          style={{ height: plotHeight }}
-          dir="ltr"
-        >
+        <div className="relative flex-1 overflow-hidden h-full pb-4" dir="ltr">
           {/* Y axis title — LTR row so axis stays on the physical left under page RTL */}
           <div
-            className="shrink-0 flex items-center justify-center pointer-events-none z-5"
-            style={{ width: 22, color: "var(--text-muted)" }}
+            className="flex items-center justify-center pointer-events-none z-5 absolute top-0 left-0 bottom-0"
+            style={{ width: 22, height: "100%", color: "var(--text-muted)" }}
           >
             <span
               className="text-[9px] font-semibold whitespace-nowrap"
@@ -241,7 +237,8 @@ export default function MetricsBubblePlot({
           <div
             className="grid flex-1 min-w-0 min-h-0"
             style={{
-              paddingTop: compactBottom ? 6 : 8,
+              height: "100%",
+              paddingTop: compactBottom ? 16 : 8,
               paddingBottom: compactBottom ? 0 : 10,
               paddingRight: 8,
               gridTemplateColumns: "auto 1fr",
@@ -250,7 +247,7 @@ export default function MetricsBubblePlot({
           >
             {/* Y-axis tick column — row 1 only, same height as plot */}
             <div
-              className="relative shrink-0 w-9 min-h-0"
+              className="relative w-9 min-h-0"
               style={{ gridColumn: 1, gridRow: 1 }}
             >
               {yTicks.map((t) => {
@@ -506,7 +503,7 @@ export default function MetricsBubblePlot({
 
             {/* X-axis tick row — column 2, under plot */}
             <div
-              className={`relative shrink-0 w-full min-w-0 ${compactBottom ? "h-4.5" : "h-5.5"}`}
+              className={`relative shrink-0 w-full min-w-0 ${compactBottom ? "h-3.5" : "h-5.5"}`}
               style={{ gridColumn: 2, gridRow: 2 }}
               dir="ltr"
             >
@@ -532,16 +529,11 @@ export default function MetricsBubblePlot({
 
             {/* X axis title (under tick marks) */}
             <div
-              className={`relative shrink-0 flex justify-center items-center text-[9px] px-1 ${compactBottom ? "py-0" : "py-0.5"}`}
+              className={`relative flex justify-center items-center px-1 ${compactBottom ? "text-[9px] leading-none py-0" : "text-[9px] py-0.5"}`}
               style={{ gridColumn: 2, gridRow: 3, color: "var(--text-muted)" }}
               dir="ltr"
             >
-              <span
-                className="font-semibold"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                {xLabel}
-              </span>
+              <span className="font-semibold">{xLabel}</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { BarChart3, Target, TrendingUp } from "lucide-react";
+import { BarChart3, Target, TrendingUp, X } from "lucide-react";
 import { forecastData } from "../../utils/forecastData";
 import dynamic from "next/dynamic";
 import VerticalIndicatorCard from "./VerticalIndicatorCard";
@@ -6,6 +6,27 @@ import VerticalIndicatorCard from "./VerticalIndicatorCard";
 const accuracy = 99.03;
 
 const gaugeOption = {
+  grid: {
+    show: false,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+
+  xAxis: {
+    show: false,
+    axisLine: { show: false },
+    axisTick: { show: false },
+    splitLine: { show: false },
+  },
+
+  yAxis: {
+    show: false,
+    axisLine: { show: false },
+    axisTick: { show: false },
+    splitLine: { show: false },
+  },
   series: [
     {
       type: "gauge" as const,
@@ -14,7 +35,7 @@ const gaugeOption = {
       min: 0,
       max: 100,
       radius: "90%",
-      center: ["50%", "55%"],
+      center: ["50%", "54%"],
       pointer: { show: false },
       progress: {
         show: true,
@@ -24,7 +45,7 @@ const gaugeOption = {
         itemStyle: { color: "#3b82f6" },
       },
       axisLine: {
-        lineStyle: { width: 14, color: [[1, "var(--bg-elevated)"]] },
+        show: false,
       },
       axisTick: { show: false },
       splitLine: { show: false },
@@ -94,19 +115,21 @@ const ChartCard = dynamic(
 
 const VerticalIndicators = () => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-4 gap-4 w-full">
       {indicators.map((item, index) => (
         <VerticalIndicatorCard key={index} {...item} />
       ))}
 
-      <ChartCard
-        title="متوسط الدقة"
-        subtitle="Average of Accuracy"
-        option={gaugeOption}
-        height="180px"
-        aiPowered
-        delay={2}
-      />
+      <div>
+        <ChartCard
+          title="متوسط الدقة"
+          subtitle="Average of Accuracy"
+          option={gaugeOption}
+          height="180px"
+          aiPowered
+          delay={2}
+        />
+      </div>
     </div>
   );
 };

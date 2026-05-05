@@ -99,7 +99,7 @@ const NetProfitAndSalesByClassification = () => {
       title="صافي الأرباح والمبيعات حسب التصنيف"
       subtitle="مقارنة حسب التصنيف"
       titleFlag="green"
-      titleFlagNumber={1}
+      titleFlagNumber={2}
       headerExtra={
         <div className="flex items-center gap-0.5 flex-wrap justify-end">
           <span

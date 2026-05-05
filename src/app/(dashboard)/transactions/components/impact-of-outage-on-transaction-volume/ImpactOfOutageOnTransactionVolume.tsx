@@ -8,6 +8,41 @@ const ChartCard = dynamic(
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
   },
 );
+
+type AxisTooltipParam = {
+  axisValueLabel?: string;
+  marker?: string;
+  seriesName?: string;
+  value?: number | string;
+};
+
+function seededNoise(seed: number) {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function formatAxisTooltip(params: AxisTooltipParam | AxisTooltipParam[]) {
+  const items = Array.isArray(params) ? params : [params];
+  const title = items[0]?.axisValueLabel ?? "";
+  const rows = items
+    .map(
+      (item) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+          <div style="display:flex; align-items:center;">
+            <span style="display:inline-flex; margin-inline-end:8px;">${item.marker ?? ""}</span>
+            <span>${item.seriesName ?? ""}</span>
+          </div>
+          <strong>${Number(item.value ?? 0).toLocaleString("en-US")}</strong>
+        </div>`,
+    )
+    .join("");
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:8px; min-width:160px;">
+      <div style="font-weight:700;">${title}</div>
+      ${rows}
+    </div>`;
+}
 const days = Array.from({ length: 90 }, (_, i) => `يوم ${i + 1}`);
 
 const ImpactOfOutageOnTransactionVolume = () => {
@@ -16,9 +51,9 @@ const ImpactOfOutageOnTransactionVolume = () => {
       days.map((_, i) => {
         const base = 1800 + Math.sin(i * 0.15) * 400;
         const spike = [14, 28, 42, 58, 72, 85].includes(i)
-          ? 4000 + Math.random() * 3000
+          ? 4000 + seededNoise(i + 101) * 3000
           : 0;
-        return Math.round(base + spike + Math.random() * 300);
+        return Math.round(base + spike + seededNoise(i + 202) * 300);
       }),
     [],
   );
@@ -37,7 +72,11 @@ const ImpactOfOutageOnTransactionVolume = () => {
   }, []);
 
   const holidayOption = {
-    tooltip: { trigger: "axis" as const },
+    tooltip: {
+      trigger: "axis" as const,
+      formatter: (params: AxisTooltipParam | AxisTooltipParam[]) =>
+        formatAxisTooltip(params),
+    },
     grid: { left: "8%", right: "4%", top: "8%", bottom: "10%" },
     xAxis: {
       type: "category" as const,

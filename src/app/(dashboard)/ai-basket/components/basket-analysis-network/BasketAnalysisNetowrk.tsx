@@ -1,6 +1,6 @@
 import { useResolvedAnalyticsPalette } from "@/hooks/useResolvedAnalyticsPalette";
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { type ReactElement, useMemo } from "react";
 import { rules } from "../../utils/rules";
 
 const ChartCard = dynamic(
@@ -12,7 +12,7 @@ const ChartCard = dynamic(
 );
 
 const MAX_NETWORK_RULES = 1000;
-const CHART_VIEWPORT_HEIGHT = "calc(100vh - 180px)";
+const CHART_VIEWPORT_HEIGHT = "calc(100vh - 152px)";
 const CHART_CANVAS_HEIGHT = "100%";
 const CHART_CANVAS_WIDTH = "100%";
 
@@ -22,7 +22,7 @@ const topRules = [...rules]
   .sort((a, b) => b.support - a.support)
   .slice(0, MAX_NETWORK_RULES);
 
-const BasketAnalysisNetowrk = () => {
+const BasketAnalysisNetowrk = (): ReactElement => {
   const palette = useResolvedAnalyticsPalette();
 
   const networkOption = useMemo(() => {
@@ -146,23 +146,24 @@ const BasketAnalysisNetowrk = () => {
         {
           type: "graph" as const,
           layout: "force" as const,
-          left: "4%",
-          right: "4%",
-          top: "4%",
-          bottom: "4%",
+          left: "2%",
+          right: "2%",
+          top: "0.5%",
+          bottom: "0.5%",
           roam: true,
           draggable: false,
           data: nodes,
           links,
-          zoom: 0.14,
+          center: ["50%", "51%"],
+          zoom: 0.18,
           scaleLimit: {
-            min: 0.01,
+            min: 0.08,
             max: 2,
-          }, 
+          },
           force: {
-            repulsion: 170,
-            gravity: 0.05,
-            edgeLength: [40, 138],
+            repulsion: 162,
+            gravity: 0.06,
+            edgeLength: [36, 124],
             friction: 0.08,
             layoutAnimation: false,
           },

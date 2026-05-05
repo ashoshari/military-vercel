@@ -8,12 +8,34 @@ const ChartCard = dynamic(
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
   },
 );
+
+type ItemTooltipParam = {
+  marker?: string;
+  name?: string;
+  value?: number | string;
+  percent?: number;
+};
+
+function formatItemTooltip(param: ItemTooltipParam) {
+  return `
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; min-width:140px;">
+      <div style="display:flex; align-items:center;">
+        <span style="display:inline-flex; margin-inline-end:8px;">${param.marker ?? ""}</span>
+        <span>${param.name ?? ""}</span>
+      </div>
+      <strong>${param.percent != null ? `${param.percent}%` : Number(param.value ?? 0).toLocaleString("en-US")}</strong>
+    </div>`;
+}
 const ProductGroups = () => {
   const palette = useResolvedAnalyticsPalette();
 
   // ── مجموعات المنتجات حسب الاتفاقية ──
   const productGroupsOption = useMemo(
     () => ({
+      tooltip: {
+        trigger: "item" as const,
+        formatter: (param: ItemTooltipParam) => formatItemTooltip(param),
+      },
       series: [
         {
           type: "pie",

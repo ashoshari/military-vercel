@@ -547,31 +547,42 @@ function ChartCard({
         className={`${className} px-5 pt-4 pb-2 gap-3 ${showTitleBlock ? "justify-between" : "justify-end"}`}
       >
         {showTitleBlock && (
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              {titleLeading}
-              {titleFlag && (
-                <ChartTitleFlagBadge
-                  flag={titleFlag}
-                  flagNumber={titleFlagNumber}
-                  size="sm"
-                />
+          <div className="min-w-0 flex items-center gap-2 justify-between w-full">
+            <div className="w-full">
+              <div className="flex items-center gap-2">
+                {titleLeading}
+                {titleFlag && (
+                  <ChartTitleFlagBadge
+                    flag={titleFlag}
+                    flagNumber={titleFlagNumber}
+                    size="sm"
+                  />
+                )}
+                <h3
+                  className="text-sm font-semibold"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  {title}
+                </h3>
+              </div>
+              {subtitle && (
+                <p
+                  className="text-[11px] mt-0.5"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {subtitle}
+                </p>
               )}
-              <h3
-                className="text-sm font-semibold"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {title}
-              </h3>
             </div>
-            {subtitle && (
-              <p
-                className="text-[11px] mt-0.5"
-                style={{ color: "var(--text-muted)" }}
-              >
-                {subtitle}
-              </p>
-            )}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="p-1.5 rounded-md transition-all hover:scale-110 self-start"
+              style={{ color: "var(--text-muted)" }}
+              title="تكبير الشارت"
+            >
+              <Maximize2 size={14} />
+            </button>
           </div>
         )}
         <div className="flex items-center gap-2 mb-5">
@@ -588,19 +599,14 @@ function ChartCard({
               AI
             </span>
           )}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="p-1.5 rounded-md transition-all hover:scale-110"
-            style={{ color: "var(--text-muted)" }}
-            title="تكبير الشارت"
-          >
-            <Maximize2 size={14} />
-          </button>
         </div>
       </div>
       <div
-        className={hasCustomChartWidth ? "overflow-x-auto" : "overflow-x-auto sm:overflow-x-hidden"}
+        className={
+          hasCustomChartWidth
+            ? "overflow-x-auto"
+            : "overflow-x-auto sm:overflow-x-hidden"
+        }
         dir={scrollViewportDir}
         style={{
           height,

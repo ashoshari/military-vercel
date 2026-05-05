@@ -8,10 +8,45 @@ const ChartCard = dynamic(
     loading: () => <div style={{ height: 320 }}>Loading chart...</div>,
   },
 );
+
+type AxisTooltipParam = {
+  axisValueLabel?: string;
+  marker?: string;
+  seriesName?: string;
+  value?: number | string;
+};
+
+function formatAxisTooltip(params: AxisTooltipParam | AxisTooltipParam[]) {
+  const items = Array.isArray(params) ? params : [params];
+  const title = items[0]?.axisValueLabel ?? "";
+  const rows = items
+    .map(
+      (item) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+          <div style="display:flex; align-items:center;">
+            <span style="display:inline-flex; margin-inline-end:8px;">${item.marker ?? ""}</span>
+            <span>${item.seriesName ?? ""}</span>
+          </div>
+          <strong>${Number(item.value ?? 0).toLocaleString("en-US")}</strong>
+        </div>`,
+    )
+    .join("");
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:8px; min-width:160px;">
+      <div style="font-weight:700;">${title}</div>
+      ${rows}
+    </div>`;
+}
 const SellingTypeTrend = () => {
   const palette = useResolvedAnalyticsPalette();
 
   const salesTypeTrendOption = {
+    tooltip: {
+      trigger: "axis" as const,
+      formatter: (params: AxisTooltipParam | AxisTooltipParam[]) =>
+        formatAxisTooltip(params),
+    },
     xAxis: {
       type: "category" as const,
       data: Array.from({ length: 12 }, (_, i) => `شهر ${i + 1}`),

@@ -53,6 +53,38 @@ const fmt2 = (n: number) =>
   }).format(n);
 const fmtK = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(2)}K` : fmt2(n));
 
+type AxisTooltipParam = {
+  axisValueLabel?: string;
+  marker?: string;
+  seriesName?: string;
+  value?: number | string;
+};
+
+function formatAxisTooltip(params: AxisTooltipParam | AxisTooltipParam[]) {
+  const items = Array.isArray(params) ? params : [params];
+  const title = items[0]?.axisValueLabel ?? "";
+  const rows = items
+    .map(
+      (item) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+          <div style="display:flex; align-items:center;">
+            <span style="display:inline-flex; margin-inline-end:8px;">${item.marker ?? ""}</span>
+            <span>${item.seriesName ?? ""}</span>
+          </div>
+          <strong>${
+            typeof item.value === "number" ? fmtK(item.value) : (item.value ?? "")
+          }</strong>
+        </div>`,
+    )
+    .join("");
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:8px; min-width:160px;">
+      <div style="font-weight:700;">${title}</div>
+      ${rows}
+    </div>`;
+}
+
 const NetSalesProfitMarginAndDiscountsByDiscountRange = () => {
   const palette = useResolvedAnalyticsPalette();
 
@@ -62,6 +94,8 @@ const NetSalesProfitMarginAndDiscountsByDiscountRange = () => {
       backgroundColor: "#1a2035",
       borderColor: "#1e293b",
       textStyle: { color: "#e2e8f0", fontSize: 10 },
+      formatter: (params: AxisTooltipParam | AxisTooltipParam[]) =>
+        formatAxisTooltip(params),
     },
     legend: {
       data: ["صافي المبيعات", "قيمة الربح", "إجمالي الخصومات"],

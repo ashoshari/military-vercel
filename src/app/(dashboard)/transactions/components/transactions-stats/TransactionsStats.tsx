@@ -18,6 +18,7 @@ const totalVoids = branchData.reduce((a, b) => a + b.voidCount, 0);
 
 const kpis = [
   {
+    id: "atv",
     icon: DollarSign,
     label: "متوسط قيمة المعاملة (ATV)",
     value: "36.76",
@@ -25,6 +26,7 @@ const kpis = [
     dim: "rgba(4,120,87,0.1)",
   },
   {
+    id: "avg-basket-size",
     icon: ShoppingCart,
     label: "متوسط حجم السلة",
     value: "27",
@@ -32,6 +34,7 @@ const kpis = [
     dim: "rgba(8,145,178,0.1)",
   },
   {
+    id: "void-rate",
     icon: Ban,
     label: "% Void Transaction Rate",
     value: "0.05%",
@@ -39,6 +42,7 @@ const kpis = [
     dim: "rgba(220,38,38,0.1)",
   },
   {
+    id: "total-invoices",
     icon: Hash,
     label: "عدد الفواتير",
     value: "176K",
@@ -46,6 +50,7 @@ const kpis = [
     dim: "rgba(37,99,235,0.1)",
   },
   {
+    id: "total-invoices-2",
     icon: Receipt,
     label: "عدد الفواتير",
     value: fmtK(totalInvoices),
@@ -53,6 +58,7 @@ const kpis = [
     dim: "rgba(124,58,237,0.1)",
   },
   {
+    id: "total-voids",
     icon: AlertTriangle,
     label: "عدد الفواتير المرتجعة",
     value: String(totalVoids),
@@ -60,6 +66,7 @@ const kpis = [
     dim: "rgba(217,119,6,0.1)",
   },
   {
+    id: "total-voids-2",
     icon: Package,
     label: "عدد المنتجات الملغية",
     value: "146",
@@ -73,7 +80,7 @@ const TransactionsStats = () => {
     <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
       {kpis.map((k, i) => (
         <motion.div
-          key={k.label}
+          key={k.id}
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.04 }}

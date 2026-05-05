@@ -12,6 +12,20 @@ const PaymentMethod = () => {
   const palette = useResolvedAnalyticsPalette();
 
   const paymentMethodOption = {
+    xAxis: {
+      show: false,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { show: false },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      show: false,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { show: false },
+      splitLine: { show: false },
+    },
     tooltip: {
       trigger: "item" as const,
       formatter: (p: { name: string; value: number; percent: number }) =>

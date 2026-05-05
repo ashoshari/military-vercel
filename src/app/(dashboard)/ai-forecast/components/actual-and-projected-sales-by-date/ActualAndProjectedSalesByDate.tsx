@@ -61,14 +61,16 @@ const lineOption = {
 
 const ActualAndProjectedSalesByDate = () => {
   return (
-    <ChartCard
-      title="المبيعات الفعلية والمتوقعة حسب التاريخ"
-      subtitle="Actual Sales and Predicted Sales by Date"
-      option={lineOption}
-      height="360px"
-      aiPowered
-      delay={1}
-    />
+    <div className="w-full">
+      <ChartCard
+        title="المبيعات الفعلية والمتوقعة حسب التاريخ"
+        subtitle="Actual Sales and Predicted Sales by Date"
+        option={lineOption}
+        height="360px"
+        aiPowered
+        delay={1}
+      />
+    </div>
   );
 };
 

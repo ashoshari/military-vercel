@@ -7,7 +7,7 @@ type BasketRule = {
 };
 
 const RULE_SEPARATOR = " \u2192 ";
-const GENERATED_RULE_COUNT = 986;
+const GENERATED_RULE_COUNT = 486;
 
 const baseRules: BasketRule[] = [
   {

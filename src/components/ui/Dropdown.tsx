@@ -21,7 +21,6 @@ export function Dropdown({
   defaultValue?: string;
   left0?: boolean;
 }) {
-  console.log(left0);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false));

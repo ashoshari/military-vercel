@@ -81,7 +81,7 @@ const CashiersRankByPerformanceLevel = () => {
         left: "4%",
         right: "4%",
         top: "2%",
-        bottom: "15%",
+        bottom: 24,
         containLabel: true,
       },
       xAxis: {

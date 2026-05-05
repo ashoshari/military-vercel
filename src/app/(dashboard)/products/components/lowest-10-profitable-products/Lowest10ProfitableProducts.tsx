@@ -24,6 +24,36 @@ const redTones = [
   "#be123c",
 ];
 
+type AxisTooltipParam = {
+  axisValueLabel?: string;
+  marker?: string;
+  seriesName?: string;
+  value?: number | string;
+};
+
+function formatAxisTooltip(params: AxisTooltipParam | AxisTooltipParam[]) {
+  const items = Array.isArray(params) ? params : [params];
+  const title = items[0]?.axisValueLabel ?? "";
+  const rows = items
+    .map(
+      (item) => `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+          <div style="display:flex; align-items:center;">
+            <span style="display:inline-flex; margin-inline-end:8px;">${item.marker ?? ""}</span>
+            <span>${item.seriesName ?? ""}</span>
+          </div>
+          <strong>${Number(item.value ?? 0).toLocaleString("en-US")}</strong>
+        </div>`,
+    )
+    .join("");
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:8px; min-width:160px;">
+      <div style="font-weight:700;">${title}</div>
+      ${rows}
+    </div>`;
+}
+
 const bottom10 = [
   {
     name: "سبانخ معلبة هيلو 28 غم",
@@ -86,7 +116,11 @@ const Lowest10ProfitableProducts = () => {
     ? "rgba(148,163,184,0.22)"
     : "rgba(100,116,139,0.3)";
   const bottom10Option = {
-    tooltip: { trigger: "axis" as const },
+    tooltip: {
+      trigger: "axis" as const,
+      formatter: (params: AxisTooltipParam | AxisTooltipParam[]) =>
+        formatAxisTooltip(params),
+    },
     legend: {
       type: "scroll" as const,
       bottom: 0,

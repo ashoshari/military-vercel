@@ -105,7 +105,7 @@ const ReturnsRatioWithAverageInvoiceValue = () => {
   );
 
   return (
-    <div className="glass-panel p-0 overflow-hidden min-w-0">
+    <div className="glass-panel p-0 overflow-hidden min-w-0 h-full flex flex-col">
       <div
         className="px-4 py-3 border-b"
         style={{ borderColor: "var(--border-subtle)" }}
@@ -128,24 +128,26 @@ const ReturnsRatioWithAverageInvoiceValue = () => {
           لاسم الكاشير والتفاصيل
         </p>
       </div>
-      <MetricsBubblePlot
-        points={voidVsValueBubblePoints}
-        xLabel="نسبة الارجاع بالنسبة لعدد الفواتير الكلية"
-        yLabel="نسبة المبيعات المرتجعة من المبيعات الكلية"
-        variant="green"
-        plotHeight={320}
-        compactBottom
-        showDepthLegend={false}
-        formatXTick={(v) => `${v.toFixed(2)}%`}
-        entitySubtitle={() => "كاشير"}
-        detailLabels={{
-          vol: "إجمالي المبيعات",
-          price: "درجة الأداء",
-          basket: "عدد المواد الملغات",
-          atv: "متوسط قيمة المعاملة",
-        }}
-        formatPrice={(n) => `${n.toFixed(2)}%`}
-      />
+      <div className="flex-1 h-full">
+        <MetricsBubblePlot
+          points={voidVsValueBubblePoints}
+          xLabel="نسبة الارجاع بالنسبة لعدد الفواتير الكلية"
+          yLabel="نسبة المبيعات المرتجعة من المبيعات الكلية"
+          variant="green"
+          plotHeight={320}
+          compactBottom
+          showDepthLegend={false}
+          formatXTick={(v) => `${v.toFixed(2)}%`}
+          entitySubtitle={() => "كاشير"}
+          detailLabels={{
+            vol: "إجمالي المبيعات",
+            price: "درجة الأداء",
+            basket: "عدد المواد الملغات",
+            atv: "متوسط قيمة المعاملة",
+          }}
+          formatPrice={(n) => `${n.toFixed(2)}%`}
+        />
+      </div>
     </div>
   );
 };

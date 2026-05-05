@@ -335,7 +335,7 @@ const NetProfitAndSalesByDate = () => {
       title="صافي الأرباح والمبيعات حسب التاريخ"
       subtitle="انقر على المستوى للتعمق؛ عند «ربع» اختر السنوات المعروضة (أرباع كل سنة)؛ عند «شهر» اختر الشهور المعروضة (نفس الشهر من كل عام)"
       titleFlag="green"
-      titleFlagNumber={2}
+      titleFlagNumber={1}
       headerExtra={
         <div className="flex flex-col items-end gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
           <div className="flex items-center gap-0.5 flex-wrap justify-end">

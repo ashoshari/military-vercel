@@ -25,6 +25,13 @@ const fmt2 = (n: number) =>
   }).format(n);
 const fmtK = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(2)}K` : fmt2(n));
 
+type TrendTooltipParam = {
+  axisValueLabel?: string;
+  marker?: string;
+  seriesName?: string;
+  value?: number | string;
+};
+
 const CashierSalesTrends = () => {
   const palette = useResolvedAnalyticsPalette();
   const selectedEmployees = useFilterStore((s) => s.employee);
@@ -76,22 +83,48 @@ const CashierSalesTrends = () => {
     () => ({
       tooltip: {
         trigger: "axis" as const,
+        appendToBody: true,
         backgroundColor: "#1a2035",
         borderColor: "#1e293b",
         textStyle: { color: "#e2e8f0", fontSize: 11 },
+        extraCssText:
+          "z-index: 100002; box-shadow: 0 8px 30px rgba(0,0,0,0.35); border-radius: 10px;",
+        formatter: (params: TrendTooltipParam | TrendTooltipParam[]) => {
+          const items = Array.isArray(params) ? params : [params];
+          const title = items[0]?.axisValueLabel ?? "";
+          const rows = items
+            .map(
+              (item) => `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:14px;">
+                  <div style="display:flex; align-items:center;">
+                    <span style="display:inline-flex; margin-inline-end:8px;">${item.marker ?? ""}</span>
+                    <span>${item.seriesName ?? ""}</span>
+                  </div>
+                  <strong style="font-weight:700;">${fmtK(Number(item.value ?? 0))}</strong>
+                </div>`,
+            )
+            .join("");
+
+          return `
+            <div style="display:flex; flex-direction:column; gap:8px; min-width:140px;">
+              <div style="font-weight:700; color:#f8fafc;">${title}</div>
+              ${rows}
+            </div>`;
+        },
       },
       legend: {
         data: filteredCashiers.map((c) => c.short),
-        bottom: 0,
+        bottom: 2,
+        itemGap: 12,
         textStyle: { color: palette.primaryGreen, fontSize: 8 },
         type: "scroll" as const,
         pageIconColor: palette.primaryGreen,
         pageTextStyle: { color: palette.primaryGreen },
       },
       grid: {
-        bottom: "22%",
+        bottom: "16%",
         top: "5%",
-        left: "2%",
+        left: "3%",
         right: "2%",
         containLabel: true,
       },
@@ -106,11 +139,11 @@ const CashierSalesTrends = () => {
         type: "value" as const,
         name: "عدد الفواتير",
         nameLocation: "middle" as const,
-        nameGap: 46,
+        nameGap: 38,
         nameTextStyle: {
           color: "#64748b",
           fontSize: 10,
-          fontWeight: 700,
+          fontWeight: 400,
         },
         axisLabel: {
           formatter: (v: number) => fmtK(v),

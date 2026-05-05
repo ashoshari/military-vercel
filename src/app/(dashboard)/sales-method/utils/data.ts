@@ -1,7 +1,39 @@
 export const paymentRows = [
-  { method: "نقدي", sales: 336540, volume: 4120, margin: 22.1 },
-  { method: "فيزا / ماستركارد", sales: 78920, volume: 980, margin: 19.5 },
-  { method: "كوبون / قسيمة", sales: 10370, volume: 142, margin: 14.3 },
+  {
+    method: "طلبات",
+    paymentType: "دفع غير فوري",
+    sales: 220000,
+    volume: 2700,
+    margin: 22.5,
+  },
+  {
+    method: "ذمم",
+    paymentType: "دفع غير فوري",
+    sales: 116540,
+    volume: 1420,
+    margin: 21.6,
+  },
+  {
+    method: "visa",
+    paymentType: "الدفع الفوري",
+    sales: 42000,
+    volume: 520,
+    margin: 19.8,
+  },
+  {
+    method: "cash",
+    paymentType: "الدفع الفوري",
+    sales: 28920,
+    volume: 360,
+    margin: 18.9,
+  },
+  {
+    method: "copon",
+    paymentType: "الدفع الفوري",
+    sales: 8000,
+    volume: 100,
+    margin: 17.5,
+  },
 ];
 
 export const salesTypeRows = [

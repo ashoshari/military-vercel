@@ -238,6 +238,7 @@ export default function TransactionsCountWaterfall() {
       subtitle="عدد المعاملات حسب السنة / الربع وموقع الفرع"
       option={option}
       height="360px"
+      titleFlagNumber={6}
       delay={2}
       headerExtra={
         <div className="flex flex-wrap items-center justify-end gap-2">

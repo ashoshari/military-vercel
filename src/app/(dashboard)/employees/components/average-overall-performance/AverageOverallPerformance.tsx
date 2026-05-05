@@ -69,6 +69,20 @@ const AverageOverallPerformance = () => {
             ? "#f97316"
             : palette.primaryRed;
     return {
+      xAxis: {
+        show: false,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
+      },
+      yAxis: {
+        show: false,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
+      },
       series: [
         {
           type: "gauge",
@@ -76,7 +90,8 @@ const AverageOverallPerformance = () => {
           endAngle: -20,
           min: 0,
           max: 100,
-          radius: "82%",
+          center: ["50%", "59%"],
+          radius: "88%",
           pointer: { show: false },
           progress: {
             show: true,
@@ -116,7 +131,7 @@ const AverageOverallPerformance = () => {
     };
   }, [palette]);
   return (
-    <div className="glass-panel overflow-hidden flex flex-col">
+    <div className="glass-panel overflow-hidden flex h-full flex-col">
       <div
         className="px-4 py-3 border-b"
         style={{ borderColor: "var(--border-subtle)" }}
@@ -139,10 +154,15 @@ const AverageOverallPerformance = () => {
       </div>
       {/* ChartCard = toolbar row + plot; fixed 170px wrapper was shorter than total → overlap below */}
       <div className="shrink-0 w-full">
-        <ChartCard title="" option={gaugeOption} height="138px" />
+        <ChartCard
+          title=""
+          className="hidden"
+          option={gaugeOption}
+          height="122px"
+        />
       </div>
       <div
-        className="flex items-center justify-center gap-2 text-[9px] py-1.5"
+        className="flex items-center justify-center gap-2 text-[9px] py-3"
         style={{ color: "var(--text-muted)" }}
       >
         {[
@@ -165,7 +185,7 @@ const AverageOverallPerformance = () => {
         ))}
       </div>
       <div
-        className="px-4 py-3 space-y-2.5 flex-1 border-t"
+        className="px-4 py-3 space-y-4 flex-1 border-t"
         style={{ borderColor: "var(--border-subtle)" }}
       >
         <p

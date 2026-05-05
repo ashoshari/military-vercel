@@ -24,7 +24,7 @@ export default function VerticalIndicatorCard({
   valueColor,
 }: VerticalIndicatorCardProps) {
   return (
-    <div className="glass-panel ai-module p-4 text-center">
+    <div className="glass-panel ai-module p-4 text-center w-full flex flex-col items-center gap-4">
       <div
         className="mx-auto w-10 h-10 rounded-full flex items-center justify-center mb-2"
         style={{ background: iconOrbBackground }}
@@ -32,12 +32,12 @@ export default function VerticalIndicatorCard({
         <Icon size={18} style={{ color: iconColor }} />
       </div>
       <p
-        className="text-[10px] font-semibold"
+        className="text-[12px] font-semibold"
         style={{ color: "var(--text-muted)" }}
       >
         {titleAr}
       </p>
-      <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+      <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>
         {titleEn}
       </p>
       <p

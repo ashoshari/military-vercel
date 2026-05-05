@@ -13,6 +13,7 @@ export default function AnalyticsTableCard({
   subtitles,
   headerExtra,
   children,
+  titleFlagNumber,
   footer,
 }: {
   title: string;
@@ -27,6 +28,7 @@ export default function AnalyticsTableCard({
   children: React.ReactNode;
   /** Optional strip under the table (pagination, totals, …). */
   footer?: React.ReactNode;
+  titleFlagNumber?: number;
 }) {
   return (
     <div
@@ -39,7 +41,11 @@ export default function AnalyticsTableCard({
         <div>
           <div className="flex items-center gap-2">
             {flag !== false && (
-              <ChartTitleFlagBadge flag={flag ?? "green"} size="sm" />
+              <ChartTitleFlagBadge
+                flag={flag ?? "green"}
+                size="sm"
+                flagNumber={titleFlagNumber}
+              />
             )}
             <h3
               className="text-sm font-semibold"
